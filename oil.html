@@ -357,25 +357,24 @@
 <div class="tabs">
   <div class="tab active" data-tab="curve" onclick="switchTab('curve', this)">Forward Curve</div>
   <div class="tab" data-tab="history" onclick="switchTab('history', this)">Prediction History</div>
-  <div class="tab" data-tab="backtest" onclick="switchTab('backtest', this)">Backtest</div>
 </div>
 
 <!-- CURVE TAB -->
 <div id="tab-curve">
   <div class="controls">
     <div class="btn-group">
-      <button id="btn-wti" class="active" onclick="setBenchmark('wti')">WTI</button>
-      <button id="btn-brent" onclick="setBenchmark('brent')">Brent</button>
+      <button id="btn-wti" onclick="setBenchmark('wti')">WTI</button>
+      <button id="btn-brent" class="active" onclick="setBenchmark('brent')">Brent</button>
     </div>
     <label>
       <input type="checkbox" id="show-bands" checked onchange="renderCurve()">
       Show uncertainty bands
     </label>
     <label>
-      <input type="checkbox" id="show-pump" onchange="togglePump()">
+      <input type="checkbox" id="show-pump" checked onchange="togglePump()">
       Pump price ($/gal)
     </label>
-    <select id="pump-region" class="region-select" style="display:none"
+    <select id="pump-region" class="region-select"
             onchange="setPumpRegion(this.value)">
       <option value="national">US National Avg</option>
       <option value="gulf">Gulf Coast</option>
@@ -404,8 +403,8 @@
 <div id="tab-history" style="display:none">
   <div class="controls">
     <div class="btn-group">
-      <button id="btn-wti-h" class="active" onclick="setBenchmarkH('wti')">WTI</button>
-      <button id="btn-brent-h" onclick="setBenchmarkH('brent')">Brent</button>
+      <button id="btn-wti-h" onclick="setBenchmarkH('wti')">WTI</button>
+      <button id="btn-brent-h" class="active" onclick="setBenchmarkH('brent')">Brent</button>
     </div>
     <span class="meta" id="snapshot-count"></span>
   </div>
@@ -420,71 +419,6 @@
   </p>
 </div>
 
-<!-- BACKTEST TAB -->
-<div id="tab-backtest" style="display:none">
-
-  <div class="bt-section" id="bt-coverage-section" style="display:none">
-    <h3>Band calibration — did the predicted ranges hold up?</h3>
-    <p style="font-size:0.85em;color:#666;margin-bottom:0.8em">
-      For every historical week, the model computed asymmetric uncertainty bands
-      (downside vol 50%, upside 28%) around the futures price. This shows what
-      fraction of realized prices actually fell inside those bands.
-      Well-calibrated bands should hit ~68% and ~95%.
-    </p>
-    <div id="bt-coverage-container"></div>
-  </div>
-
-  <div class="bt-section">
-    <h3>Point forecast accuracy — WTI, 2004–present</h3>
-    <p style="font-size:0.85em;color:#666;margin-bottom:0.8em">
-      Prediction = EIA NYMEX nth-nearby futures price on date <em>t</em>.
-      Realized = WTI spot price (EIA) at <em>t + h</em>.
-      Naive = today's spot used as forecast (random-walk benchmark).
-      A positive bias means futures <em>under</em>-predicted realized prices on average.
-    </p>
-    <div id="bt-summary-container">
-      <div class="no-data" style="text-align:left;padding:1.5em">
-        Backtest data not yet generated. Trigger the GitHub Actions workflow
-        (<strong>Actions → Update Oil Futures Data → Run workflow</strong>) to compute it.
-      </div>
-    </div>
-  </div>
-
-  <div class="bt-section" id="bt-error-section" style="display:none">
-    <h3>Monthly prediction error over time (1-month horizon)</h3>
-    <div class="horizon-btns" id="horizon-btns">
-      <button class="active" onclick="setHorizon('1m',this)">1 month</button>
-      <button onclick="setHorizon('2m',this)">2 months</button>
-      <button onclick="setHorizon('3m',this)">3 months</button>
-      <button onclick="setHorizon('4m',this)">4 months</button>
-    </div>
-    <div class="chart-container" style="height:320px">
-      <canvas id="btErrorChart"></canvas>
-    </div>
-    <p class="legend-note">
-      Error = realized spot − futures prediction ($/bbl).
-      Positive = futures under-predicted; negative = futures over-predicted.
-    </p>
-  </div>
-
-  <div class="bt-section" id="bt-year-section" style="display:none">
-    <h3>Annual average absolute error by horizon</h3>
-    <div class="chart-container" style="height:320px">
-      <canvas id="btYearChart"></canvas>
-    </div>
-    <p class="legend-note">
-      MAE (mean absolute error) in $/bbl per year. Years with large errors correspond
-      to price dislocations: 2008 financial crisis, 2014–16 oil crash, 2020 COVID.
-    </p>
-  </div>
-
-  <div class="bt-section" id="bt-regime-section" style="display:none">
-    <h3>Performance by market regime (1-month horizon)</h3>
-    <div id="bt-regime-container"></div>
-  </div>
-
-</div>
-
 <div id="no-data-msg" style="display:none">
   <div class="no-data">
     <p><strong>No data yet.</strong></p>
@@ -496,12 +430,12 @@
 </div><!-- /.content -->
 
 <site-footer>
-  <span>By <a href="/">Keller Scholl</a></span>
+  <span>By <a href="/">Keller Scholl</a> &nbsp;·&nbsp; <a href="/details.html">Details &amp; methodology</a></span>
   <span>
     <a href="http://keller.substack.com" target="_blank" rel="noopener">Substack</a>
     &nbsp;·&nbsp;
     Crude futures: Yahoo Finance &nbsp;·&nbsp;
-    Pump model: FRED + EIA &nbsp;·&nbsp;
+    Pump model: EIA &nbsp;·&nbsp;
     Updated weekly
   </span>
 </site-footer>
@@ -663,17 +597,13 @@ function pumpBandEndpoint(contracts, bands, idx, isBrent, crudeBandBbl) {
 // State
 // ---------------------------------------------------------------------------
 let oilData  = null;
-let btData   = null;
 let lagModel = null;    // empirical distributed lag coefficients
-let benchmark  = 'wti';
-let benchmarkH = 'wti';
-let activeHorizon = '1m';
-let showPump  = false;
+let benchmark  = 'brent';
+let benchmarkH = 'brent';
+let showPump  = true;
 let pumpRegion = 'national';
 let curveChart   = null;
 let historyChart = null;
-let btErrorChart = null;
-let btYearChart  = null;
 
 // Asymmetric uncertainty parameters, calibrated from 20-year WTI backtest.
 //
@@ -706,11 +636,6 @@ fetch('data/oil-futures.json')
     document.getElementById('tab-history').style.display = 'none';
     document.querySelectorAll('.tabs').forEach(t => t.style.display = 'none');
   });
-
-fetch('data/oil-backtest.json')
-  .then(r => r.json())
-  .then(data => { btData = data; })
-  .catch(() => { /* backtest not yet generated — handled in renderBacktest */ });
 
 fetch('data/lag-model.json')
   .then(r => r.json())
@@ -749,12 +674,10 @@ function init() {
 function switchTab(tab, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('tab-curve').style.display    = tab === 'curve'    ? '' : 'none';
-  document.getElementById('tab-history').style.display  = tab === 'history'  ? '' : 'none';
-  document.getElementById('tab-backtest').style.display = tab === 'backtest' ? '' : 'none';
+  document.getElementById('tab-curve').style.display   = tab === 'curve'   ? '' : 'none';
+  document.getElementById('tab-history').style.display = tab === 'history' ? '' : 'none';
 
   if (tab === 'history' && !historyChart) renderHistory();
-  if (tab === 'backtest') renderBacktest();
 }
 
 // ---------------------------------------------------------------------------
@@ -1096,312 +1019,6 @@ function renderHistory() {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Backtest
-// ---------------------------------------------------------------------------
-
-const HORIZON_COLORS = {
-  '1m': '#2c5282',
-  '2m': '#2f855a',
-  '3m': '#b7791f',
-  '4m': '#9b2c2c',
-};
-
-const HORIZON_LABELS = {
-  '1m': '1 month',
-  '2m': '2 months',
-  '3m': '3 months',
-  '4m': '4 months',
-};
-
-function setHorizon(h, btn) {
-  activeHorizon = h;
-  document.querySelectorAll('#horizon-btns button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const errSection = document.getElementById('bt-error-section');
-  errSection.querySelector('h3').textContent =
-    `Monthly prediction error over time (${HORIZON_LABELS[h]} horizon)`;
-  renderBtErrorChart();
-}
-
-function coverageColor(actual, target) {
-  const diff = Math.abs(actual - target);
-  if (diff <= 0.05) return 'good';
-  if (diff <= 0.12) return '';
-  return 'bad';
-}
-
-function renderBacktest() {
-  if (!btData || !btData.results) return;
-  const res = btData.results;
-
-  // --- Band coverage section ---
-  const horizons = ['1m','2m','3m','4m'].filter(h => res[h]);
-  if (!horizons.length) return;
-
-  const hasCoverage = horizons.some(h => res[h].coverage_68 != null);
-  if (hasCoverage) {
-    const cards = horizons.map(h => {
-      const s = res[h];
-      const c68 = (s.coverage_68 * 100).toFixed(1) + '%';
-      const c95 = (s.coverage_95 * 100).toFixed(1) + '%';
-      const cl68 = coverageColor(s.coverage_68, 0.68);
-      const cl95 = coverageColor(s.coverage_95, 0.95);
-      const abv1 = (s.pct_above_upper1 * 100).toFixed(1);
-      const blw1 = (s.pct_below_lower1 * 100).toFixed(1);
-      return `<div class="coverage-card">
-        <div class="horizon-label">${s.label} horizon</div>
-        <div class="cov-row">
-          <span class="cov-label">68% band:</span>
-          <span class="cov-pct ${cl68}">${c68}</span>
-        </div>
-        <div class="cov-row">
-          <span class="cov-label">95% band:</span>
-          <span class="cov-pct ${cl95}">${c95}</span>
-        </div>
-        <div class="asym-row">
-          When outside 68%: ${abv1}% above · ${blw1}% below
-        </div>
-      </div>`;
-    }).join('');
-    document.getElementById('bt-coverage-container').innerHTML =
-      `<div class="coverage-grid">${cards}</div>
-       <p class="legend-note">
-         <span class="good">Green</span> = within 5 pp of target;
-         <span class="bad">red</span> = off by more than 12 pp.
-         "Above/below" shows whether the model is systematically too tight
-         on the upside or downside.
-       </p>`;
-    document.getElementById('bt-coverage-section').style.display = '';
-  }
-
-  // --- Point forecast summary table ---
-  const thead = `<tr>
-    <th>Horizon</th>
-    <th>N <span class="note">(days)</span></th>
-    <th>Bias <span class="note">$/bbl</span></th>
-    <th>MAE <span class="note">$/bbl</span></th>
-    <th>RMSE <span class="note">$/bbl</span></th>
-    <th>Naive RMSE</th>
-    <th>R²</th>
-    <th>Hit rate</th>
-    <th>Within ±10%</th>
-  </tr>`;
-
-  const rows = horizons.map(h => {
-    const s = res[h];
-    const betterThanNaive = s.rmse < s.naive_rmse;
-    const biasClass = s.bias > 0 ? 'bad' : 'good';
-    return `<tr>
-      <td>${s.label}</td>
-      <td>${s.n.toLocaleString()}</td>
-      <td class="${biasClass}">${s.bias > 0 ? '+' : ''}${s.bias}</td>
-      <td>${s.mae}</td>
-      <td class="${betterThanNaive ? 'good' : 'bad'}">${s.rmse}</td>
-      <td>${s.naive_rmse}</td>
-      <td>${s.r2 != null ? s.r2 : '—'}</td>
-      <td>${s.hit_rate != null ? (s.hit_rate * 100).toFixed(1) + '%' : '—'}</td>
-      <td>${s.within_10pct != null ? (s.within_10pct * 100).toFixed(1) + '%' : '—'}</td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('bt-summary-container').innerHTML =
-    `<table class="bt"><thead>${thead}</thead><tbody>${rows}</tbody></table>
-     <p class="legend-note">
-       Bias: positive = futures systematically under-predicted realized prices.
-       RMSE in <span class="good">green</span> = better than naive random-walk benchmark;
-       <span class="bad">red</span> = worse.
-       Computed on WTI NYMEX (EIA RCLC1-4) vs EIA spot (RWTC), 2004–present.
-       Source: <a href="https://www.eia.gov/dnav/pet/hist/RCLC1D.htm" target="_blank">EIA</a>.
-     </p>`;
-
-  document.getElementById('bt-error-section').style.display = '';
-  document.getElementById('bt-year-section').style.display = '';
-  if (res.regimes) document.getElementById('bt-regime-section').style.display = '';
-
-  renderBtErrorChart();
-  renderBtYearChart();
-  renderBtRegimes();
-}
-
-function renderBtErrorChart() {
-  if (!btData || !btData.results) return;
-  const series = btData.results[activeHorizon];
-  if (!series || !series.monthly) return;
-
-  const monthly = series.monthly;
-  const labels = monthly.map(m => m.month);
-  const errors = monthly.map(m => m.error);
-
-  // Colour bars: green for over-prediction (futures too high), red for under-prediction
-  const bgColors = errors.map(e =>
-    e >= 0 ? 'rgba(155, 44, 44, 0.55)' : 'rgba(39, 103, 73, 0.55)'
-  );
-
-  // Key event annotations
-  const events = {
-    '2008-09': '2008 crisis',
-    '2014-11': 'OPEC flood',
-    '2020-03': 'COVID crash',
-    '2022-03': 'Ukraine invasion',
-  };
-
-  if (btErrorChart) btErrorChart.destroy();
-
-  const ctx = document.getElementById('btErrorChart').getContext('2d');
-  btErrorChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Monthly avg error ($/bbl)',
-        data: errors,
-        backgroundColor: bgColors,
-        borderWidth: 0,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: ctx => {
-              const m = ctx[0].label;
-              return events[m] ? `${m} — ${events[m]}` : m;
-            },
-            label: ctx => {
-              const e = ctx.raw;
-              const dir = e >= 0 ? 'under-predicted' : 'over-predicted';
-              return `Futures ${dir} by avg $${Math.abs(e).toFixed(2)}/bbl`;
-            },
-          },
-        },
-      },
-      scales: {
-        x: {
-          ticks: {
-            font: { family: 'Georgia, serif', size: 10 },
-            maxTicksLimit: 24,
-            maxRotation: 45,
-          },
-          grid: { display: false },
-        },
-        y: {
-          ticks: {
-            font: { family: 'Georgia, serif', size: 11 },
-            callback: v => (v >= 0 ? '+' : '') + '$' + v,
-          },
-          grid: { color: '#f0f0f0' },
-          title: {
-            display: true,
-            text: 'Error ($/bbl)',
-            font: { family: 'Georgia, serif', size: 11 },
-            color: '#666',
-          },
-        },
-      },
-    },
-  });
-}
-
-function renderBtYearChart() {
-  if (!btData || !btData.results) return;
-  const horizons = ['1m','2m','3m','4m'].filter(h => btData.results[h]?.by_year);
-  if (!horizons.length) return;
-
-  // Collect all years
-  const yearSet = new Set();
-  horizons.forEach(h => btData.results[h].by_year.forEach(r => yearSet.add(r.year)));
-  const years = Array.from(yearSet).sort();
-
-  const datasets = horizons.map(h => {
-    const byYear = {};
-    btData.results[h].by_year.forEach(r => { byYear[r.year] = r.mae; });
-    return {
-      label: HORIZON_LABELS[h],
-      data: years.map(y => byYear[y] ?? null),
-      backgroundColor: HORIZON_COLORS[h] + 'cc',
-      borderColor: HORIZON_COLORS[h],
-      borderWidth: 1,
-    };
-  });
-
-  if (btYearChart) btYearChart.destroy();
-
-  const ctx = document.getElementById('btYearChart').getContext('2d');
-  btYearChart = new Chart(ctx, {
-    type: 'bar',
-    data: { labels: years, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true,
-          labels: { font: { family: 'Georgia, serif', size: 12 } },
-        },
-        tooltip: {
-          callbacks: {
-            label: ctx => `${ctx.dataset.label}: $${ctx.raw?.toFixed(2) ?? '—'} MAE`,
-          },
-        },
-      },
-      scales: {
-        x: {
-          ticks: { font: { family: 'Georgia, serif', size: 11 } },
-          grid: { display: false },
-        },
-        y: {
-          ticks: {
-            font: { family: 'Georgia, serif', size: 11 },
-            callback: v => '$' + v,
-          },
-          grid: { color: '#f0f0f0' },
-          title: {
-            display: true,
-            text: 'MAE ($/bbl)',
-            font: { family: 'Georgia, serif', size: 11 },
-            color: '#666',
-          },
-        },
-      },
-    },
-  });
-}
-
-function renderBtRegimes() {
-  if (!btData?.results?.regimes) return;
-  const regimes = btData.results.regimes;
-
-  const rows = regimes.map(r => {
-    const biasClass = r.bias > 0 ? 'bad' : 'good';
-    return `<tr>
-      <td>${r.name}</td>
-      <td>${r.start} – ${r.end}</td>
-      <td>${r.n}</td>
-      <td class="${biasClass}">${r.bias > 0 ? '+' : ''}${r.bias}</td>
-      <td>${r.mae}</td>
-      <td>${r.rmse}</td>
-      <td>${r.pct_error != null ? r.pct_error.toFixed(1) + '%' : '—'}</td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('bt-regime-container').innerHTML = `
-    <table class="bt">
-      <thead><tr>
-        <th>Regime</th><th>Period</th><th>N</th>
-        <th>Bias <span class="note">$/bbl</span></th>
-        <th>MAE <span class="note">$/bbl</span></th>
-        <th>RMSE <span class="note">$/bbl</span></th>
-        <th>Avg abs % error</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <p class="legend-note">1-month horizon only. Shows how accuracy varied across different oil market environments.</p>
-  `;
-}
 </script>
 
 </body>
