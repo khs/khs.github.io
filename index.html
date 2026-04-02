@@ -1,21 +1,130 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
- 	<title>Keller's Home Page</title>
- 	<link href="style.css" rel="stylesheet" type="text/css">
- 	 <style type="text/css">
-		.row { vertical-align: top; height:auto !important; }
-		.list {display:none; }
-		.show {display: none; }
-		.hide:target + .show {display: inline; }
-		.hide:target {display: none; }
-		.hide:target ~ .list {display:inline; }
-		@media print { .hide, .show { display: none; } }
-	</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keller Scholl</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Georgia, "Times New Roman", serif;
+      background: #fff;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 80px 24px 60px;
+      flex: 1;
+    }
+
+    .name {
+      font-size: 2.2em;
+      font-weight: normal;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.3em;
+      color: #1a1a1a;
+    }
+
+    .tagline {
+      font-size: 1.05em;
+      color: #555;
+      margin-bottom: 3em;
+      line-height: 1.5;
+    }
+
+    .section-label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.72em;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 1em;
+    }
+
+    .links {
+      list-style: none;
+      border-top: 1px solid #e5e5e5;
+    }
+
+    .links li {
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .links a {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 1.1em 0;
+      text-decoration: none;
+      color: #1a1a1a;
+      transition: color 0.15s;
+    }
+
+    .links a:hover { color: #2c5282; }
+
+    .link-title {
+      font-size: 1.05em;
+    }
+
+    .link-desc {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.82em;
+      color: #999;
+      margin-left: 1.5em;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.78em;
+      color: #bbb;
+    }
+
+    @media (max-width: 480px) {
+      .page { padding: 48px 20px 40px; }
+      .name { font-size: 1.8em; }
+      .link-desc { display: none; }
+    }
+  </style>
 </head>
 <body>
-	<p></p>
-	<p></p>
-	<p>Hello, this is my personal website. You might be interested in my <a href="http://keller.substack.com">substack </a> or my <a href="resume.pdf">resume</a>.</p>
+  <div class="page">
+    <h1 class="name">Keller Scholl</h1>
+    <p class="tagline">Economics, policy, and data.</p>
+
+    <p class="section-label">Pages</p>
+    <ul class="links">
+      <li>
+        <a href="oil.html">
+          <span class="link-title">Oil Price Outlook</span>
+          <span class="link-desc">Futures-based forecast &amp; pump price estimates</span>
+        </a>
+      </li>
+      <li>
+        <a href="http://keller.substack.com" target="_blank" rel="noopener">
+          <span class="link-title">Substack</span>
+          <span class="link-desc">Writing</span>
+        </a>
+      </li>
+      <li>
+        <a href="resume.pdf" target="_blank" rel="noopener">
+          <span class="link-title">Résumé</span>
+          <span class="link-desc">PDF</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <footer>khs.github.io</footer>
 </body>
 </html>
