@@ -193,6 +193,27 @@
     .good { color: #276749; }
     .bad  { color: #9b2c2c; }
 
+    select.region-select {
+      font-family: Georgia, serif;
+      font-size: 0.88em;
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fafafa;
+      color: #333;
+      cursor: pointer;
+    }
+
+    .pump-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 0.4em;
+      padding: 0.5em 0.8em;
+      background: #f8f8f0;
+      border-left: 3px solid #b7791f;
+      max-width: 700px;
+    }
+
     @media (max-width: 600px) {
       body { margin: 20px 16px; }
       .chart-container { height: 300px; }
@@ -226,19 +247,33 @@
       <input type="checkbox" id="show-bands" checked onchange="renderCurve()">
       Show uncertainty bands
     </label>
+    <label>
+      <input type="checkbox" id="show-pump" onchange="togglePump()">
+      Pump price ($/gal)
+    </label>
+    <select id="pump-region" class="region-select" style="display:none"
+            onchange="setPumpRegion(this.value)">
+      <option value="national">US National Avg</option>
+      <option value="gulf">Gulf Coast</option>
+      <option value="midwest">Midwest</option>
+      <option value="east">East Coast</option>
+      <option value="west">West Coast</option>
+      <option value="california">California</option>
+    </select>
     <span class="meta" id="last-updated"></span>
   </div>
 
   <div class="chart-container">
     <canvas id="curveChart"></canvas>
   </div>
-  <p class="legend-note">
+  <p class="legend-note" id="curve-legend">
     Dark band: ±1&sigma; (68% interval) &nbsp;|&nbsp; Light band: ±2&sigma; (95% interval).
     Bands are <strong>asymmetric</strong>: downside uses 50% annualised vol vs 28% upside,
     reflecting that oil crashes faster than it rallies (2008, 2020).
     Uncertainty plateaus past ~2.5 years due to long-run mean reversion.
     Calibrated from 20-year WTI backtest (EIA RCLC1–4 vs FRED spot).
   </p>
+  <p class="pump-note" id="pump-note" style="display:none"></p>
 </div>
 
 <!-- HISTORY TAB -->
@@ -325,6 +360,48 @@
 
 <script>
 // ---------------------------------------------------------------------------
+// Crude → pump price conversion (EIA-sourced, 2024-2025 calibration)
+// ---------------------------------------------------------------------------
+// Brent drives US retail prices (higher R² than WTI since 2011 shale boom).
+// Add this $/bbl to WTI before converting to approximate Brent.
+const WTI_TO_BRENT_ADJ = 4.0;
+
+// Fixed per-gallon costs that don't move with crude.
+// Validation: at Brent $70, (70/42) + 1.399 = $3.07 ≈ 2025 US average. ✓
+const PUMP_FIXED = {
+  federal_tax:  0.184,   // $/gal — unchanged since 1993
+  state_tax:    0.335,   // $/gal — national average (range: $0.09 AK to $0.71 CA)
+  refining:     0.430,   // $/gal — avg crack spread; varies $0.20 (glut) to $0.60+ (tight)
+  distribution: 0.300,   // $/gal — pipeline + terminal + wholesale blending
+  retail:       0.150,   // $/gal — station operator gross margin
+};
+const PUMP_FIXED_TOTAL = Object.values(PUMP_FIXED).reduce((a, b) => a + b, 0); // ~$1.40
+
+// Regional offsets from the national average (EIA PADD data).
+const PUMP_REGIONS = {
+  national:   { label: 'US National Avg',  offset:  0.00 },
+  gulf:       { label: 'Gulf Coast',       offset: -0.65 },
+  midwest:    { label: 'Midwest',          offset: -0.20 },
+  east:       { label: 'East Coast',       offset: +0.05 },
+  west:       { label: 'West Coast',       offset: +1.15 },
+  california: { label: 'California',       offset: +1.40 },
+};
+
+// April–September: summer-blend switchover adds ~$0.12/gal.
+function seasonalAdj() {
+  const m = new Date().getMonth(); // 0-indexed
+  return (m >= 3 && m <= 8) ? 0.12 : 0.00;
+}
+
+// Convert a crude $/bbl price to an estimated retail $/gal.
+function crudeToGallon(bbl, isBrent, region) {
+  const brentBbl     = isBrent ? bbl : bbl + WTI_TO_BRENT_ADJ;
+  const crudePerGal  = brentBbl / 42;
+  const regional     = PUMP_REGIONS[region]?.offset ?? 0;
+  return +(crudePerGal + PUMP_FIXED_TOTAL + regional + seasonalAdj()).toFixed(3);
+}
+
+// ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
 let oilData = null;
@@ -332,6 +409,8 @@ let btData = null;
 let benchmark = 'wti';
 let benchmarkH = 'wti';
 let activeHorizon = '1m';
+let showPump = false;
+let pumpRegion = 'national';
 let curveChart = null;
 let historyChart = null;
 let btErrorChart = null;
@@ -411,12 +490,23 @@ function switchTab(tab, el) {
 }
 
 // ---------------------------------------------------------------------------
-// Benchmark toggle
+// Benchmark + pump toggle
 // ---------------------------------------------------------------------------
 function setBenchmark(b) {
   benchmark = b;
   document.getElementById('btn-wti').classList.toggle('active', b === 'wti');
   document.getElementById('btn-brent').classList.toggle('active', b === 'brent');
+  renderCurve();
+}
+
+function togglePump() {
+  showPump = document.getElementById('show-pump').checked;
+  document.getElementById('pump-region').style.display = showPump ? '' : 'none';
+  renderCurve();
+}
+
+function setPumpRegion(r) {
+  pumpRegion = r;
   renderCurve();
 }
 
@@ -464,73 +554,58 @@ function renderCurve() {
   const contracts = oilData[benchmark] || [];
   if (!contracts.length) return;
 
-  const bands = computeBands(contracts);
-  const labels = bands.map(b => b.label);
+  const bands     = computeBands(contracts);
+  const labels    = bands.map(b => b.label);
   const showBands = document.getElementById('show-bands').checked;
+  const isBrent   = benchmark === 'brent';
 
-  const prices   = bands.map(b => b.price);
-  const upper1   = bands.map(b => b.upper1);
-  const lower1   = bands.map(b => b.lower1);
-  const upper2   = bands.map(b => b.upper2);
-  const lower2   = bands.map(b => b.lower2);
+  // Convert crude $/bbl values to pump $/gal if pump mode is on
+  function maybeConvert(bbl) {
+    return showPump ? crudeToGallon(bbl, isBrent, pumpRegion) : bbl;
+  }
+
+  const prices = bands.map(b => maybeConvert(b.price));
+  const upper1 = bands.map(b => maybeConvert(b.upper1));
+  const lower1 = bands.map(b => maybeConvert(b.lower1));
+  const upper2 = bands.map(b => maybeConvert(b.upper2));
+  const lower2 = bands.map(b => maybeConvert(b.lower2));
+
+  const yLabel    = showPump ? '$/gallon at pump' : '$/barrel';
+  const lineLabel = showPump
+    ? `Est. pump price — ${PUMP_REGIONS[pumpRegion].label}`
+    : `${benchmark.toUpperCase()} Forward Curve ($/bbl)`;
 
   const datasets = [];
 
   if (showBands) {
-    // 2-sigma upper (invisible line, fills down to lower2)
     datasets.push({
-      label: '95% upper',
-      data: upper2,
-      borderColor: 'transparent',
-      backgroundColor: 'rgba(44,82,130,0.10)',
-      fill: '+1',   // fill to next dataset (lower2)
-      pointRadius: 0,
-      order: 4,
+      label: '95% upper', data: upper2,
+      borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.10)',
+      fill: '+1', pointRadius: 0, order: 4,
     });
-    // 2-sigma lower
     datasets.push({
-      label: '95% lower',
-      data: lower2,
-      borderColor: 'transparent',
-      backgroundColor: 'rgba(44,82,130,0.10)',
-      fill: false,
-      pointRadius: 0,
-      order: 4,
+      label: '95% lower', data: lower2,
+      borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.10)',
+      fill: false, pointRadius: 0, order: 4,
     });
-    // 1-sigma upper
     datasets.push({
-      label: '68% upper',
-      data: upper1,
-      borderColor: 'transparent',
-      backgroundColor: 'rgba(44,82,130,0.18)',
-      fill: '+1',
-      pointRadius: 0,
-      order: 3,
+      label: '68% upper', data: upper1,
+      borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.18)',
+      fill: '+1', pointRadius: 0, order: 3,
     });
-    // 1-sigma lower
     datasets.push({
-      label: '68% lower',
-      data: lower1,
-      borderColor: 'transparent',
-      backgroundColor: 'rgba(44,82,130,0.18)',
-      fill: false,
-      pointRadius: 0,
-      order: 3,
+      label: '68% lower', data: lower1,
+      borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.18)',
+      fill: false, pointRadius: 0, order: 3,
     });
   }
 
-  // Forward curve line on top
   datasets.push({
-    label: benchmark.toUpperCase() + ' Forward Curve ($/bbl)',
+    label: lineLabel,
     data: prices,
-    borderColor: '#2c5282',
-    backgroundColor: '#2c5282',
-    borderWidth: 2.5,
-    pointRadius: 4,
-    pointHoverRadius: 6,
-    fill: false,
-    order: 1,
-    tension: 0.2,
+    borderColor: '#2c5282', backgroundColor: '#2c5282',
+    borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6,
+    fill: false, order: 1, tension: 0.2,
   });
 
   if (curveChart) curveChart.destroy();
@@ -553,17 +628,44 @@ function renderCurve() {
         },
         tooltip: {
           callbacks: {
+            title: ctx => ctx[0].label,
             label: ctx => {
-              const b = bands[ctx.dataIndex];
+              const b    = bands[ctx.dataIndex];
               if (!b) return '';
-              const lines = [`${benchmark.toUpperCase()}: $${b.price}/bbl`];
-              if (showBands) {
-                lines.push(`68% range: $${b.lower1} – $${b.upper1}`);
-                lines.push(`95% range: $${b.lower2} – $${b.upper2}`);
+
+              if (!showPump) {
+                const lines = [`${benchmark.toUpperCase()}: $${b.price}/bbl`];
+                if (showBands) {
+                  lines.push(`68% range: $${b.lower1} – $${b.upper1}`);
+                  lines.push(`95% range: $${b.lower2} – $${b.upper2}`);
+                }
+                return lines;
               }
+
+              // Pump mode: show breakdown
+              const brentBbl    = isBrent ? b.price : b.price + WTI_TO_BRENT_ADJ;
+              const crudeGal    = +(brentBbl / 42).toFixed(3);
+              const regional    = PUMP_REGIONS[pumpRegion].offset;
+              const seasonal    = seasonalAdj();
+              const pumpMid     = maybeConvert(b.price);
+              const lines = [
+                `Pump: $${pumpMid.toFixed(2)}/gal`,
+                `  crude component: $${crudeGal.toFixed(2)}`,
+                `  refining (avg):  $${PUMP_FIXED.refining.toFixed(2)}`,
+                `  dist + retail:   $${(PUMP_FIXED.distribution + PUMP_FIXED.retail).toFixed(2)}`,
+                `  federal tax:     $${PUMP_FIXED.federal_tax.toFixed(3)}`,
+                `  state tax (avg): $${PUMP_FIXED.state_tax.toFixed(3)}`,
+              ];
+              if (regional !== 0)
+                lines.push(`  regional adj:    ${regional >= 0 ? '+' : ''}$${regional.toFixed(2)}`);
+              if (seasonal > 0)
+                lines.push(`  summer blend:    +$${seasonal.toFixed(2)}`);
+              if (!isBrent)
+                lines.push(`  (WTI→Brent adj: +$${WTI_TO_BRENT_ADJ}/bbl)`);
+              if (showBands)
+                lines.push(`68% range: $${maybeConvert(b.lower1).toFixed(2)} – $${maybeConvert(b.upper1).toFixed(2)}`);
               return lines;
             },
-            title: ctx => ctx[0].label,
           },
         },
       },
@@ -575,19 +677,34 @@ function renderCurve() {
         y: {
           ticks: {
             font: { family: 'Georgia, serif', size: 11 },
-            callback: v => '$' + v,
+            callback: v => '$' + (showPump ? v.toFixed(2) : v),
           },
           grid: { color: '#f0f0f0' },
           title: {
-            display: true,
-            text: '$/barrel',
-            font: { family: 'Georgia, serif', size: 12 },
-            color: '#666',
+            display: true, text: yLabel,
+            font: { family: 'Georgia, serif', size: 12 }, color: '#666',
           },
         },
       },
     },
   });
+
+  // Update pump note below chart
+  const pumpNote = document.getElementById('pump-note');
+  if (showPump) {
+    const isSummer = seasonalAdj() > 0;
+    const adj = !isBrent ? ` WTI adjusted +$${WTI_TO_BRENT_ADJ}/bbl to approximate Brent (which drives US pump prices).` : '';
+    pumpNote.innerHTML =
+      `Formula: (${isBrent ? 'Brent' : 'WTI'} $/bbl${!isBrent ? ' + $4' : ''}) ÷ 42 + $${PUMP_FIXED_TOTAL.toFixed(2)} fixed costs`
+      + ` + $${PUMP_REGIONS[pumpRegion].offset.toFixed(2)} regional`
+      + (isSummer ? ` + $0.12 summer blend` : '')
+      + `.${adj}`
+      + ` Rule of thumb: every $10/bbl crude ≈ $0.24/gal at pump.`
+      + ` Crack spread varies ($0.20–$0.60); this uses a $0.43 average.`;
+    pumpNote.style.display = '';
+  } else {
+    pumpNote.style.display = 'none';
+  }
 }
 
 // ---------------------------------------------------------------------------
