@@ -23,6 +23,7 @@ Outputs data/lag-model.json consumed by oil.html.
 
 import json
 import math
+import time
 import requests
 import numpy as np
 import pandas as pd
@@ -38,16 +39,32 @@ PDL_DEGREE = 2        # Almon polynomial degree
 
 
 # ---------------------------------------------------------------------------
-# Data fetching
+# Data fetching (with retry + extended timeout for flaky external endpoints)
 # ---------------------------------------------------------------------------
+
+def fetch_with_retry(url: str, retries: int = 4, base_timeout: int = 60) -> bytes:
+    """GET with exponential backoff. Raises on final failure."""
+    for attempt in range(retries):
+        timeout = base_timeout * (2 ** attempt)   # 60 → 120 → 240 → 480 s
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=timeout)
+            r.raise_for_status()
+            return r.content
+        except Exception as e:
+            if attempt < retries - 1:
+                wait = 5 * (2 ** attempt)          # 5 → 10 → 20 s
+                print(f"  Attempt {attempt + 1} failed ({e}), retrying in {wait}s…")
+                time.sleep(wait)
+            else:
+                raise
+
 
 def fetch_fred_series(series_id: str, lookback_years: int = 3) -> pd.Series:
     """Download a FRED series as a pandas Series indexed by date."""
-    url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
-    r   = requests.get(url, headers=HEADERS, timeout=30)
-    r.raise_for_status()
-    df  = pd.read_csv(
-        BytesIO(r.content),
+    url     = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
+    content = fetch_with_retry(url)
+    df = pd.read_csv(
+        BytesIO(content),
         parse_dates=["DATE"],
         index_col="DATE",
         na_values=[".", ""],
