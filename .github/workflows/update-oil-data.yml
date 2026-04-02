@@ -23,15 +23,18 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install yfinance
+        run: pip install yfinance requests pandas openpyxl
 
       - name: Fetch futures data
         run: python .github/scripts/fetch_oil_futures.py
+
+      - name: Run backtest (weekly refresh keeps it current)
+        run: python .github/scripts/backtest_oil.py
 
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/oil-futures.json
+          git add data/oil-futures.json data/oil-backtest.json
           git diff --cached --quiet || git commit -m "chore: update oil futures data [skip ci]"
           git push
