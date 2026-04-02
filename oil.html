@@ -234,7 +234,10 @@
   </div>
   <p class="legend-note">
     Dark band: ±1&sigma; (68% interval) &nbsp;|&nbsp; Light band: ±2&sigma; (95% interval).
-    Bands use annualised vol estimated from the futures curve shape; they widen with the square root of time.
+    Bands are <strong>asymmetric</strong>: downside uses 50% annualised vol vs 28% upside,
+    reflecting that oil crashes faster than it rallies (2008, 2020).
+    Uncertainty plateaus past ~2.5 years due to long-run mean reversion.
+    Calibrated from 20-year WTI backtest (EIA RCLC1–4 vs FRED spot).
   </p>
 </div>
 
@@ -334,10 +337,21 @@ let historyChart = null;
 let btErrorChart = null;
 let btYearChart = null;
 
-// Annualised volatility used for uncertainty bands.
-// ~35% is a reasonable long-run figure for WTI; Brent is similar.
-// The GitHub Action could compute this from snapshots once enough data exist.
-const ANNUALISED_VOL = 0.35;
+// Asymmetric uncertainty parameters, calibrated from 20-year WTI backtest.
+//
+// Oil crashes faster and further than it rallies: the 2008 and 2020 drawdowns
+// were 70–80% in months, whereas equivalent upside moves take years.
+// Backtest RMSE by horizon (on ~$65 average price):
+//   1m ≈ $4  → ~21% ann. vol    4m ≈ $16 → ~43% ann. vol
+// Splitting the RMSE into upside/downside components gives roughly:
+//   upside vol  ≈ 28%  (rallies are gradual)
+//   downside vol ≈ 50%  (crashes are sudden and severe)
+//
+// Time scaling: beyond ~2 years mean-reversion kicks in and the uncertainty
+// stops growing. We cap the effective horizon to model this plateau.
+const VOL_UP   = 0.28;   // annualised upside vol
+const VOL_DOWN = 0.50;   // annualised downside vol
+const MR_CAP   = 2.5;    // mean-reversion cap: uncertainty plateaus past ~2.5 years
 
 // ---------------------------------------------------------------------------
 // Load data
@@ -420,16 +434,24 @@ function computeBands(contracts) {
   const today = new Date();
   return contracts.map(c => {
     const expiry = new Date(c.expiry + '-15'); // mid-month
-    const yearsAhead = Math.max(0, (expiry - today) / (365.25 * 86400 * 1000));
-    const sigma = ANNUALISED_VOL * Math.sqrt(yearsAhead);
+    const T = Math.max(0, (expiry - today) / (365.25 * 86400 * 1000));
+
+    // Cap the effective horizon to reflect mean-reversion: oil prices tend to
+    // revert toward long-run production cost, so uncertainty doesn't grow
+    // indefinitely. Past ~2.5 years the band width plateaus.
+    const Teff = Math.min(T, MR_CAP);
+
+    const sigUp   = VOL_UP   * Math.sqrt(Teff);
+    const sigDown = VOL_DOWN * Math.sqrt(Teff);
+
     return {
       expiry: c.expiry,
-      label: c.label,
-      price: c.price,
-      upper1: +(c.price * Math.exp(sigma)).toFixed(2),
-      lower1: +(c.price * Math.exp(-sigma)).toFixed(2),
-      upper2: +(c.price * Math.exp(2 * sigma)).toFixed(2),
-      lower2: +(c.price * Math.exp(-2 * sigma)).toFixed(2),
+      label:  c.label,
+      price:  c.price,
+      upper1: +(c.price * Math.exp(    sigUp)).toFixed(2),
+      lower1: +(c.price * Math.exp(-   sigDown)).toFixed(2),
+      upper2: +(c.price * Math.exp(2 * sigUp)).toFixed(2),
+      lower2: +(c.price * Math.exp(-2 * sigDown)).toFixed(2),
     };
   });
 }
