@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Details &amp; Methodology — Oil Price Outlook</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: Georgia, "Times New Roman", serif;
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: #1a1a1a;
+    }
+
+    .site-header {
+      border-bottom: 1px solid #e5e5e5;
+      padding: 14px 48px;
+      display: flex;
+      align-items: center;
+      gap: 1.5em;
+    }
+
+    .site-header a {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.78em;
+      color: #999;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+
+    .site-header a:hover { color: #2c5282; }
+    .site-header .sep { color: #ddd; }
+
+    .content {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 40px 48px 60px;
+    }
+
+    h1 {
+      font-size: 1.85em;
+      font-weight: normal;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.2em;
+      color: #1a1a1a;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 0.95em;
+      margin-bottom: 2em;
+    }
+
+    .prose {
+      max-width: 700px;
+      line-height: 1.7;
+    }
+
+    .prose p {
+      margin: 0 0 1em;
+      font-size: 0.97em;
+    }
+
+    .prose code {
+      font-size: 0.88em;
+      background: #f5f5f5;
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+      color: #444;
+    }
+
+    h2.section-head {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #2c5282;
+      margin: 2em 0 0.5em;
+      padding-bottom: 0.3em;
+      border-bottom: 1px solid #e0e0e0;
+      max-width: 700px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 2px solid #e5e5e5;
+      margin: 3em 0 2em;
+    }
+
+    /* Backtest tables and charts */
+
+    table.bt {
+      border-collapse: collapse;
+      font-size: 0.88em;
+      max-width: 860px;
+      width: 100%;
+      margin-bottom: 1.5em;
+    }
+
+    table.bt th {
+      background: #f0f4fa;
+      text-align: right;
+      padding: 6px 12px;
+      border-bottom: 2px solid #c8d5e8;
+      color: #2c5282;
+      white-space: nowrap;
+    }
+
+    table.bt th:first-child { text-align: left; }
+
+    table.bt td {
+      padding: 5px 12px;
+      text-align: right;
+      border-bottom: 1px solid #eee;
+      color: #333;
+    }
+
+    table.bt td:first-child { text-align: left; font-weight: bold; }
+    table.bt tr:last-child td { border-bottom: none; }
+    table.bt .note { font-size: 0.78em; color: #888; font-weight: normal; }
+
+    .bt-section { margin-bottom: 2.5em; }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      height: 320px;
+    }
+
+    .horizon-btns { display: flex; gap: 0.4em; margin-bottom: 1em; flex-wrap: wrap; }
+
+    .horizon-btns button {
+      padding: 4px 12px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      background: #f5f5f5;
+      cursor: pointer;
+      font-family: Georgia, serif;
+      font-size: 0.85em;
+      color: #444;
+    }
+
+    .horizon-btns button.active {
+      background: #2c5282;
+      color: #fff;
+      border-color: #2c5282;
+    }
+
+    .good { color: #276749; }
+    .bad  { color: #9b2c2c; }
+
+    .coverage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1em;
+      margin-bottom: 1em;
+      max-width: 700px;
+    }
+
+    .coverage-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 1em;
+      background: #fafafa;
+    }
+
+    .coverage-card .horizon-label {
+      font-size: 0.8em;
+      color: #888;
+      margin-bottom: 0.4em;
+      font-family: system-ui, sans-serif;
+    }
+
+    .coverage-card .cov-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.25em;
+      font-size: 0.88em;
+    }
+
+    .coverage-card .cov-pct {
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .coverage-card .cov-label {
+      color: #555;
+      font-family: system-ui, sans-serif;
+      font-size: 0.82em;
+    }
+
+    .coverage-card .asym-row {
+      font-size: 0.75em;
+      color: #888;
+      font-family: system-ui, sans-serif;
+      margin-top: 0.5em;
+      border-top: 1px solid #e8e8e8;
+      padding-top: 0.4em;
+    }
+
+    .legend-note {
+      font-size: 0.8em;
+      color: #888;
+      margin-top: 0.5em;
+      max-width: 860px;
+    }
+
+    .no-data {
+      padding: 2em;
+      color: #888;
+      border: 1px dashed #ccc;
+      border-radius: 6px;
+      max-width: 600px;
+      font-size: 0.9em;
+    }
+
+    site-footer {
+      display: block;
+      border-top: 1px solid #e5e5e5;
+      margin-top: 60px;
+      padding: 24px 48px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.78em;
+      color: #999;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5em;
+    }
+
+    site-footer a { color: #999; text-decoration: none; }
+    site-footer a:hover { color: #2c5282; }
+
+    @media (max-width: 600px) {
+      .site-header { padding: 12px 20px; }
+      .content { padding: 24px 20px 40px; }
+      site-footer { padding: 20px; }
+      table.bt { font-size: 0.78em; }
+      table.bt th, table.bt td { padding: 4px 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/">Keller Scholl</a>
+  <span class="sep">/</span>
+  <a href="/oil.html">Oil Price Outlook</a>
+  <span class="sep">/</span>
+  <a href="/details.html">Details &amp; Methodology</a>
+</header>
+
+<div class="content">
+
+<h1>Details &amp; Methodology</h1>
+<p class="subtitle">How the model works, why it&#8217;s built this way, and how well it has performed historically.</p>
+
+<!-- METHODOLOGY -->
+
+<h2 class="section-head">Why use futures prices?</h2>
+<div class="prose">
+  <p>Oil futures markets aggregate the expectations of thousands of traders — refiners locking in supply costs, airlines hedging fuel bills, financial investors taking directional bets. The consensus price embedded in a futures contract is therefore the market&#8217;s best collective guess about where prices will be at a given date in the future.</p>
+  <p>This doesn&#8217;t mean futures are always right. No model predicts geopolitical shocks, pandemics, or sudden OPEC policy reversals. But futures represent a continuously updated, publicly visible, financially-backed baseline — considerably more rigorous than any single analyst&#8217;s projection.</p>
+</div>
+
+<h2 class="section-head">Why Brent, not WTI?</h2>
+<div class="prose">
+  <p>There are two main global crude benchmarks: WTI (West Texas Intermediate, produced in the US Midcontinent) and Brent (produced in the North Sea, used as the international reference price). Before the US shale boom around 2011, they tracked closely. After shale flooded the Midcontinent faster than export infrastructure could handle it, WTI developed a persistent discount to Brent.</p>
+  <p>US retail gasoline prices are set with reference to the global market — where Brent dominates — so Brent has a materially stronger statistical relationship to US pump prices since 2011. This model uses Brent as its primary benchmark. When displaying WTI, a +$4/bbl adjustment is added to approximate the Brent-equivalent price before converting to pump estimates.</p>
+</div>
+
+<h2 class="section-head">The lag model: crude to pump prices</h2>
+<div class="prose">
+  <p>Crude oil doesn&#8217;t appear at the pump the next day. It takes time to ship to refineries, refine into gasoline, blend with ethanol, transport through pipelines to distribution terminals, and finally reach retail stations. Econometric analysis of weekly EIA data finds that crude oil price changes take roughly 6&#8211;9 weeks to fully pass through to retail gasoline prices.</p>
+  <p>The model fits a distributed lag specification: <code>pump&#x209C; = &#945; + &sum;(&#946;&#8336; &times; crude&#x209C;&#8331;&#8336; / 42)</code>, summing over 8 weekly lags. The total pass-through is typically around 0.75 — meaning a sustained $1/bbl change in crude eventually results in roughly $0.018/gallon at the pump ($1 &divide; 42 &times; 0.75). A live crack spread correction (the current refining margin vs. its historical average) is applied on top.</p>
+  <p>No autoregressive term is included — the model must be applicable to future dates where pump prices are not yet known.</p>
+</div>
+
+<h2 class="section-head">Why are the uncertainty bands asymmetric?</h2>
+<div class="prose">
+  <p>Oil crashes faster and further than it rallies. The 2008 financial crisis wiped out 75% of the oil price in six months. The 2020 COVID shock cut prices in half in weeks. Upside moves — like the 2021&#8211;22 post-COVID recovery or the 2022 Ukraine supply shock — tend to unfold over months to years and partially reverse.</p>
+  <p>This asymmetry is built into the model: the downside band uses 50% annualised volatility, the upside uses 28%. Past roughly 2.5 years, the bands stop widening: long-run mean reversion kicks in, as prices tend to gravitate back toward production costs (~$50&#8211;70/bbl for most global producers at current technology).</p>
+</div>
+
+<h2 class="section-head">Limitations</h2>
+<div class="prose">
+  <p>No model reliably forecasts geopolitical shocks (a sudden supply embargo, a war that closes a shipping lane, an unexpected OPEC+ decision) or major demand shocks (a pandemic, a rapid shift in EV adoption). The uncertainty bands are designed to convey honest humility about a deeply complex system — not false precision.</p>
+  <p>The bands are derived from 20 years of historical volatility and will be systematically too narrow in genuine tail events. The pump price lag model is re-estimated from two years of data and may drift when refining economics or retail market structure changes significantly.</p>
+</div>
+
+<hr class="divider">
+
+<!-- BACKTEST -->
+
+<h2 class="section-head">Did the prediction bands hold up historically?</h2>
+<p class="prose" style="font-size:0.88em;color:#666;margin-bottom:1.5em">
+  For every historical week since 2004, the model computed asymmetric uncertainty bands around the futures price, then checked whether the realized spot price fell inside them. Well-calibrated bands should hit ~68% and ~95% coverage respectively.
+</p>
+
+<div class="bt-section" id="bt-coverage-section" style="display:none">
+  <div id="bt-coverage-container"></div>
+</div>
+
+<h2 class="section-head">Point forecast accuracy — WTI, 2004&#8211;present</h2>
+<p style="font-size:0.85em;color:#666;margin-bottom:0.8em">
+  Prediction = EIA NYMEX nth-nearby futures price on date <em>t</em>.
+  Realized = WTI spot price (EIA) at <em>t + h</em>.
+  Naive = today&#8217;s spot used as forecast (random-walk benchmark).
+  Positive bias means futures systematically under-predicted realized prices.
+</p>
+
+<div class="bt-section">
+  <div id="bt-summary-container">
+    <div class="no-data">
+      Backtest data not yet generated. Trigger the GitHub Actions workflow
+      (<strong>Actions &rarr; Update Oil Futures Data &rarr; Run workflow</strong>) to compute it.
+    </div>
+  </div>
+</div>
+
+<div class="bt-section" id="bt-error-section" style="display:none">
+  <h2 class="section-head">Monthly prediction error over time</h2>
+  <div class="horizon-btns" id="horizon-btns">
+    <button class="active" onclick="setHorizon('1m',this)">1 month</button>
+    <button onclick="setHorizon('2m',this)">2 months</button>
+    <button onclick="setHorizon('3m',this)">3 months</button>
+    <button onclick="setHorizon('4m',this)">4 months</button>
+  </div>
+  <div class="chart-container"><canvas id="btErrorChart"></canvas></div>
+  <p class="legend-note">
+    Error = realized spot &minus; futures prediction ($/bbl).
+    Positive (red) = futures under-predicted; negative (green) = futures over-predicted.
+  </p>
+</div>
+
+<div class="bt-section" id="bt-year-section" style="display:none">
+  <h2 class="section-head">Annual average absolute error by horizon</h2>
+  <div class="chart-container"><canvas id="btYearChart"></canvas></div>
+  <p class="legend-note">
+    MAE (mean absolute error) in $/bbl per year. Years with large errors correspond
+    to price dislocations: 2008 financial crisis, 2014&#8211;16 oil crash, 2020 COVID.
+  </p>
+</div>
+
+<div class="bt-section" id="bt-regime-section" style="display:none">
+  <h2 class="section-head">Performance by market regime (1-month horizon)</h2>
+  <div id="bt-regime-container"></div>
+</div>
+
+</div><!-- /.content -->
+
+<site-footer>
+  <span><a href="/oil.html">&larr; Oil Price Outlook</a> &nbsp;&middot;&nbsp; By <a href="/">Keller Scholl</a></span>
+  <span>
+    <a href="http://keller.substack.com" target="_blank" rel="noopener">Substack</a>
+    &nbsp;&middot;&nbsp;
+    Data: EIA, Yahoo Finance &nbsp;&middot;&nbsp;
+    Updated weekly
+  </span>
+</site-footer>
+
+<script>
+let btData = null;
+let activeHorizon = '1m';
+let btErrorChart = null;
+let btYearChart  = null;
+
+const HORIZON_COLORS = {
+  '1m': '#2c5282',
+  '2m': '#2f855a',
+  '3m': '#b7791f',
+  '4m': '#9b2c2c',
+};
+
+const HORIZON_LABELS = {
+  '1m': '1 month',
+  '2m': '2 months',
+  '3m': '3 months',
+  '4m': '4 months',
+};
+
+const KEY_EVENTS = {
+  '2008-09': '2008 crisis',
+  '2014-11': 'OPEC flood',
+  '2020-03': 'COVID crash',
+  '2022-03': 'Ukraine invasion',
+};
+
+fetch('data/oil-backtest.json')
+  .then(r => r.json())
+  .then(data => { btData = data; renderBacktest(); })
+  .catch(() => {});
+
+function setHorizon(h, btn) {
+  activeHorizon = h;
+  document.querySelectorAll('#horizon-btns button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBtErrorChart();
+}
+
+function coverageColor(actual, target) {
+  const diff = Math.abs(actual - target);
+  if (diff <= 0.05) return 'good';
+  if (diff <= 0.12) return '';
+  return 'bad';
+}
+
+function renderBacktest() {
+  if (!btData || !btData.results) return;
+  const res = btData.results;
+  const horizons = ['1m','2m','3m','4m'].filter(h => res[h]);
+  if (!horizons.length) return;
+
+  // Band coverage cards
+  const hasCoverage = horizons.some(h => res[h].coverage_68 != null);
+  if (hasCoverage) {
+    const cards = horizons.map(h => {
+      const s = res[h];
+      const c68 = (s.coverage_68 * 100).toFixed(1) + '%';
+      const c95 = (s.coverage_95 * 100).toFixed(1) + '%';
+      const cl68 = coverageColor(s.coverage_68, 0.68);
+      const cl95 = coverageColor(s.coverage_95, 0.95);
+      const abv1 = (s.pct_above_upper1 * 100).toFixed(1);
+      const blw1 = (s.pct_below_lower1 * 100).toFixed(1);
+      return `<div class="coverage-card">
+        <div class="horizon-label">${s.label} horizon</div>
+        <div class="cov-row">
+          <span class="cov-label">68% band:</span>
+          <span class="cov-pct ${cl68}">${c68}</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">95% band:</span>
+          <span class="cov-pct ${cl95}">${c95}</span>
+        </div>
+        <div class="asym-row">When outside 68%: ${abv1}% above &middot; ${blw1}% below</div>
+      </div>`;
+    }).join('');
+    document.getElementById('bt-coverage-container').innerHTML =
+      `<div class="coverage-grid">${cards}</div>
+       <p class="legend-note">
+         <span class="good">Green</span> = within 5 percentage points of target;
+         <span class="bad">red</span> = off by more than 12 pp.
+         &ldquo;Above/below&rdquo; shows directional bias when the bands miss.
+       </p>`;
+    document.getElementById('bt-coverage-section').style.display = '';
+  }
+
+  // Point forecast table
+  const thead = `<tr>
+    <th>Horizon</th>
+    <th>N <span class="note">(obs)</span></th>
+    <th>Bias <span class="note">$/bbl</span></th>
+    <th>MAE <span class="note">$/bbl</span></th>
+    <th>RMSE <span class="note">$/bbl</span></th>
+    <th>Naive RMSE</th>
+    <th>R&sup2;</th>
+    <th>Hit rate</th>
+    <th>Within &plusmn;10%</th>
+  </tr>`;
+
+  const rows = horizons.map(h => {
+    const s = res[h];
+    const betterThanNaive = s.rmse < s.naive_rmse;
+    const biasClass = s.bias > 0 ? 'bad' : 'good';
+    return `<tr>
+      <td>${s.label}</td>
+      <td>${s.n.toLocaleString()}</td>
+      <td class="${biasClass}">${s.bias > 0 ? '+' : ''}${s.bias}</td>
+      <td>${s.mae}</td>
+      <td class="${betterThanNaive ? 'good' : 'bad'}">${s.rmse}</td>
+      <td>${s.naive_rmse}</td>
+      <td>${s.r2 != null ? s.r2 : '&mdash;'}</td>
+      <td>${s.hit_rate != null ? (s.hit_rate * 100).toFixed(1) + '%' : '&mdash;'}</td>
+      <td>${s.within_10pct != null ? (s.within_10pct * 100).toFixed(1) + '%' : '&mdash;'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('bt-summary-container').innerHTML =
+    `<table class="bt"><thead>${thead}</thead><tbody>${rows}</tbody></table>
+     <p class="legend-note">
+       RMSE in <span class="good">green</span> = better than naive random-walk benchmark;
+       <span class="bad">red</span> = worse.
+       Source: <a href="https://www.eia.gov/dnav/pet/hist/RCLC1D.htm" target="_blank">EIA RCLC1&ndash;4</a>,
+       EIA RWTC spot.
+     </p>`;
+
+  document.getElementById('bt-error-section').style.display = '';
+  document.getElementById('bt-year-section').style.display = '';
+  if (res.regimes) document.getElementById('bt-regime-section').style.display = '';
+
+  renderBtErrorChart();
+  renderBtYearChart();
+  renderBtRegimes();
+}
+
+function renderBtErrorChart() {
+  if (!btData || !btData.results) return;
+  const series = btData.results[activeHorizon];
+  if (!series || !series.monthly) return;
+
+  const monthly = series.monthly;
+  const labels  = monthly.map(m => m.month);
+  const errors  = monthly.map(m => m.error);
+  const bgColors = errors.map(e =>
+    e >= 0 ? 'rgba(155, 44, 44, 0.55)' : 'rgba(39, 103, 73, 0.55)'
+  );
+
+  if (btErrorChart) btErrorChart.destroy();
+
+  const ctx = document.getElementById('btErrorChart').getContext('2d');
+  btErrorChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label: 'Monthly avg error ($/bbl)', data: errors, backgroundColor: bgColors, borderWidth: 0 }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: ctx => {
+              const m = ctx[0].label;
+              return KEY_EVENTS[m] ? `${m} \u2014 ${KEY_EVENTS[m]}` : m;
+            },
+            label: ctx => {
+              const e = ctx.raw;
+              const dir = e >= 0 ? 'under-predicted' : 'over-predicted';
+              return `Futures ${dir} by avg $${Math.abs(e).toFixed(2)}/bbl`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'Georgia, serif', size: 10 }, maxTicksLimit: 24, maxRotation: 45 },
+          grid: { display: false },
+        },
+        y: {
+          ticks: { font: { family: 'Georgia, serif', size: 11 }, callback: v => (v >= 0 ? '+' : '') + '$' + v },
+          grid: { color: '#f0f0f0' },
+          title: { display: true, text: 'Error ($/bbl)', font: { family: 'Georgia, serif', size: 11 }, color: '#666' },
+        },
+      },
+    },
+  });
+}
+
+function renderBtYearChart() {
+  if (!btData || !btData.results) return;
+  const horizons = ['1m','2m','3m','4m'].filter(h => btData.results[h]?.by_year);
+  if (!horizons.length) return;
+
+  const yearSet = new Set();
+  horizons.forEach(h => btData.results[h].by_year.forEach(r => yearSet.add(r.year)));
+  const years = Array.from(yearSet).sort();
+
+  const datasets = horizons.map(h => {
+    const byYear = {};
+    btData.results[h].by_year.forEach(r => { byYear[r.year] = r.mae; });
+    return {
+      label: HORIZON_LABELS[h],
+      data: years.map(y => byYear[y] ?? null),
+      backgroundColor: HORIZON_COLORS[h] + 'cc',
+      borderColor: HORIZON_COLORS[h],
+      borderWidth: 1,
+    };
+  });
+
+  if (btYearChart) btYearChart.destroy();
+
+  const ctx = document.getElementById('btYearChart').getContext('2d');
+  btYearChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: years, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, labels: { font: { family: 'Georgia, serif', size: 12 } } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.raw?.toFixed(2) ?? '\u2014'} MAE` } },
+      },
+      scales: {
+        x: { ticks: { font: { family: 'Georgia, serif', size: 11 } }, grid: { display: false } },
+        y: {
+          ticks: { font: { family: 'Georgia, serif', size: 11 }, callback: v => '$' + v },
+          grid: { color: '#f0f0f0' },
+          title: { display: true, text: 'MAE ($/bbl)', font: { family: 'Georgia, serif', size: 11 }, color: '#666' },
+        },
+      },
+    },
+  });
+}
+
+function renderBtRegimes() {
+  if (!btData?.results?.regimes) return;
+  const regimes = btData.results.regimes;
+
+  const rows = regimes.map(r => {
+    const biasClass = r.bias > 0 ? 'bad' : 'good';
+    return `<tr>
+      <td>${r.name}</td>
+      <td>${r.start} \u2013 ${r.end}</td>
+      <td>${r.n}</td>
+      <td class="${biasClass}">${r.bias > 0 ? '+' : ''}${r.bias}</td>
+      <td>${r.mae}</td>
+      <td>${r.rmse}</td>
+      <td>${r.pct_error != null ? r.pct_error.toFixed(1) + '%' : '\u2014'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('bt-regime-container').innerHTML = `
+    <table class="bt">
+      <thead><tr>
+        <th>Regime</th><th>Period</th><th>N</th>
+        <th>Bias <span class="note">$/bbl</span></th>
+        <th>MAE <span class="note">$/bbl</span></th>
+        <th>RMSE <span class="note">$/bbl</span></th>
+        <th>Avg abs % error</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="legend-note">1-month horizon only. Illustrates how error varies across different market environments.</p>
+  `;
+}
+</script>
+
+</body>
+</html>
