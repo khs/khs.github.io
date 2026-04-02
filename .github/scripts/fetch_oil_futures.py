@@ -1,7 +1,8 @@
 """
-Fetches WTI and Brent crude oil futures prices from Yahoo Finance
-and updates data/oil-futures.json with:
-  - Current forward curve
+Fetches WTI, Brent, and RBOB gasoline futures from Yahoo Finance and updates
+data/oil-futures.json with:
+  - Current forward curve (WTI + Brent)
+  - Crack spreads by month (RBOB gasoline futures minus WTI/42)
   - Rolling historical snapshots (one per week, kept for 3 years)
 """
 
@@ -74,15 +75,61 @@ def fetch_curve(base: str, exchange: str) -> list[dict]:
 
     # Prepend front-month if we got it and have no near-term contracts
     if not contracts and front_price:
-        label = f"Front Month"
         contracts.insert(0, {
             "ticker": front_ticker,
             "expiry": today.strftime("%Y-%m"),
-            "label": label,
+            "label": "Front Month",
             "price": round(float(front_price), 2),
         })
 
     return contracts
+
+
+def fetch_crack_spreads(wti_contracts: list[dict]) -> dict:
+    """
+    Fetch RBOB gasoline futures for each WTI contract month and compute the
+    crack spread (refining margin) = RBOB $/gal - WTI $/bbl / 42.
+
+    RBOB tickers follow the same NYMEX month-code convention as WTI (RB).
+    Returns:
+      {
+        "by_month": [{expiry, rbob_price, crack_spread}, ...],
+        "average":  float,   # avg over available months
+        "fallback": float,   # used when no RBOB data available
+      }
+    """
+    FALLBACK_CRACK = 0.43  # $/gal historical average (EIA 2024)
+
+    results = []
+    for c in wti_contracts:
+        year  = int(c["expiry"][:4])
+        month = int(c["expiry"][5:7])
+        rbob_ticker = build_ticker("RB", "NYM", year, month)
+
+        try:
+            info = yf.Ticker(rbob_ticker).fast_info
+            rbob = info.last_price
+            if rbob and rbob > 0:
+                spread = round(float(rbob) - c["price"] / 42, 4)
+                results.append({
+                    "expiry":      c["expiry"],
+                    "rbob_price":  round(float(rbob), 4),
+                    "crack_spread": spread,
+                })
+        except Exception:
+            pass
+
+    if results:
+        avg = round(sum(r["crack_spread"] for r in results) / len(results), 4)
+    else:
+        avg = FALLBACK_CRACK
+
+    print(f"  RBOB crack spreads: {len(results)} months fetched, avg ${avg:.3f}/gal")
+    return {
+        "by_month": results,
+        "average":  avg,
+        "fallback": FALLBACK_CRACK,
+    }
 
 
 def main():
@@ -102,14 +149,18 @@ def main():
     brent = fetch_curve("BZ", "NYM")
     print(f"  Got {len(brent)} contracts")
 
+    # Crack spreads: RBOB gasoline futures vs WTI (use WTI as the refinery input)
+    print("Fetching RBOB gasoline futures (RB, NYM) for crack spreads...")
+    crack_spreads = fetch_crack_spreads(wti)
+
     now_iso = datetime.now(timezone.utc).isoformat(timespec='seconds')
     today_str = date.today().isoformat()
 
     # Build snapshot (compact: just expiry + price)
     snapshot = {
         "date": today_str,
-        "wti": [{"expiry": c["expiry"], "price": c["price"]} for c in wti],
-        "brent": [{"expiry": c["expiry"], "price": c["price"]} for c in brent],
+        "wti":  [{"expiry": c["expiry"], "price": c["price"]} for c in wti],
+        "brent":[{"expiry": c["expiry"], "price": c["price"]} for c in brent],
     }
 
     # Append snapshot, dedup by date (keep latest), trim to MAX_SNAPSHOTS
@@ -120,18 +171,21 @@ def main():
 
     # Write back
     output = {
-        "last_updated": now_iso,
+        "last_updated":  now_iso,
         "data_available": bool(wti or brent),
-        "wti": wti,
-        "brent": brent,
-        "snapshots": snapshots,
+        "wti":           wti,
+        "brent":         brent,
+        "crack_spreads": crack_spreads,
+        "snapshots":     snapshots,
     }
 
     with open(DATA_FILE, 'w') as f:
         json.dump(output, f, indent=2)
 
     print(f"Wrote {DATA_FILE}")
-    print(f"  WTI contracts: {len(wti)}, Brent contracts: {len(brent)}, Snapshots: {len(snapshots)}")
+    print(f"  WTI: {len(wti)}, Brent: {len(brent)}, "
+          f"Crack spreads: {len(crack_spreads['by_month'])}, "
+          f"Snapshots: {len(snapshots)}")
 
 
 if __name__ == "__main__":

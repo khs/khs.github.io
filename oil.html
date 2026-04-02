@@ -393,12 +393,37 @@ function seasonalAdj() {
   return (m >= 3 && m <= 8) ? 0.12 : 0.00;
 }
 
-// Convert a crude $/bbl price to an estimated retail $/gal.
-function crudeToGallon(bbl, isBrent, region) {
-  const brentBbl     = isBrent ? bbl : bbl + WTI_TO_BRENT_ADJ;
-  const crudePerGal  = brentBbl / 42;
-  const regional     = PUMP_REGIONS[region]?.offset ?? 0;
-  return +(crudePerGal + PUMP_FIXED_TOTAL + regional + seasonalAdj()).toFixed(3);
+// Convert crude $/bbl → retail $/gal using a specific crack spread.
+function crudeToGallon(bbl, isBrent, region, crackSpread) {
+  const brentBbl    = isBrent ? bbl : bbl + WTI_TO_BRENT_ADJ;
+  const crudePerGal = brentBbl / 42;
+  const fixed       = PUMP_FIXED.federal_tax + PUMP_FIXED.state_tax
+                    + PUMP_FIXED.distribution + PUMP_FIXED.retail;
+  const regional    = PUMP_REGIONS[region]?.offset ?? 0;
+  return +(crudePerGal + crackSpread + fixed + regional + seasonalAdj()).toFixed(3);
+}
+
+// ---------------------------------------------------------------------------
+// Lag + crack spread helpers
+// ---------------------------------------------------------------------------
+
+// Lag model: pump prices at month T reflect crude from ~4 weeks (≈ 1 contract
+// month) before T.  On the forward curve, use the previous contract's price as
+// the effective crude input.  The first contract uses itself (lag already in
+// progress for near-term months).
+function laggedCrudePrice(contracts, idx) {
+  return contracts[Math.max(0, idx - 1)].price;
+}
+
+// Return the crack spread ($/gal) for a given contract expiry string.
+// Uses RBOB-derived values from oil-futures.json when available,
+// falls back to the rolling average, then the hard-coded $0.43 default.
+function crackSpreadFor(expiry) {
+  if (!oilData?.crack_spreads) return PUMP_FIXED.refining;
+  const cs = oilData.crack_spreads;
+  const match = (cs.by_month || []).find(m => m.expiry === expiry);
+  if (match) return match.crack_spread;
+  return cs.average ?? PUMP_FIXED.refining;
 }
 
 // ---------------------------------------------------------------------------
@@ -559,16 +584,39 @@ function renderCurve() {
   const showBands = document.getElementById('show-bands').checked;
   const isBrent   = benchmark === 'brent';
 
-  // Convert crude $/bbl values to pump $/gal if pump mode is on
-  function maybeConvert(bbl) {
-    return showPump ? crudeToGallon(bbl, isBrent, pumpRegion) : bbl;
+  // In pump mode each contract at index i uses:
+  //   - crude price from contracts[i-1]  (lag: pumps reflect crude ~1 month prior)
+  //   - crack spread for contracts[i-1]'s expiry (same lag reasoning)
+  // The uncertainty bands also come from the lagged contract.
+  function pumpConvert(bbl, expiry) {
+    return crudeToGallon(bbl, isBrent, pumpRegion, crackSpreadFor(expiry));
   }
 
-  const prices = bands.map(b => maybeConvert(b.price));
-  const upper1 = bands.map(b => maybeConvert(b.upper1));
-  const lower1 = bands.map(b => maybeConvert(b.lower1));
-  const upper2 = bands.map(b => maybeConvert(b.upper2));
-  const lower2 = bands.map(b => maybeConvert(b.lower2));
+  const prices = bands.map((b, i) => {
+    if (!showPump) return b.price;
+    const lagBand = bands[Math.max(0, i - 1)];
+    return pumpConvert(lagBand.price, lagBand.expiry);
+  });
+  const upper1 = bands.map((b, i) => {
+    if (!showPump) return b.upper1;
+    const lagBand = bands[Math.max(0, i - 1)];
+    return pumpConvert(lagBand.upper1, lagBand.expiry);
+  });
+  const lower1 = bands.map((b, i) => {
+    if (!showPump) return b.lower1;
+    const lagBand = bands[Math.max(0, i - 1)];
+    return pumpConvert(lagBand.lower1, lagBand.expiry);
+  });
+  const upper2 = bands.map((b, i) => {
+    if (!showPump) return b.upper2;
+    const lagBand = bands[Math.max(0, i - 1)];
+    return pumpConvert(lagBand.upper2, lagBand.expiry);
+  });
+  const lower2 = bands.map((b, i) => {
+    if (!showPump) return b.lower2;
+    const lagBand = bands[Math.max(0, i - 1)];
+    return pumpConvert(lagBand.lower2, lagBand.expiry);
+  });
 
   const yLabel    = showPump ? '$/gallon at pump' : '$/barrel';
   const lineLabel = showPump
@@ -642,28 +690,37 @@ function renderCurve() {
                 return lines;
               }
 
-              // Pump mode: show breakdown
-              const brentBbl    = isBrent ? b.price : b.price + WTI_TO_BRENT_ADJ;
+              // Pump mode: show lag-aware breakdown
+              const lagBand     = bands[Math.max(0, ctx.dataIndex - 1)];
+              const lagExpiry   = lagBand.expiry;
+              const crack       = crackSpreadFor(lagExpiry);
+              const crackSource = (oilData?.crack_spreads?.by_month || [])
+                                    .find(m => m.expiry === lagExpiry)
+                                  ? 'RBOB futures' : 'rolling avg';
+              const brentBbl    = isBrent ? lagBand.price : lagBand.price + WTI_TO_BRENT_ADJ;
               const crudeGal    = +(brentBbl / 42).toFixed(3);
               const regional    = PUMP_REGIONS[pumpRegion].offset;
               const seasonal    = seasonalAdj();
-              const pumpMid     = maybeConvert(b.price);
+              const pumpMid     = prices[ctx.dataIndex];
+              const isLagged    = ctx.dataIndex > 0;
               const lines = [
-                `Pump: $${pumpMid.toFixed(2)}/gal`,
-                `  crude component: $${crudeGal.toFixed(2)}`,
-                `  refining (avg):  $${PUMP_FIXED.refining.toFixed(2)}`,
+                `Pump est: $${pumpMid.toFixed(2)}/gal`,
+                isLagged
+                  ? `  crude (${lagBand.label}, lag adj): $${crudeGal.toFixed(2)}`
+                  : `  crude (front month):         $${crudeGal.toFixed(2)}`,
+                `  crack spread (${crackSource}): $${crack.toFixed(3)}`,
                 `  dist + retail:   $${(PUMP_FIXED.distribution + PUMP_FIXED.retail).toFixed(2)}`,
                 `  federal tax:     $${PUMP_FIXED.federal_tax.toFixed(3)}`,
                 `  state tax (avg): $${PUMP_FIXED.state_tax.toFixed(3)}`,
               ];
               if (regional !== 0)
-                lines.push(`  regional adj:    ${regional >= 0 ? '+' : ''}$${regional.toFixed(2)}`);
+                lines.push(`  regional adj: ${regional >= 0 ? '+' : ''}$${regional.toFixed(2)}`);
               if (seasonal > 0)
-                lines.push(`  summer blend:    +$${seasonal.toFixed(2)}`);
+                lines.push(`  summer blend: +$${seasonal.toFixed(2)}`);
               if (!isBrent)
-                lines.push(`  (WTI→Brent adj: +$${WTI_TO_BRENT_ADJ}/bbl)`);
+                lines.push(`  (WTI→Brent adj: +$${WTI_TO_BRENT_ADJ}/bbl applied)`);
               if (showBands)
-                lines.push(`68% range: $${maybeConvert(b.lower1).toFixed(2)} – $${maybeConvert(b.upper1).toFixed(2)}`);
+                lines.push(`68%: $${lower1[ctx.dataIndex].toFixed(2)} – $${upper1[ctx.dataIndex].toFixed(2)}`);
               return lines;
             },
           },
@@ -692,15 +749,15 @@ function renderCurve() {
   // Update pump note below chart
   const pumpNote = document.getElementById('pump-note');
   if (showPump) {
-    const isSummer = seasonalAdj() > 0;
-    const adj = !isBrent ? ` WTI adjusted +$${WTI_TO_BRENT_ADJ}/bbl to approximate Brent (which drives US pump prices).` : '';
-    pumpNote.innerHTML =
-      `Formula: (${isBrent ? 'Brent' : 'WTI'} $/bbl${!isBrent ? ' + $4' : ''}) ÷ 42 + $${PUMP_FIXED_TOTAL.toFixed(2)} fixed costs`
-      + ` + $${PUMP_REGIONS[pumpRegion].offset.toFixed(2)} regional`
-      + (isSummer ? ` + $0.12 summer blend` : '')
-      + `.${adj}`
-      + ` Rule of thumb: every $10/bbl crude ≈ $0.24/gal at pump.`
-      + ` Crack spread varies ($0.20–$0.60); this uses a $0.43 average.`;
+    const cs         = oilData?.crack_spreads;
+    const crackAvg   = cs?.average ?? PUMP_FIXED.refining;
+    const crackMonths = cs?.by_month?.length ?? 0;
+    const crackNote  = crackMonths > 0
+      ? `Crack spread from RBOB futures (${crackMonths} months); rolling avg $${crackAvg.toFixed(2)}/gal used beyond.`
+      : `Crack spread: $${PUMP_FIXED.refining.toFixed(2)}/gal fixed average (no RBOB data yet).`;
+    const lagNote = `Lag-adjusted: pump prices at each month reflect crude from ~4 weeks prior (EIA: ~50% pass-through at 4 wks).`;
+    const adjNote = !isBrent ? ` WTI adjusted +$${WTI_TO_BRENT_ADJ}/bbl before conversion (Brent drives US pump prices per EIA).` : '';
+    pumpNote.innerHTML = `${lagNote} ${crackNote}${adjNote}`;
     pumpNote.style.display = '';
   } else {
     pumpNote.style.display = 'none';
