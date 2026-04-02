@@ -1,0 +1,8 @@
+{
+  "last_updated": null,
+  "data_available": false,
+  "note": "Awaiting first data fetch. Trigger the 'Update Oil Futures Data' workflow in GitHub Actions.",
+  "wti": [],
+  "brent": [],
+  "snapshots": []
+}

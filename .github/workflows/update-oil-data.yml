@@ -1,0 +1,43 @@
+name: Update Oil Futures Data
+
+on:
+  schedule:
+    # Every Sunday at 18:00 UTC (after markets close Friday)
+    - cron: '0 18 * * 0'
+  workflow_dispatch:
+    # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install yfinance requests pandas openpyxl scipy
+
+      - name: Fetch futures data
+        run: python .github/scripts/fetch_oil_futures.py
+
+      - name: Build empirical lag model (crude → pump pass-through)
+        run: python .github/scripts/build_lag_model.py
+
+      - name: Run backtest (weekly refresh keeps it current)
+        run: python .github/scripts/backtest_oil.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/oil-futures.json data/oil-backtest.json data/lag-model.json
+          git diff --cached --quiet || git commit -m "chore: update oil futures data [skip ci]"
+          git push

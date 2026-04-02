@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oil Futures Forward Curve</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Georgia, serif;
+      margin: 40px 80px;
+      background: #fff;
+      color: #222;
+    }
+
+    h1 {
+      font-size: 1.9em;
+      margin-bottom: 0.2em;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 0.95em;
+      margin-bottom: 1.5em;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 1.2em;
+      margin-bottom: 1em;
+      flex-wrap: wrap;
+    }
+
+    .btn-group {
+      display: flex;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .btn-group button {
+      padding: 6px 16px;
+      border: none;
+      background: #f5f5f5;
+      cursor: pointer;
+      font-family: Georgia, serif;
+      font-size: 0.9em;
+      color: #444;
+      transition: background 0.15s;
+    }
+
+    .btn-group button.active {
+      background: #2c5282;
+      color: #fff;
+    }
+
+    .btn-group button:not(:last-child) {
+      border-right: 1px solid #ccc;
+    }
+
+    label {
+      font-size: 0.9em;
+      color: #444;
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+      cursor: pointer;
+    }
+
+    .meta {
+      font-size: 0.82em;
+      color: #888;
+      margin-left: auto;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      height: 420px;
+    }
+
+    .no-data {
+      padding: 3em;
+      text-align: center;
+      color: #888;
+      border: 1px dashed #ccc;
+      border-radius: 6px;
+      max-width: 600px;
+    }
+
+    .no-data code {
+      display: block;
+      margin-top: 1em;
+      font-size: 0.85em;
+      background: #f5f5f5;
+      padding: 0.5em 1em;
+      border-radius: 4px;
+      color: #444;
+      text-align: left;
+    }
+
+    .legend-note {
+      font-size: 0.8em;
+      color: #888;
+      margin-top: 0.5em;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #e0e0e0;
+      margin-bottom: 1.5em;
+    }
+
+    .tab {
+      padding: 8px 18px;
+      cursor: pointer;
+      font-size: 0.9em;
+      color: #666;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+    }
+
+    .tab.active {
+      color: #2c5282;
+      border-bottom-color: #2c5282;
+      font-weight: bold;
+    }
+
+    table.bt {
+      border-collapse: collapse;
+      font-size: 0.88em;
+      max-width: 860px;
+      width: 100%;
+      margin-bottom: 1.5em;
+    }
+
+    table.bt th {
+      background: #f0f4fa;
+      text-align: right;
+      padding: 6px 12px;
+      border-bottom: 2px solid #c8d5e8;
+      color: #2c5282;
+      white-space: nowrap;
+    }
+
+    table.bt th:first-child { text-align: left; }
+
+    table.bt td {
+      padding: 5px 12px;
+      text-align: right;
+      border-bottom: 1px solid #eee;
+      color: #333;
+    }
+
+    table.bt td:first-child { text-align: left; font-weight: bold; }
+
+    table.bt tr:last-child td { border-bottom: none; }
+
+    table.bt .note { font-size: 0.78em; color: #888; font-weight: normal; }
+
+    .bt-section { margin-bottom: 2em; }
+
+    .bt-section h3 {
+      font-size: 1em;
+      color: #2c5282;
+      margin-bottom: 0.5em;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 0.3em;
+    }
+
+    .horizon-btns { display: flex; gap: 0.4em; margin-bottom: 1em; flex-wrap: wrap; }
+
+    .horizon-btns button {
+      padding: 4px 12px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      background: #f5f5f5;
+      cursor: pointer;
+      font-family: Georgia, serif;
+      font-size: 0.85em;
+      color: #444;
+    }
+
+    .horizon-btns button.active {
+      background: #2c5282;
+      color: #fff;
+      border-color: #2c5282;
+    }
+
+    .good { color: #276749; }
+    .bad  { color: #9b2c2c; }
+
+    select.region-select {
+      font-family: Georgia, serif;
+      font-size: 0.88em;
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fafafa;
+      color: #333;
+      cursor: pointer;
+    }
+
+    .pump-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 0.4em;
+      padding: 0.5em 0.8em;
+      background: #f8f8f0;
+      border-left: 3px solid #b7791f;
+      max-width: 700px;
+    }
+
+    @media (max-width: 600px) {
+      body { margin: 20px 16px; }
+      .chart-container { height: 300px; }
+      table.bt { font-size: 0.78em; }
+      table.bt th, table.bt td { padding: 4px 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Oil Futures Forward Curve</h1>
+<p class="subtitle">
+  Market-implied price path with uncertainty bands.
+  Data: Yahoo Finance. Updated weekly via GitHub Actions.
+</p>
+
+<div class="tabs">
+  <div class="tab active" data-tab="curve" onclick="switchTab('curve', this)">Forward Curve</div>
+  <div class="tab" data-tab="history" onclick="switchTab('history', this)">Prediction History</div>
+  <div class="tab" data-tab="backtest" onclick="switchTab('backtest', this)">Backtest</div>
+</div>
+
+<!-- CURVE TAB -->
+<div id="tab-curve">
+  <div class="controls">
+    <div class="btn-group">
+      <button id="btn-wti" class="active" onclick="setBenchmark('wti')">WTI</button>
+      <button id="btn-brent" onclick="setBenchmark('brent')">Brent</button>
+    </div>
+    <label>
+      <input type="checkbox" id="show-bands" checked onchange="renderCurve()">
+      Show uncertainty bands
+    </label>
+    <label>
+      <input type="checkbox" id="show-pump" onchange="togglePump()">
+      Pump price ($/gal)
+    </label>
+    <select id="pump-region" class="region-select" style="display:none"
+            onchange="setPumpRegion(this.value)">
+      <option value="national">US National Avg</option>
+      <option value="gulf">Gulf Coast</option>
+      <option value="midwest">Midwest</option>
+      <option value="east">East Coast</option>
+      <option value="west">West Coast</option>
+      <option value="california">California</option>
+    </select>
+    <span class="meta" id="last-updated"></span>
+  </div>
+
+  <div class="chart-container">
+    <canvas id="curveChart"></canvas>
+  </div>
+  <p class="legend-note" id="curve-legend">
+    Dark band: ±1&sigma; (68% interval) &nbsp;|&nbsp; Light band: ±2&sigma; (95% interval).
+    Bands are <strong>asymmetric</strong>: downside uses 50% annualised vol vs 28% upside,
+    reflecting that oil crashes faster than it rallies (2008, 2020).
+    Uncertainty plateaus past ~2.5 years due to long-run mean reversion.
+    Calibrated from 20-year WTI backtest (EIA RCLC1–4 vs FRED spot).
+  </p>
+  <p class="pump-note" id="pump-note" style="display:none"></p>
+</div>
+
+<!-- HISTORY TAB -->
+<div id="tab-history" style="display:none">
+  <div class="controls">
+    <div class="btn-group">
+      <button id="btn-wti-h" class="active" onclick="setBenchmarkH('wti')">WTI</button>
+      <button id="btn-brent-h" onclick="setBenchmarkH('brent')">Brent</button>
+    </div>
+    <span class="meta" id="snapshot-count"></span>
+  </div>
+
+  <div class="chart-container">
+    <canvas id="historyChart"></canvas>
+  </div>
+  <p class="legend-note">
+    Each line is a weekly snapshot of the forward curve at that date.
+    Older snapshots appear lighter. As the dataset grows, you will be able to
+    compare past predictions against realised prices.
+  </p>
+</div>
+
+<!-- BACKTEST TAB -->
+<div id="tab-backtest" style="display:none">
+
+  <div class="bt-section">
+    <h3>Summary — WTI, 2004–2024</h3>
+    <p style="font-size:0.85em;color:#666;margin-bottom:0.8em">
+      Prediction = EIA NYMEX nth-nearby futures price on date <em>t</em>.
+      Realized = WTI spot price (FRED) at <em>t + h</em>.
+      Naive = today's spot used as forecast (random-walk benchmark).
+      A positive bias means futures <em>under</em>-predicted realized prices on average.
+    </p>
+    <div id="bt-summary-container">
+      <div class="no-data" style="text-align:left;padding:1.5em">
+        Backtest data not yet generated. Trigger the GitHub Actions workflow
+        (<strong>Actions → Update Oil Futures Data → Run workflow</strong>) to compute it.
+      </div>
+    </div>
+  </div>
+
+  <div class="bt-section" id="bt-error-section" style="display:none">
+    <h3>Monthly prediction error over time (1-month horizon)</h3>
+    <div class="horizon-btns" id="horizon-btns">
+      <button class="active" onclick="setHorizon('1m',this)">1 month</button>
+      <button onclick="setHorizon('2m',this)">2 months</button>
+      <button onclick="setHorizon('3m',this)">3 months</button>
+      <button onclick="setHorizon('4m',this)">4 months</button>
+    </div>
+    <div class="chart-container" style="height:320px">
+      <canvas id="btErrorChart"></canvas>
+    </div>
+    <p class="legend-note">
+      Error = realized spot − futures prediction ($/bbl).
+      Positive = futures under-predicted; negative = futures over-predicted.
+    </p>
+  </div>
+
+  <div class="bt-section" id="bt-year-section" style="display:none">
+    <h3>Annual average absolute error by horizon</h3>
+    <div class="chart-container" style="height:320px">
+      <canvas id="btYearChart"></canvas>
+    </div>
+    <p class="legend-note">
+      MAE (mean absolute error) in $/bbl per year. Years with large errors correspond
+      to price dislocations: 2008 financial crisis, 2014–16 oil crash, 2020 COVID.
+    </p>
+  </div>
+
+  <div class="bt-section" id="bt-regime-section" style="display:none">
+    <h3>Performance by market regime (1-month horizon)</h3>
+    <div id="bt-regime-container"></div>
+  </div>
+
+</div>
+
+<div id="no-data-msg" style="display:none">
+  <div class="no-data">
+    <p><strong>No data yet.</strong></p>
+    <p>Trigger the GitHub Actions workflow to fetch the first dataset:</p>
+    <code>Actions → "Update Oil Futures Data" → Run workflow</code>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Crude → pump price conversion (EIA-sourced, 2024-2025 calibration)
+// ---------------------------------------------------------------------------
+// Brent drives US retail prices (higher R² than WTI since 2011 shale boom).
+// Add this $/bbl to WTI before converting to approximate Brent.
+const WTI_TO_BRENT_ADJ = 4.0;
+
+// Fixed per-gallon costs that don't move with crude.
+// Validation: at Brent $70, (70/42) + 1.399 = $3.07 ≈ 2025 US average. ✓
+const PUMP_FIXED = {
+  federal_tax:  0.184,   // $/gal — unchanged since 1993
+  state_tax:    0.335,   // $/gal — national average (range: $0.09 AK to $0.71 CA)
+  refining:     0.430,   // $/gal — avg crack spread; varies $0.20 (glut) to $0.60+ (tight)
+  distribution: 0.300,   // $/gal — pipeline + terminal + wholesale blending
+  retail:       0.150,   // $/gal — station operator gross margin
+};
+const PUMP_FIXED_TOTAL = Object.values(PUMP_FIXED).reduce((a, b) => a + b, 0); // ~$1.40
+
+// Regional offsets from the national average (EIA PADD data).
+const PUMP_REGIONS = {
+  national:   { label: 'US National Avg',  offset:  0.00 },
+  gulf:       { label: 'Gulf Coast',       offset: -0.65 },
+  midwest:    { label: 'Midwest',          offset: -0.20 },
+  east:       { label: 'East Coast',       offset: +0.05 },
+  west:       { label: 'West Coast',       offset: +1.15 },
+  california: { label: 'California',       offset: +1.40 },
+};
+
+// April–September: summer-blend switchover adds ~$0.12/gal.
+function seasonalAdj() {
+  const m = new Date().getMonth(); // 0-indexed
+  return (m >= 3 && m <= 8) ? 0.12 : 0.00;
+}
+
+// Convert crude $/bbl → retail $/gal using a specific crack spread.
+function crudeToGallon(bbl, isBrent, region, crackSpread) {
+  const brentBbl    = isBrent ? bbl : bbl + WTI_TO_BRENT_ADJ;
+  const crudePerGal = brentBbl / 42;
+  const fixed       = PUMP_FIXED.federal_tax + PUMP_FIXED.state_tax
+                    + PUMP_FIXED.distribution + PUMP_FIXED.retail;
+  const regional    = PUMP_REGIONS[region]?.offset ?? 0;
+  return +(crudePerGal + crackSpread + fixed + regional + seasonalAdj()).toFixed(3);
+}
+
+// ---------------------------------------------------------------------------
+// Lag + crack spread helpers
+// ---------------------------------------------------------------------------
+
+// Return the crack spread ($/gal) for a given contract expiry string.
+// Uses RBOB-derived values from oil-futures.json when available,
+// falls back to the rolling average, then the hard-coded $0.43 default.
+function crackSpreadFor(expiry) {
+  if (!oilData?.crack_spreads) return PUMP_FIXED.refining;
+  const cs = oilData.crack_spreads;
+  const match = (cs.by_month || []).find(m => m.expiry === expiry);
+  if (match) return match.crack_spread;
+  return cs.average ?? PUMP_FIXED.refining;
+}
+
+// Linear interpolation of the crude forward curve at an arbitrary
+// number of weeks from today.  Returns $/bbl.
+// Clamps to front/back contract for dates outside the curve.
+function interpolateCrude(contracts, weeksFromNow) {
+  const today = Date.now();
+  if (weeksFromNow <= 0) return contracts[0].price;
+
+  // Convert each contract to weeks-from-now
+  const pts = contracts.map(c => ({
+    w: (new Date(c.expiry + '-15') - today) / (7 * 86400000),
+    p: c.price,
+  }));
+
+  for (let i = 0; i < pts.length - 1; i++) {
+    if (weeksFromNow >= pts[i].w && weeksFromNow <= pts[i + 1].w) {
+      const frac = (weeksFromNow - pts[i].w) / (pts[i + 1].w - pts[i].w);
+      return pts[i].p + frac * (pts[i + 1].p - pts[i].p);
+    }
+  }
+  return pts[pts.length - 1].p; // flat extrapolation beyond last contract
+}
+
+// Compute the pump price for contracts[idx] using the empirical distributed
+// lag model when available, or a simple 1-month-lag fallback.
+//
+// Empirical model (lagModel loaded):
+//   pump = α + Σ_{k=0}^{K} β_k × crude(delivery - k weeks)/42
+//          + seasonal_premium (Apr-Sep only)
+//          + regional_offset
+//
+// The α from the FRED regression already embeds average non-crude costs
+// (taxes, distribution, avg crack spread) — do NOT add PUMP_FIXED on top.
+// Add the crack-spread *deviation* (live RBOB minus training average) as a
+// second-order correction.
+//
+// Fallback (no lagModel): uses previous contract's price (1-month lag).
+function pumpForContract(contracts, bands, idx, isBrent) {
+  const contract = contracts[idx];
+  const expiry   = contract.expiry;
+  const regional = PUMP_REGIONS[pumpRegion].offset;
+
+  if (lagModel) {
+    const { alpha, betas, seasonal_premium, total_passthrough } = lagModel;
+    const K = betas.length;
+
+    // Delivery date in weeks from now
+    const deliveryWeeks = (new Date(expiry + '-15') - Date.now()) / (7 * 86400000);
+
+    // Weighted crude input: Σ β_k × crude(delivery - k weeks)/42
+    let weightedCrudeGal = 0;
+    for (let k = 0; k < K; k++) {
+      const crudeBbl = interpolateCrude(contracts, deliveryWeeks - k);
+      const brentBbl = isBrent ? crudeBbl : crudeBbl + WTI_TO_BRENT_ADJ;
+      weightedCrudeGal += betas[k] * (brentBbl / 42);
+    }
+
+    // Crack spread deviation: how different is today's crack from training avg?
+    const crackNow = crackSpreadFor(contracts[0].expiry);  // current front-month
+    const crackAvg = oilData?.crack_spreads?.average ?? PUMP_FIXED.refining;
+    const crackDev = crackNow - crackAvg;
+
+    // Seasonal premium (measured from regression residuals)
+    const isSummer  = (new Date().getMonth() + 1) >= 4 &&
+                      (new Date().getMonth() + 1) <= 9;
+    const seasonal  = isSummer ? (seasonal_premium ?? 0.12) : 0;
+
+    return +(alpha + weightedCrudeGal + crackDev + regional + seasonal).toFixed(3);
+
+  } else {
+    // Fallback: previous contract (simple 1-month lag)
+    const lagBand  = bands[Math.max(0, idx - 1)];
+    const crack    = crackSpreadFor(lagBand.expiry);
+    return crudeToGallon(lagBand.price, isBrent, pumpRegion, crack);
+  }
+}
+
+// Propagate a crude band endpoint through the lag model.
+// The pump price band width scales by (total_passthrough / 42) relative to
+// the crude band width in $/bbl, which is the correct linear propagation.
+function pumpBandEndpoint(contracts, bands, idx, isBrent, crudeBandBbl) {
+  const central = contracts[idx].price;
+  const pumpCentral = pumpForContract(contracts, bands, idx, isBrent);
+  if (!lagModel) {
+    const lagBand = bands[Math.max(0, idx - 1)];
+    const crack   = crackSpreadFor(lagBand.expiry);
+    return crudeToGallon(crudeBandBbl, isBrent, pumpRegion, crack);
+  }
+  const tp = lagModel.total_passthrough ?? 0.75;
+  const brentAdj = isBrent ? 0 : WTI_TO_BRENT_ADJ;
+  const delta = ((crudeBandBbl + brentAdj) - (central + brentAdj)) / 42 * tp;
+  return +(pumpCentral + delta).toFixed(3);
+}
+
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+let oilData  = null;
+let btData   = null;
+let lagModel = null;    // empirical distributed lag coefficients
+let benchmark  = 'wti';
+let benchmarkH = 'wti';
+let activeHorizon = '1m';
+let showPump  = false;
+let pumpRegion = 'national';
+let curveChart   = null;
+let historyChart = null;
+let btErrorChart = null;
+let btYearChart  = null;
+
+// Asymmetric uncertainty parameters, calibrated from 20-year WTI backtest.
+//
+// Oil crashes faster and further than it rallies: the 2008 and 2020 drawdowns
+// were 70–80% in months, whereas equivalent upside moves take years.
+// Backtest RMSE by horizon (on ~$65 average price):
+//   1m ≈ $4  → ~21% ann. vol    4m ≈ $16 → ~43% ann. vol
+// Splitting the RMSE into upside/downside components gives roughly:
+//   upside vol  ≈ 28%  (rallies are gradual)
+//   downside vol ≈ 50%  (crashes are sudden and severe)
+//
+// Time scaling: beyond ~2 years mean-reversion kicks in and the uncertainty
+// stops growing. We cap the effective horizon to model this plateau.
+const VOL_UP   = 0.28;   // annualised upside vol
+const VOL_DOWN = 0.50;   // annualised downside vol
+const MR_CAP   = 2.5;    // mean-reversion cap: uncertainty plateaus past ~2.5 years
+
+// ---------------------------------------------------------------------------
+// Load data
+// ---------------------------------------------------------------------------
+fetch('data/oil-futures.json')
+  .then(r => r.json())
+  .then(data => {
+    oilData = data;
+    init();
+  })
+  .catch(() => {
+    document.getElementById('no-data-msg').style.display = 'block';
+    document.getElementById('tab-curve').style.display = 'none';
+    document.getElementById('tab-history').style.display = 'none';
+    document.querySelectorAll('.tabs').forEach(t => t.style.display = 'none');
+  });
+
+fetch('data/oil-backtest.json')
+  .then(r => r.json())
+  .then(data => { btData = data; })
+  .catch(() => { /* backtest not yet generated — handled in renderBacktest */ });
+
+fetch('data/lag-model.json')
+  .then(r => r.json())
+  .then(data => {
+    if (data.alpha != null && data.betas != null) {
+      lagModel = data;
+    }
+  })
+  .catch(() => { /* lag model not yet generated — falls back to 1-month lag */ });
+
+function init() {
+  if (!oilData.data_available) {
+    document.getElementById('no-data-msg').style.display = 'block';
+    document.getElementById('tab-curve').style.display = 'none';
+    document.getElementById('tab-history').style.display = 'none';
+    document.querySelectorAll('.tabs').forEach(t => t.style.display = 'none');
+    return;
+  }
+
+  if (oilData.last_updated) {
+    const d = new Date(oilData.last_updated);
+    document.getElementById('last-updated').textContent =
+      'Last updated: ' + d.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+  }
+
+  const sc = oilData.snapshots ? oilData.snapshots.length : 0;
+  document.getElementById('snapshot-count').textContent =
+    sc + ' weekly snapshot' + (sc === 1 ? '' : 's') + ' stored';
+
+  renderCurve();
+}
+
+// ---------------------------------------------------------------------------
+// Tab switching
+// ---------------------------------------------------------------------------
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-curve').style.display    = tab === 'curve'    ? '' : 'none';
+  document.getElementById('tab-history').style.display  = tab === 'history'  ? '' : 'none';
+  document.getElementById('tab-backtest').style.display = tab === 'backtest' ? '' : 'none';
+
+  if (tab === 'history' && !historyChart) renderHistory();
+  if (tab === 'backtest') renderBacktest();
+}
+
+// ---------------------------------------------------------------------------
+// Benchmark + pump toggle
+// ---------------------------------------------------------------------------
+function setBenchmark(b) {
+  benchmark = b;
+  document.getElementById('btn-wti').classList.toggle('active', b === 'wti');
+  document.getElementById('btn-brent').classList.toggle('active', b === 'brent');
+  renderCurve();
+}
+
+function togglePump() {
+  showPump = document.getElementById('show-pump').checked;
+  document.getElementById('pump-region').style.display = showPump ? '' : 'none';
+  renderCurve();
+}
+
+function setPumpRegion(r) {
+  pumpRegion = r;
+  renderCurve();
+}
+
+function setBenchmarkH(b) {
+  benchmarkH = b;
+  document.getElementById('btn-wti-h').classList.toggle('active', b === 'wti');
+  document.getElementById('btn-brent-h').classList.toggle('active', b === 'brent');
+  renderHistory();
+}
+
+// ---------------------------------------------------------------------------
+// Uncertainty bands
+// ---------------------------------------------------------------------------
+function computeBands(contracts) {
+  const today = new Date();
+  return contracts.map(c => {
+    const expiry = new Date(c.expiry + '-15'); // mid-month
+    const T = Math.max(0, (expiry - today) / (365.25 * 86400 * 1000));
+
+    // Cap the effective horizon to reflect mean-reversion: oil prices tend to
+    // revert toward long-run production cost, so uncertainty doesn't grow
+    // indefinitely. Past ~2.5 years the band width plateaus.
+    const Teff = Math.min(T, MR_CAP);
+
+    const sigUp   = VOL_UP   * Math.sqrt(Teff);
+    const sigDown = VOL_DOWN * Math.sqrt(Teff);
+
+    return {
+      expiry: c.expiry,
+      label:  c.label,
+      price:  c.price,
+      upper1: +(c.price * Math.exp(    sigUp)).toFixed(2),
+      lower1: +(c.price * Math.exp(-   sigDown)).toFixed(2),
+      upper2: +(c.price * Math.exp(2 * sigUp)).toFixed(2),
+      lower2: +(c.price * Math.exp(-2 * sigDown)).toFixed(2),
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Forward curve chart
+// ---------------------------------------------------------------------------
+function renderCurve() {
+  if (!oilData) return;
+  const contracts = oilData[benchmark] || [];
+  if (!contracts.length) return;
+
+  const bands     = computeBands(contracts);
+  const labels    = bands.map(b => b.label);
+  const showBands = document.getElementById('show-bands').checked;
+  const isBrent   = benchmark === 'brent';
+
+  const prices = bands.map((b, i) =>
+    showPump ? pumpForContract(contracts, bands, i, isBrent) : b.price);
+  const upper1 = bands.map((b, i) =>
+    showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.upper1) : b.upper1);
+  const lower1 = bands.map((b, i) =>
+    showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.lower1) : b.lower1);
+  const upper2 = bands.map((b, i) =>
+    showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.upper2) : b.upper2);
+  const lower2 = bands.map((b, i) =>
+    showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.lower2) : b.lower2);
+
+  const yLabel    = showPump ? '$/gallon at pump' : '$/barrel';
+  const lineLabel = showPump
+    ? `Est. pump price — ${PUMP_REGIONS[pumpRegion].label}`
+    : `${benchmark.toUpperCase()} Forward Curve ($/bbl)`;
+
+  const datasets = [];
+
+  if (showBands) {
+    datasets.push({
+      label: '95% upper', data: upper2,
+      borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.10)',
+      fill: '+1', pointRadius: 0, order: 4,
+    });
+    datasets.push({
+      label: '95% lower', data: lower2,
+      borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.10)',
+      fill: false, pointRadius: 0, order: 4,
+    });
+    datasets.push({
+      label: '68% upper', data: upper1,
+      borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.18)',
+      fill: '+1', pointRadius: 0, order: 3,
+    });
+    datasets.push({
+      label: '68% lower', data: lower1,
+      borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.18)',
+      fill: false, pointRadius: 0, order: 3,
+    });
+  }
+
+  datasets.push({
+    label: lineLabel,
+    data: prices,
+    borderColor: '#2c5282', backgroundColor: '#2c5282',
+    borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6,
+    fill: false, order: 1, tension: 0.2,
+  });
+
+  if (curveChart) curveChart.destroy();
+
+  const ctx = document.getElementById('curveChart').getContext('2d');
+  curveChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            filter: item => !['95% upper','95% lower','68% upper','68% lower'].includes(item.text),
+            font: { family: 'Georgia, serif', size: 12 },
+          },
+        },
+        tooltip: {
+          callbacks: {
+            title: ctx => ctx[0].label,
+            label: ctx => {
+              const b    = bands[ctx.dataIndex];
+              if (!b) return '';
+
+              if (!showPump) {
+                const lines = [`${benchmark.toUpperCase()}: $${b.price}/bbl`];
+                if (showBands) {
+                  lines.push(`68% range: $${b.lower1} – $${b.upper1}`);
+                  lines.push(`95% range: $${b.lower2} – $${b.upper2}`);
+                }
+                return lines;
+              }
+
+              // Pump mode: show model-aware breakdown
+              const pumpMid  = prices[ctx.dataIndex];
+              const regional = PUMP_REGIONS[pumpRegion].offset;
+              const lines    = [`Pump est: $${pumpMid.toFixed(2)}/gal`];
+
+              if (lagModel) {
+                const { alpha, betas, total_passthrough, n_obs, data_end } = lagModel;
+                const K = betas.length;
+                const deliveryWeeks = (new Date(b.expiry + '-15') - Date.now()) / (7 * 86400000);
+                let weightedCrudeGal = 0;
+                for (let k = 0; k < K; k++) {
+                  const crudeBbl = interpolateCrude(contracts, deliveryWeeks - k);
+                  const brentBbl = isBrent ? crudeBbl : crudeBbl + WTI_TO_BRENT_ADJ;
+                  weightedCrudeGal += betas[k] * (brentBbl / 42);
+                }
+                lines.push(`  crude (lag-weighted, ${K}-wk dist): $${weightedCrudeGal.toFixed(3)}`);
+                lines.push(`  non-crude costs (α):  $${alpha.toFixed(3)}`);
+                lines.push(`  total pass-through:   ${(total_passthrough * 100).toFixed(1)}%`);
+                lines.push(`  model: ${n_obs} obs thru ${data_end}`);
+              } else {
+                const lagBand   = bands[Math.max(0, ctx.dataIndex - 1)];
+                const brentBbl  = isBrent ? lagBand.price : lagBand.price + WTI_TO_BRENT_ADJ;
+                lines.push(`  crude (1-month lag): $${(brentBbl/42).toFixed(3)}/gal`);
+                lines.push(`  non-crude costs: $${PUMP_FIXED_TOTAL.toFixed(3)}/gal`);
+                lines.push(`  (empirical model not yet available)`);
+              }
+
+              if (regional !== 0)
+                lines.push(`  regional adj: ${regional >= 0 ? '+' : ''}$${regional.toFixed(2)}`);
+              if (!isBrent)
+                lines.push(`  WTI→Brent adj: +$${WTI_TO_BRENT_ADJ}/bbl`);
+              if (showBands)
+                lines.push(`68%: $${lower1[ctx.dataIndex].toFixed(2)} – $${upper1[ctx.dataIndex].toFixed(2)}`);
+              return lines;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'Georgia, serif', size: 11 }, maxRotation: 45 },
+          grid: { color: '#f0f0f0' },
+        },
+        y: {
+          ticks: {
+            font: { family: 'Georgia, serif', size: 11 },
+            callback: v => '$' + (showPump ? v.toFixed(2) : v),
+          },
+          grid: { color: '#f0f0f0' },
+          title: {
+            display: true, text: yLabel,
+            font: { family: 'Georgia, serif', size: 12 }, color: '#666',
+          },
+        },
+      },
+    },
+  });
+
+  // Update pump note below chart
+  const pumpNote = document.getElementById('pump-note');
+  if (showPump) {
+    const cs          = oilData?.crack_spreads;
+    const crackMonths = cs?.by_month?.length ?? 0;
+    const crackAvg    = cs?.average ?? PUMP_FIXED.refining;
+
+    let lagNote;
+    if (lagModel) {
+      const tp = (lagModel.total_passthrough * 100).toFixed(1);
+      const K  = lagModel.betas.length;
+      const r2 = (lagModel.r2 * 100).toFixed(1);
+      const asym = lagModel.asymmetry_test?.significant
+        ? ' Rockets-and-feathers asymmetry detected in training data.'
+        : '';
+      lagNote = `Empirical ${K}-week distributed lag model (OLS on FRED weekly data, `
+              + `R²=${r2}%, ${lagModel.n_obs} obs, thru ${lagModel.data_end}). `
+              + `Total pass-through: ${tp}%. α captures taxes, distribution, avg refining.${asym}`;
+    } else {
+      lagNote = `Lag model not yet built — using simple 1-month lag fallback. `
+              + `Trigger the GitHub Actions workflow to build the empirical model.`;
+    }
+
+    const crackNote = crackMonths > 0
+      ? ` Crack spread deviation from live RBOB futures (${crackMonths} months); avg $${crackAvg.toFixed(3)}/gal.`
+      : ` Crack spread: no RBOB data yet; $${PUMP_FIXED.refining.toFixed(2)}/gal average used.`;
+    const wtiNote = !isBrent
+      ? ` WTI adjusted +$${WTI_TO_BRENT_ADJ}/bbl (Brent correlates better with US pump prices per EIA).`
+      : '';
+
+    pumpNote.innerHTML = lagNote + crackNote + wtiNote;
+    pumpNote.style.display = '';
+  } else {
+    pumpNote.style.display = 'none';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Prediction history chart
+// ---------------------------------------------------------------------------
+function renderHistory() {
+  if (!oilData) return;
+  const snapshots = oilData.snapshots || [];
+  if (!snapshots.length) {
+    // nothing yet
+    if (historyChart) historyChart.destroy();
+    return;
+  }
+
+  // Collect all expiry labels across snapshots
+  const expirySet = new Set();
+  snapshots.forEach(s => (s[benchmarkH] || []).forEach(c => expirySet.add(c.expiry)));
+  const expiries = Array.from(expirySet).sort();
+  const labels = expiries.map(e => {
+    const [y, m] = e.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[parseInt(m, 10) - 1] + ' ' + y;
+  });
+
+  const n = snapshots.length;
+  const datasets = snapshots.map((snap, i) => {
+    const priceMap = {};
+    (snap[benchmarkH] || []).forEach(c => { priceMap[c.expiry] = c.price; });
+    const data = expiries.map(e => priceMap[e] ?? null);
+
+    // Fade older snapshots
+    const alpha = 0.15 + 0.85 * (i / Math.max(n - 1, 1));
+    const color = `rgba(44,82,130,${alpha.toFixed(2)})`;
+
+    return {
+      label: snap.date,
+      data,
+      borderColor: color,
+      backgroundColor: 'transparent',
+      borderWidth: i === n - 1 ? 2.5 : 1,
+      pointRadius: i === n - 1 ? 4 : 0,
+      fill: false,
+      tension: 0.2,
+    };
+  });
+
+  if (historyChart) historyChart.destroy();
+
+  const ctx = document.getElementById('historyChart').getContext('2d');
+  historyChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: ctx => ctx[0].label,
+            label: ctx => {
+              const snap = snapshots[ctx.datasetIndex];
+              const v = ctx.raw;
+              return v != null ? `${snap.date}: $${v}` : null;
+            },
+          },
+          filter: item => item.raw != null,
+        },
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'Georgia, serif', size: 11 }, maxRotation: 45 },
+          grid: { color: '#f0f0f0' },
+        },
+        y: {
+          ticks: {
+            font: { family: 'Georgia, serif', size: 11 },
+            callback: v => '$' + v,
+          },
+          grid: { color: '#f0f0f0' },
+          title: {
+            display: true,
+            text: '$/barrel',
+            font: { family: 'Georgia, serif', size: 12 },
+            color: '#666',
+          },
+        },
+      },
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Backtest
+// ---------------------------------------------------------------------------
+
+const HORIZON_COLORS = {
+  '1m': '#2c5282',
+  '2m': '#2f855a',
+  '3m': '#b7791f',
+  '4m': '#9b2c2c',
+};
+
+const HORIZON_LABELS = {
+  '1m': '1 month',
+  '2m': '2 months',
+  '3m': '3 months',
+  '4m': '4 months',
+};
+
+function setHorizon(h, btn) {
+  activeHorizon = h;
+  document.querySelectorAll('#horizon-btns button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const errSection = document.getElementById('bt-error-section');
+  errSection.querySelector('h3').textContent =
+    `Monthly prediction error over time (${HORIZON_LABELS[h]} horizon)`;
+  renderBtErrorChart();
+}
+
+function renderBacktest() {
+  if (!btData || !btData.results) return;
+  const res = btData.results;
+
+  // --- Summary table ---
+  const horizons = ['1m','2m','3m','4m'].filter(h => res[h]);
+  if (!horizons.length) return;
+
+  const thead = `<tr>
+    <th>Horizon</th>
+    <th>N <span class="note">(days)</span></th>
+    <th>Bias <span class="note">$/bbl</span></th>
+    <th>MAE <span class="note">$/bbl</span></th>
+    <th>RMSE <span class="note">$/bbl</span></th>
+    <th>Naive RMSE</th>
+    <th>R²</th>
+    <th>Hit rate</th>
+    <th>Within ±10%</th>
+  </tr>`;
+
+  const rows = horizons.map(h => {
+    const s = res[h];
+    const betterThanNaive = s.rmse < s.naive_rmse;
+    const biasClass = s.bias > 0 ? 'bad' : 'good';
+    return `<tr>
+      <td>${s.label}</td>
+      <td>${s.n.toLocaleString()}</td>
+      <td class="${biasClass}">${s.bias > 0 ? '+' : ''}${s.bias}</td>
+      <td>${s.mae}</td>
+      <td class="${betterThanNaive ? 'good' : 'bad'}">${s.rmse}</td>
+      <td>${s.naive_rmse}</td>
+      <td>${s.r2 != null ? s.r2 : '—'}</td>
+      <td>${s.hit_rate != null ? (s.hit_rate * 100).toFixed(1) + '%' : '—'}</td>
+      <td>${s.within_10pct != null ? (s.within_10pct * 100).toFixed(1) + '%' : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('bt-summary-container').innerHTML =
+    `<table class="bt"><thead>${thead}</thead><tbody>${rows}</tbody></table>
+     <p class="legend-note">
+       Bias: positive = futures systematically under-predicted realized prices.
+       RMSE in <span class="good">green</span> = better than naive random-walk benchmark;
+       <span class="bad">red</span> = worse.
+       Computed on WTI NYMEX (EIA RCLC1-4) vs FRED spot, 2004–2024.
+       Source: <a href="https://www.eia.gov/dnav/pet/hist/RCLC1D.htm" target="_blank">EIA</a>,
+       <a href="https://fred.stlouisfed.org/series/DCOILWTICO" target="_blank">FRED</a>.
+     </p>`;
+
+  document.getElementById('bt-error-section').style.display = '';
+  document.getElementById('bt-year-section').style.display = '';
+  if (res.regimes) document.getElementById('bt-regime-section').style.display = '';
+
+  renderBtErrorChart();
+  renderBtYearChart();
+  renderBtRegimes();
+}
+
+function renderBtErrorChart() {
+  if (!btData || !btData.results) return;
+  const series = btData.results[activeHorizon];
+  if (!series || !series.monthly) return;
+
+  const monthly = series.monthly;
+  const labels = monthly.map(m => m.month);
+  const errors = monthly.map(m => m.error);
+
+  // Colour bars: green for over-prediction (futures too high), red for under-prediction
+  const bgColors = errors.map(e =>
+    e >= 0 ? 'rgba(155, 44, 44, 0.55)' : 'rgba(39, 103, 73, 0.55)'
+  );
+
+  // Key event annotations
+  const events = {
+    '2008-09': '2008 crisis',
+    '2014-11': 'OPEC flood',
+    '2020-03': 'COVID crash',
+    '2022-03': 'Ukraine invasion',
+  };
+
+  if (btErrorChart) btErrorChart.destroy();
+
+  const ctx = document.getElementById('btErrorChart').getContext('2d');
+  btErrorChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Monthly avg error ($/bbl)',
+        data: errors,
+        backgroundColor: bgColors,
+        borderWidth: 0,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: ctx => {
+              const m = ctx[0].label;
+              return events[m] ? `${m} — ${events[m]}` : m;
+            },
+            label: ctx => {
+              const e = ctx.raw;
+              const dir = e >= 0 ? 'under-predicted' : 'over-predicted';
+              return `Futures ${dir} by avg $${Math.abs(e).toFixed(2)}/bbl`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: {
+            font: { family: 'Georgia, serif', size: 10 },
+            maxTicksLimit: 24,
+            maxRotation: 45,
+          },
+          grid: { display: false },
+        },
+        y: {
+          ticks: {
+            font: { family: 'Georgia, serif', size: 11 },
+            callback: v => (v >= 0 ? '+' : '') + '$' + v,
+          },
+          grid: { color: '#f0f0f0' },
+          title: {
+            display: true,
+            text: 'Error ($/bbl)',
+            font: { family: 'Georgia, serif', size: 11 },
+            color: '#666',
+          },
+        },
+      },
+    },
+  });
+}
+
+function renderBtYearChart() {
+  if (!btData || !btData.results) return;
+  const horizons = ['1m','2m','3m','4m'].filter(h => btData.results[h]?.by_year);
+  if (!horizons.length) return;
+
+  // Collect all years
+  const yearSet = new Set();
+  horizons.forEach(h => btData.results[h].by_year.forEach(r => yearSet.add(r.year)));
+  const years = Array.from(yearSet).sort();
+
+  const datasets = horizons.map(h => {
+    const byYear = {};
+    btData.results[h].by_year.forEach(r => { byYear[r.year] = r.mae; });
+    return {
+      label: HORIZON_LABELS[h],
+      data: years.map(y => byYear[y] ?? null),
+      backgroundColor: HORIZON_COLORS[h] + 'cc',
+      borderColor: HORIZON_COLORS[h],
+      borderWidth: 1,
+    };
+  });
+
+  if (btYearChart) btYearChart.destroy();
+
+  const ctx = document.getElementById('btYearChart').getContext('2d');
+  btYearChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: years, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          labels: { font: { family: 'Georgia, serif', size: 12 } },
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: $${ctx.raw?.toFixed(2) ?? '—'} MAE`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'Georgia, serif', size: 11 } },
+          grid: { display: false },
+        },
+        y: {
+          ticks: {
+            font: { family: 'Georgia, serif', size: 11 },
+            callback: v => '$' + v,
+          },
+          grid: { color: '#f0f0f0' },
+          title: {
+            display: true,
+            text: 'MAE ($/bbl)',
+            font: { family: 'Georgia, serif', size: 11 },
+            color: '#666',
+          },
+        },
+      },
+    },
+  });
+}
+
+function renderBtRegimes() {
+  if (!btData?.results?.regimes) return;
+  const regimes = btData.results.regimes;
+
+  const rows = regimes.map(r => {
+    const biasClass = r.bias > 0 ? 'bad' : 'good';
+    return `<tr>
+      <td>${r.name}</td>
+      <td>${r.start} – ${r.end}</td>
+      <td>${r.n}</td>
+      <td class="${biasClass}">${r.bias > 0 ? '+' : ''}${r.bias}</td>
+      <td>${r.mae}</td>
+      <td>${r.rmse}</td>
+      <td>${r.pct_error != null ? r.pct_error.toFixed(1) + '%' : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('bt-regime-container').innerHTML = `
+    <table class="bt">
+      <thead><tr>
+        <th>Regime</th><th>Period</th><th>N</th>
+        <th>Bias <span class="note">$/bbl</span></th>
+        <th>MAE <span class="note">$/bbl</span></th>
+        <th>RMSE <span class="note">$/bbl</span></th>
+        <th>Avg abs % error</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="legend-note">1-month horizon only. Shows how accuracy varied across different oil market environments.</p>
+  `;
+}
+</script>
+
+</body>
+</html>
