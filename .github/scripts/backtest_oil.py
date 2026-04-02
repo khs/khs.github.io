@@ -5,8 +5,11 @@ Downloads 20 years of WTI data and evaluates how well futures prices
 predicted realized spot prices at 1-, 2-, 3-, and 4-month horizons.
 
 Prediction series  : EIA RCLC1-4 (1st through 4th nearby NYMEX WTI futures)
-Realized series    : FRED DCOILWTICO (WTI spot price)
+Realized series    : EIA RWTC (WTI Cushing spot price, daily)
 Naive benchmark    : spot_t used as forecast for spot_{t+h}
+
+Also computes band coverage: what % of realized prices fell inside the
+asymmetric lognormal bands used by the widget (VOL_UP=0.28, VOL_DOWN=0.50).
 
 Outputs data/oil-backtest.json consumed by the oil.html widget.
 """
@@ -45,6 +48,11 @@ REGIMES = [
 
 HEADERS = {"User-Agent": "oil-backtest-script/1.0 (academic/personal use)"}
 
+# Band parameters — must match oil.html constants exactly
+VOL_UP   = 0.28   # annualised upside vol
+VOL_DOWN = 0.50   # annualised downside vol
+MR_CAP   = 2.5    # mean-reversion cap in years
+
 
 # ---------------------------------------------------------------------------
 # Data fetching (with retry + extended timeout)
@@ -66,22 +74,25 @@ def fetch_with_retry(url: str, retries: int = 4, base_timeout: int = 60) -> byte
                 raise
 
 
-def fetch_fred_spot() -> pd.Series:
-    """Download WTI spot price from FRED (no API key required)."""
-    print("Fetching FRED DCOILWTICO (WTI spot)...")
+def fetch_eia_spot() -> pd.Series:
+    """Download WTI Cushing spot price from EIA public XLS (no API key required)."""
+    print("Fetching EIA RWTC (WTI spot)...")
     content = fetch_with_retry(
-        "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILWTICO"
+        "https://www.eia.gov/dnav/pet/hist_xls/RWTCd.xls"
     )
-    df = pd.read_csv(
-        BytesIO(content),
-        parse_dates=["DATE"],
-        index_col="DATE",
-        na_values=[".", ""],
-    )
-    s = df.squeeze().dropna()
-    s.index.name = "date"
-    print(f"  {len(s)} observations, {s.index.min().date()} – {s.index.max().date()}")
-    return s.astype(float)
+    for sheet in ("Data 1", 0):
+        try:
+            df = pd.read_excel(BytesIO(content), sheet_name=sheet, skiprows=2, header=0)
+            df.columns = ["date", "price"] + list(df.columns[2:])
+            df = df[["date", "price"]].dropna()
+            df["date"] = pd.to_datetime(df["date"])
+            s = df.set_index("date")["price"].astype(float)
+            s.index.name = "date"
+            print(f"  {len(s)} observations, {s.index.min().date()} – {s.index.max().date()}")
+            return s
+        except Exception:
+            continue
+    raise ValueError("Could not parse EIA RWTC XLS")
 
 
 def fetch_eia_futures(series: str) -> pd.Series:
@@ -105,6 +116,23 @@ def fetch_eia_futures(series: str) -> pd.Series:
         except Exception:
             continue
     raise ValueError(f"Could not parse EIA XLS for {series}")
+
+
+# ---------------------------------------------------------------------------
+# Band computation (mirrors oil.html computeBands exactly)
+# ---------------------------------------------------------------------------
+
+def compute_bands(price: float, T_years: float) -> dict:
+    """Return 1σ/2σ asymmetric lognormal band endpoints for a given price and horizon."""
+    Teff     = min(T_years, MR_CAP)
+    sig_up   = VOL_UP   * math.sqrt(Teff)
+    sig_down = VOL_DOWN * math.sqrt(Teff)
+    return {
+        "upper1": price * math.exp(    sig_up),
+        "lower1": price * math.exp(-   sig_down),
+        "upper2": price * math.exp(2 * sig_up),
+        "lower2": price * math.exp(-2 * sig_down),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -191,19 +219,35 @@ def run_backtest(spot: pd.Series, futures_map: dict[str, pd.Series]) -> dict:
 
         avg_price = float(np.median(spot_real))
 
+        # Band coverage: apply asymmetric lognormal bands to each historical prediction
+        T_years = biz_days / 252.0
+        band_arr = np.array([list(compute_bands(p, T_years).values()) for p in fut_pred])
+        upper1, lower1, upper2, lower2 = (
+            band_arr[:, 0], band_arr[:, 1], band_arr[:, 2], band_arr[:, 3]
+        )
+        inside_68 = (spot_real >= lower1) & (spot_real <= upper1)
+        inside_95 = (spot_real >= lower2) & (spot_real <= upper2)
+
         stats = {
-            "label":        cfg["label"],
-            "n":            int(len(err)),
-            "date_start":   str(dates.min().date()),
-            "date_end":     str(dates.max().date()),
-            "bias":         round2(bias(err)),
-            "mae":          round2(mae(err)),
-            "rmse":         round2(rmse(err)),
-            "naive_rmse":   round2(rmse(naive_err)),
-            "r2":           round2(r_squared(spot_real, fut_pred)),
-            "hit_rate":     round2(hit_rate(spot_0, fut_pred, spot_real)),
-            "within_10pct": round2(within_pct(err, 0.10, avg_price)),
-            "within_20pct": round2(within_pct(err, 0.20, avg_price)),
+            "label":           cfg["label"],
+            "n":               int(len(err)),
+            "date_start":      str(dates.min().date()),
+            "date_end":        str(dates.max().date()),
+            "bias":            round2(bias(err)),
+            "mae":             round2(mae(err)),
+            "rmse":            round2(rmse(err)),
+            "naive_rmse":      round2(rmse(naive_err)),
+            "r2":              round2(r_squared(spot_real, fut_pred)),
+            "hit_rate":        round2(hit_rate(spot_0, fut_pred, spot_real)),
+            "within_10pct":    round2(within_pct(err, 0.10, avg_price)),
+            "within_20pct":    round2(within_pct(err, 0.20, avg_price)),
+            # Band calibration
+            "coverage_68":          round2(float(inside_68.mean())),
+            "coverage_95":          round2(float(inside_95.mean())),
+            "pct_above_upper1":     round2(float((spot_real > upper1).mean())),
+            "pct_below_lower1":     round2(float((spot_real < lower1).mean())),
+            "pct_above_upper2":     round2(float((spot_real > upper2).mean())),
+            "pct_below_lower2":     round2(float((spot_real < lower2).mean())),
         }
         results[key] = stats
 
@@ -214,16 +258,20 @@ def run_backtest(spot: pd.Series, futures_map: dict[str, pd.Series]) -> dict:
             "pct_error": err / spot_0 * 100,
             "pred":      fut_pred,
             "realized":  spot_real,
+            "inside_68": inside_68,
+            "inside_95": inside_95,
         })
         df_monthly["month"] = df_monthly["date"].dt.to_period("M").astype(str)
         monthly_agg = (
             df_monthly
             .groupby("month")
             .agg(
-                error    = ("error",     "mean"),
-                pct_error= ("pct_error", "mean"),
-                pred     = ("pred",      "mean"),
-                realized = ("realized",  "mean"),
+                error     = ("error",     "mean"),
+                pct_error = ("pct_error", "mean"),
+                pred      = ("pred",      "mean"),
+                realized  = ("realized",  "mean"),
+                inside_68 = ("inside_68", "mean"),
+                inside_95 = ("inside_95", "mean"),
             )
             .reset_index()
         )
@@ -234,6 +282,8 @@ def run_backtest(spot: pd.Series, futures_map: dict[str, pd.Series]) -> dict:
                 "pct_error": round2(r["pct_error"]),
                 "pred":      round2(r["pred"]),
                 "realized":  round2(r["realized"]),
+                "inside_68": round2(r["inside_68"]),
+                "inside_95": round2(r["inside_95"]),
             }
             for _, r in monthly_agg.iterrows()
         ]
@@ -311,7 +361,7 @@ def run_backtest(spot: pd.Series, futures_map: dict[str, pd.Series]) -> dict:
 
 def main():
     # Fetch data
-    spot = fetch_fred_spot()
+    spot = fetch_eia_spot()
 
     futures_map = {}
     for cfg in HORIZONS.values():
@@ -332,10 +382,12 @@ def main():
     output = {
         "generated":   datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "description": (
-            "How well did WTI futures predict realized spot prices? "
+            "How well did WTI futures predict realized spot prices, and how well "
+            "were the uncertainty bands calibrated? "
             "Prediction = EIA nth-nearby futures (RCLC1-4). "
-            "Realized = FRED DCOILWTICO spot price. "
-            "Naive benchmark = today's spot price used as forecast."
+            "Realized = EIA RWTC WTI Cushing spot price. "
+            "Naive benchmark = today's spot price used as forecast. "
+            f"Bands: VOL_UP={VOL_UP}, VOL_DOWN={VOL_DOWN}, MR_CAP={MR_CAP}y."
         ),
         "results": backtest,
     }

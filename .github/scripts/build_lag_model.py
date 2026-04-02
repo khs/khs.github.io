@@ -1,9 +1,9 @@
 """
 Empirical Distributed Lag Model: Crude Oil → Retail Gasoline
 =============================================================
-Downloads 2 years of weekly data from FRED (no API key needed):
-  - US retail gasoline price: GASREGCOVW ($/gal, weekly)
-  - WTI spot crude:           DCOILWTICO ($/bbl, daily → resampled weekly)
+Downloads 2 years of weekly data from EIA public XLS endpoints (no API key):
+  - US retail gasoline price: EMM_EPMR_PTE_NUS_DPG ($/gal, weekly)
+  - WTI spot crude:           RWTC ($/bbl, daily → resampled weekly)
 
 Fits:  pump_t = α + Σ_{k=0}^{8} β_k × (crude_{t-k}/42) + ε_t
 
@@ -59,20 +59,24 @@ def fetch_with_retry(url: str, retries: int = 4, base_timeout: int = 60) -> byte
                 raise
 
 
-def fetch_fred_series(series_id: str, lookback_years: int = 3) -> pd.Series:
-    """Download a FRED series as a pandas Series indexed by date."""
-    url     = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
+def fetch_eia_series(series_id: str, lookback_years: int = 3) -> pd.Series:
+    """Download an EIA series from the public XLS endpoint (no API key needed)."""
+    url     = f"https://www.eia.gov/dnav/pet/hist_xls/{series_id}d.xls"
     content = fetch_with_retry(url)
-    df = pd.read_csv(
-        BytesIO(content),
-        parse_dates=["DATE"],
-        index_col="DATE",
-        na_values=[".", ""],
-    )
-    s = df.squeeze().dropna().astype(float)
-    s.index.name = "date"
-    cutoff = pd.Timestamp.today() - pd.DateOffset(years=lookback_years)
-    return s[s.index >= cutoff]
+    # EIA XLS: rows 0-1 are metadata, row 2 is header, data from row 3.
+    for sheet in ("Data 1", 0):
+        try:
+            df = pd.read_excel(BytesIO(content), sheet_name=sheet, skiprows=2, header=0)
+            df.columns = ["date", "price"] + list(df.columns[2:])
+            df = df[["date", "price"]].dropna()
+            df["date"] = pd.to_datetime(df["date"])
+            s = df.set_index("date")["price"].astype(float)
+            s.index.name = "date"
+            cutoff = pd.Timestamp.today() - pd.DateOffset(years=lookback_years)
+            return s[s.index >= cutoff]
+        except Exception:
+            continue
+    raise ValueError(f"Could not parse EIA XLS for {series_id}")
 
 
 # ---------------------------------------------------------------------------
@@ -238,12 +242,12 @@ def compute_seasonal_premium(residuals: np.ndarray, dates: pd.DatetimeIndex) -> 
 # ---------------------------------------------------------------------------
 
 def main():
-    print("Fetching FRED GASREGCOVW (US retail gasoline, weekly)...")
-    gas_raw = fetch_fred_series("GASREGCOVW", lookback_years=3)
+    print("Fetching EIA EMM_EPMR_PTE_NUS_DPG (US retail gasoline, weekly)...")
+    gas_raw = fetch_eia_series("EMM_EPMR_PTE_NUS_DPG", lookback_years=3)
     print(f"  {len(gas_raw)} weekly obs, {gas_raw.index.min().date()} – {gas_raw.index.max().date()}")
 
-    print("Fetching FRED DCOILWTICO (WTI crude, daily)...")
-    crude_raw = fetch_fred_series("DCOILWTICO", lookback_years=3)
+    print("Fetching EIA RWTC (WTI crude, daily)...")
+    crude_raw = fetch_eia_series("RWTC", lookback_years=3)
     print(f"  {len(crude_raw)} daily obs, {crude_raw.index.min().date()} – {crude_raw.index.max().date()}")
 
     # Resample crude to match gas price observation frequency.
