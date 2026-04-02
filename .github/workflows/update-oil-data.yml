@@ -30,9 +30,11 @@ jobs:
 
       - name: Build empirical lag model (crude → pump pass-through)
         run: python .github/scripts/build_lag_model.py
+        continue-on-error: true   # FRED sometimes slow; don't block the rest
 
       - name: Run backtest (weekly refresh keeps it current)
         run: python .github/scripts/backtest_oil.py
+        continue-on-error: true   # EIA XLS endpoint occasionally flaky
 
       - name: Commit updated data
         run: |

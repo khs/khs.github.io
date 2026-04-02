@@ -13,6 +13,7 @@ Outputs data/oil-backtest.json consumed by the oil.html widget.
 
 import json
 import math
+import time
 import requests
 import pandas as pd
 import numpy as np
@@ -46,17 +47,33 @@ HEADERS = {"User-Agent": "oil-backtest-script/1.0 (academic/personal use)"}
 
 
 # ---------------------------------------------------------------------------
-# Data fetching
+# Data fetching (with retry + extended timeout)
 # ---------------------------------------------------------------------------
+
+def fetch_with_retry(url: str, retries: int = 4, base_timeout: int = 60) -> bytes:
+    for attempt in range(retries):
+        timeout = base_timeout * (2 ** attempt)
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=timeout)
+            r.raise_for_status()
+            return r.content
+        except Exception as e:
+            if attempt < retries - 1:
+                wait = 5 * (2 ** attempt)
+                print(f"  Attempt {attempt + 1} failed ({e}), retrying in {wait}s…")
+                time.sleep(wait)
+            else:
+                raise
+
 
 def fetch_fred_spot() -> pd.Series:
     """Download WTI spot price from FRED (no API key required)."""
-    url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILWTICO"
     print("Fetching FRED DCOILWTICO (WTI spot)...")
-    r = requests.get(url, headers=HEADERS, timeout=30)
-    r.raise_for_status()
+    content = fetch_with_retry(
+        "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILWTICO"
+    )
     df = pd.read_csv(
-        BytesIO(r.content),
+        BytesIO(content),
         parse_dates=["DATE"],
         index_col="DATE",
         na_values=[".", ""],
@@ -69,25 +86,25 @@ def fetch_fred_spot() -> pd.Series:
 
 def fetch_eia_futures(series: str) -> pd.Series:
     """Download an EIA nth-nearby futures series as an XLS file (no API key)."""
-    url = f"https://www.eia.gov/dnav/pet/hist_xls/{series}d.xls"
     print(f"Fetching EIA {series}...")
-    r = requests.get(url, headers=HEADERS, timeout=30)
-    r.raise_for_status()
-    # EIA XLS layout: rows 0-1 are metadata, row 2 is header, data starts row 3
-    df = pd.read_excel(
-        BytesIO(r.content),
-        sheet_name="Data 1",
-        skiprows=2,
-        header=0,
+    content = fetch_with_retry(
+        f"https://www.eia.gov/dnav/pet/hist_xls/{series}d.xls"
     )
-    # Column names vary; take first two columns as date + price
-    df.columns = ["date", "price"] + list(df.columns[2:])
-    df = df[["date", "price"]].dropna()
-    df["date"] = pd.to_datetime(df["date"])
-    s = df.set_index("date")["price"].astype(float)
-    s.index.name = "date"
-    print(f"  {len(s)} observations, {s.index.min().date()} – {s.index.max().date()}")
-    return s
+    # EIA XLS: rows 0-1 are metadata, row 2 is header, data from row 3.
+    # Try the known sheet name first; fall back to first sheet if it differs.
+    for sheet in ("Data 1", 0):
+        try:
+            df = pd.read_excel(BytesIO(content), sheet_name=sheet, skiprows=2, header=0)
+            df.columns = ["date", "price"] + list(df.columns[2:])
+            df = df[["date", "price"]].dropna()
+            df["date"] = pd.to_datetime(df["date"])
+            s = df.set_index("date")["price"].astype(float)
+            s.index.name = "date"
+            print(f"  {len(s)} observations, {s.index.min().date()} – {s.index.max().date()}")
+            return s
+        except Exception:
+            continue
+    raise ValueError(f"Could not parse EIA XLS for {series}")
 
 
 # ---------------------------------------------------------------------------
