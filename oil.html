@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oil Futures Forward Curve</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Georgia, serif;
+      margin: 40px 80px;
+      background: #fff;
+      color: #222;
+    }
+
+    h1 {
+      font-size: 1.9em;
+      margin-bottom: 0.2em;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 0.95em;
+      margin-bottom: 1.5em;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 1.2em;
+      margin-bottom: 1em;
+      flex-wrap: wrap;
+    }
+
+    .btn-group {
+      display: flex;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .btn-group button {
+      padding: 6px 16px;
+      border: none;
+      background: #f5f5f5;
+      cursor: pointer;
+      font-family: Georgia, serif;
+      font-size: 0.9em;
+      color: #444;
+      transition: background 0.15s;
+    }
+
+    .btn-group button.active {
+      background: #2c5282;
+      color: #fff;
+    }
+
+    .btn-group button:not(:last-child) {
+      border-right: 1px solid #ccc;
+    }
+
+    label {
+      font-size: 0.9em;
+      color: #444;
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+      cursor: pointer;
+    }
+
+    .meta {
+      font-size: 0.82em;
+      color: #888;
+      margin-left: auto;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      height: 420px;
+    }
+
+    .no-data {
+      padding: 3em;
+      text-align: center;
+      color: #888;
+      border: 1px dashed #ccc;
+      border-radius: 6px;
+      max-width: 600px;
+    }
+
+    .no-data code {
+      display: block;
+      margin-top: 1em;
+      font-size: 0.85em;
+      background: #f5f5f5;
+      padding: 0.5em 1em;
+      border-radius: 4px;
+      color: #444;
+      text-align: left;
+    }
+
+    .legend-note {
+      font-size: 0.8em;
+      color: #888;
+      margin-top: 0.5em;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #e0e0e0;
+      margin-bottom: 1.5em;
+    }
+
+    .tab {
+      padding: 8px 18px;
+      cursor: pointer;
+      font-size: 0.9em;
+      color: #666;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+    }
+
+    .tab.active {
+      color: #2c5282;
+      border-bottom-color: #2c5282;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      body { margin: 20px 16px; }
+      .chart-container { height: 300px; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Oil Futures Forward Curve</h1>
+<p class="subtitle">
+  Market-implied price path with uncertainty bands.
+  Data: Yahoo Finance. Updated weekly via GitHub Actions.
+</p>
+
+<div class="tabs">
+  <div class="tab active" data-tab="curve" onclick="switchTab('curve', this)">Forward Curve</div>
+  <div class="tab" data-tab="history" onclick="switchTab('history', this)">Prediction History</div>
+</div>
+
+<!-- CURVE TAB -->
+<div id="tab-curve">
+  <div class="controls">
+    <div class="btn-group">
+      <button id="btn-wti" class="active" onclick="setBenchmark('wti')">WTI</button>
+      <button id="btn-brent" onclick="setBenchmark('brent')">Brent</button>
+    </div>
+    <label>
+      <input type="checkbox" id="show-bands" checked onchange="renderCurve()">
+      Show uncertainty bands
+    </label>
+    <span class="meta" id="last-updated"></span>
+  </div>
+
+  <div class="chart-container">
+    <canvas id="curveChart"></canvas>
+  </div>
+  <p class="legend-note">
+    Dark band: ±1&sigma; (68% interval) &nbsp;|&nbsp; Light band: ±2&sigma; (95% interval).
+    Bands use annualised vol estimated from the futures curve shape; they widen with the square root of time.
+  </p>
+</div>
+
+<!-- HISTORY TAB -->
+<div id="tab-history" style="display:none">
+  <div class="controls">
+    <div class="btn-group">
+      <button id="btn-wti-h" class="active" onclick="setBenchmarkH('wti')">WTI</button>
+      <button id="btn-brent-h" onclick="setBenchmarkH('brent')">Brent</button>
+    </div>
+    <span class="meta" id="snapshot-count"></span>
+  </div>
+
+  <div class="chart-container">
+    <canvas id="historyChart"></canvas>
+  </div>
+  <p class="legend-note">
+    Each line is a weekly snapshot of the forward curve at that date.
+    Older snapshots appear lighter. As the dataset grows, you will be able to
+    compare past predictions against realised prices.
+  </p>
+</div>
+
+<div id="no-data-msg" style="display:none">
+  <div class="no-data">
+    <p><strong>No data yet.</strong></p>
+    <p>Trigger the GitHub Actions workflow to fetch the first dataset:</p>
+    <code>Actions → "Update Oil Futures Data" → Run workflow</code>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+let oilData = null;
+let benchmark = 'wti';
+let benchmarkH = 'wti';
+let curveChart = null;
+let historyChart = null;
+
+// Annualised volatility used for uncertainty bands.
+// ~35% is a reasonable long-run figure for WTI; Brent is similar.
+// The GitHub Action could compute this from snapshots once enough data exist.
+const ANNUALISED_VOL = 0.35;
+
+// ---------------------------------------------------------------------------
+// Load data
+// ---------------------------------------------------------------------------
+fetch('data/oil-futures.json')
+  .then(r => r.json())
+  .then(data => {
+    oilData = data;
+    init();
+  })
+  .catch(() => {
+    document.getElementById('no-data-msg').style.display = 'block';
+    document.getElementById('tab-curve').style.display = 'none';
+    document.getElementById('tab-history').style.display = 'none';
+    document.querySelectorAll('.tabs').forEach(t => t.style.display = 'none');
+  });
+
+function init() {
+  if (!oilData.data_available) {
+    document.getElementById('no-data-msg').style.display = 'block';
+    document.getElementById('tab-curve').style.display = 'none';
+    document.getElementById('tab-history').style.display = 'none';
+    document.querySelectorAll('.tabs').forEach(t => t.style.display = 'none');
+    return;
+  }
+
+  if (oilData.last_updated) {
+    const d = new Date(oilData.last_updated);
+    document.getElementById('last-updated').textContent =
+      'Last updated: ' + d.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+  }
+
+  const sc = oilData.snapshots ? oilData.snapshots.length : 0;
+  document.getElementById('snapshot-count').textContent =
+    sc + ' weekly snapshot' + (sc === 1 ? '' : 's') + ' stored';
+
+  renderCurve();
+}
+
+// ---------------------------------------------------------------------------
+// Tab switching
+// ---------------------------------------------------------------------------
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-curve').style.display = tab === 'curve' ? '' : 'none';
+  document.getElementById('tab-history').style.display = tab === 'history' ? '' : 'none';
+
+  if (tab === 'history' && !historyChart) renderHistory();
+}
+
+// ---------------------------------------------------------------------------
+// Benchmark toggle
+// ---------------------------------------------------------------------------
+function setBenchmark(b) {
+  benchmark = b;
+  document.getElementById('btn-wti').classList.toggle('active', b === 'wti');
+  document.getElementById('btn-brent').classList.toggle('active', b === 'brent');
+  renderCurve();
+}
+
+function setBenchmarkH(b) {
+  benchmarkH = b;
+  document.getElementById('btn-wti-h').classList.toggle('active', b === 'wti');
+  document.getElementById('btn-brent-h').classList.toggle('active', b === 'brent');
+  renderHistory();
+}
+
+// ---------------------------------------------------------------------------
+// Uncertainty bands
+// ---------------------------------------------------------------------------
+function computeBands(contracts) {
+  const today = new Date();
+  return contracts.map(c => {
+    const expiry = new Date(c.expiry + '-15'); // mid-month
+    const yearsAhead = Math.max(0, (expiry - today) / (365.25 * 86400 * 1000));
+    const sigma = ANNUALISED_VOL * Math.sqrt(yearsAhead);
+    return {
+      expiry: c.expiry,
+      label: c.label,
+      price: c.price,
+      upper1: +(c.price * Math.exp(sigma)).toFixed(2),
+      lower1: +(c.price * Math.exp(-sigma)).toFixed(2),
+      upper2: +(c.price * Math.exp(2 * sigma)).toFixed(2),
+      lower2: +(c.price * Math.exp(-2 * sigma)).toFixed(2),
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Forward curve chart
+// ---------------------------------------------------------------------------
+function renderCurve() {
+  if (!oilData) return;
+  const contracts = oilData[benchmark] || [];
+  if (!contracts.length) return;
+
+  const bands = computeBands(contracts);
+  const labels = bands.map(b => b.label);
+  const showBands = document.getElementById('show-bands').checked;
+
+  const prices   = bands.map(b => b.price);
+  const upper1   = bands.map(b => b.upper1);
+  const lower1   = bands.map(b => b.lower1);
+  const upper2   = bands.map(b => b.upper2);
+  const lower2   = bands.map(b => b.lower2);
+
+  const datasets = [];
+
+  if (showBands) {
+    // 2-sigma upper (invisible line, fills down to lower2)
+    datasets.push({
+      label: '95% upper',
+      data: upper2,
+      borderColor: 'transparent',
+      backgroundColor: 'rgba(44,82,130,0.10)',
+      fill: '+1',   // fill to next dataset (lower2)
+      pointRadius: 0,
+      order: 4,
+    });
+    // 2-sigma lower
+    datasets.push({
+      label: '95% lower',
+      data: lower2,
+      borderColor: 'transparent',
+      backgroundColor: 'rgba(44,82,130,0.10)',
+      fill: false,
+      pointRadius: 0,
+      order: 4,
+    });
+    // 1-sigma upper
+    datasets.push({
+      label: '68% upper',
+      data: upper1,
+      borderColor: 'transparent',
+      backgroundColor: 'rgba(44,82,130,0.18)',
+      fill: '+1',
+      pointRadius: 0,
+      order: 3,
+    });
+    // 1-sigma lower
+    datasets.push({
+      label: '68% lower',
+      data: lower1,
+      borderColor: 'transparent',
+      backgroundColor: 'rgba(44,82,130,0.18)',
+      fill: false,
+      pointRadius: 0,
+      order: 3,
+    });
+  }
+
+  // Forward curve line on top
+  datasets.push({
+    label: benchmark.toUpperCase() + ' Forward Curve ($/bbl)',
+    data: prices,
+    borderColor: '#2c5282',
+    backgroundColor: '#2c5282',
+    borderWidth: 2.5,
+    pointRadius: 4,
+    pointHoverRadius: 6,
+    fill: false,
+    order: 1,
+    tension: 0.2,
+  });
+
+  if (curveChart) curveChart.destroy();
+
+  const ctx = document.getElementById('curveChart').getContext('2d');
+  curveChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            filter: item => !['95% upper','95% lower','68% upper','68% lower'].includes(item.text),
+            font: { family: 'Georgia, serif', size: 12 },
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const b = bands[ctx.dataIndex];
+              if (!b) return '';
+              const lines = [`${benchmark.toUpperCase()}: $${b.price}/bbl`];
+              if (showBands) {
+                lines.push(`68% range: $${b.lower1} – $${b.upper1}`);
+                lines.push(`95% range: $${b.lower2} – $${b.upper2}`);
+              }
+              return lines;
+            },
+            title: ctx => ctx[0].label,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'Georgia, serif', size: 11 }, maxRotation: 45 },
+          grid: { color: '#f0f0f0' },
+        },
+        y: {
+          ticks: {
+            font: { family: 'Georgia, serif', size: 11 },
+            callback: v => '$' + v,
+          },
+          grid: { color: '#f0f0f0' },
+          title: {
+            display: true,
+            text: '$/barrel',
+            font: { family: 'Georgia, serif', size: 12 },
+            color: '#666',
+          },
+        },
+      },
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Prediction history chart
+// ---------------------------------------------------------------------------
+function renderHistory() {
+  if (!oilData) return;
+  const snapshots = oilData.snapshots || [];
+  if (!snapshots.length) {
+    // nothing yet
+    if (historyChart) historyChart.destroy();
+    return;
+  }
+
+  // Collect all expiry labels across snapshots
+  const expirySet = new Set();
+  snapshots.forEach(s => (s[benchmarkH] || []).forEach(c => expirySet.add(c.expiry)));
+  const expiries = Array.from(expirySet).sort();
+  const labels = expiries.map(e => {
+    const [y, m] = e.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[parseInt(m, 10) - 1] + ' ' + y;
+  });
+
+  const n = snapshots.length;
+  const datasets = snapshots.map((snap, i) => {
+    const priceMap = {};
+    (snap[benchmarkH] || []).forEach(c => { priceMap[c.expiry] = c.price; });
+    const data = expiries.map(e => priceMap[e] ?? null);
+
+    // Fade older snapshots
+    const alpha = 0.15 + 0.85 * (i / Math.max(n - 1, 1));
+    const color = `rgba(44,82,130,${alpha.toFixed(2)})`;
+
+    return {
+      label: snap.date,
+      data,
+      borderColor: color,
+      backgroundColor: 'transparent',
+      borderWidth: i === n - 1 ? 2.5 : 1,
+      pointRadius: i === n - 1 ? 4 : 0,
+      fill: false,
+      tension: 0.2,
+    };
+  });
+
+  if (historyChart) historyChart.destroy();
+
+  const ctx = document.getElementById('historyChart').getContext('2d');
+  historyChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: ctx => ctx[0].label,
+            label: ctx => {
+              const snap = snapshots[ctx.datasetIndex];
+              const v = ctx.raw;
+              return v != null ? `${snap.date}: $${v}` : null;
+            },
+          },
+          filter: item => item.raw != null,
+        },
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'Georgia, serif', size: 11 }, maxRotation: 45 },
+          grid: { color: '#f0f0f0' },
+        },
+        y: {
+          ticks: {
+            font: { family: 'Georgia, serif', size: 11 },
+            callback: v => '$' + v,
+          },
+          grid: { color: '#f0f0f0' },
+          title: {
+            display: true,
+            text: '$/barrel',
+            font: { family: 'Georgia, serif', size: 12 },
+            color: '#666',
+          },
+        },
+      },
+    },
+  });
+}
+</script>
+
+</body>
+</html>
