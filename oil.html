@@ -193,6 +193,55 @@
     .good { color: #276749; }
     .bad  { color: #9b2c2c; }
 
+    .coverage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1em;
+      margin-bottom: 1em;
+    }
+
+    .coverage-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 1em;
+      background: #fafafa;
+    }
+
+    .coverage-card .horizon-label {
+      font-size: 0.8em;
+      color: #888;
+      margin-bottom: 0.4em;
+      font-family: system-ui, sans-serif;
+    }
+
+    .coverage-card .cov-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.25em;
+      font-size: 0.88em;
+    }
+
+    .coverage-card .cov-pct {
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .coverage-card .cov-label {
+      color: #555;
+      font-family: system-ui, sans-serif;
+      font-size: 0.82em;
+    }
+
+    .coverage-card .asym-row {
+      font-size: 0.75em;
+      color: #888;
+      font-family: system-ui, sans-serif;
+      margin-top: 0.5em;
+      border-top: 1px solid #e8e8e8;
+      padding-top: 0.4em;
+    }
+
     select.region-select {
       font-family: Georgia, serif;
       font-size: 0.88em;
@@ -271,7 +320,7 @@
     Bands are <strong>asymmetric</strong>: downside uses 50% annualised vol vs 28% upside,
     reflecting that oil crashes faster than it rallies (2008, 2020).
     Uncertainty plateaus past ~2.5 years due to long-run mean reversion.
-    Calibrated from 20-year WTI backtest (EIA RCLC1–4 vs FRED spot).
+    Calibrated from 20-year WTI backtest (EIA RCLC1–4 vs EIA spot).
   </p>
   <p class="pump-note" id="pump-note" style="display:none"></p>
 </div>
@@ -299,11 +348,22 @@
 <!-- BACKTEST TAB -->
 <div id="tab-backtest" style="display:none">
 
+  <div class="bt-section" id="bt-coverage-section" style="display:none">
+    <h3>Band calibration — did the predicted ranges hold up?</h3>
+    <p style="font-size:0.85em;color:#666;margin-bottom:0.8em">
+      For every historical week, the model computed asymmetric uncertainty bands
+      (downside vol 50%, upside 28%) around the futures price. This shows what
+      fraction of realized prices actually fell inside those bands.
+      Well-calibrated bands should hit ~68% and ~95%.
+    </p>
+    <div id="bt-coverage-container"></div>
+  </div>
+
   <div class="bt-section">
-    <h3>Summary — WTI, 2004–2024</h3>
+    <h3>Point forecast accuracy — WTI, 2004–present</h3>
     <p style="font-size:0.85em;color:#666;margin-bottom:0.8em">
       Prediction = EIA NYMEX nth-nearby futures price on date <em>t</em>.
-      Realized = WTI spot price (FRED) at <em>t + h</em>.
+      Realized = WTI spot price (EIA) at <em>t + h</em>.
       Naive = today's spot used as forecast (random-walk benchmark).
       A positive bias means futures <em>under</em>-predicted realized prices on average.
     </p>
@@ -976,14 +1036,58 @@ function setHorizon(h, btn) {
   renderBtErrorChart();
 }
 
+function coverageColor(actual, target) {
+  const diff = Math.abs(actual - target);
+  if (diff <= 0.05) return 'good';
+  if (diff <= 0.12) return '';
+  return 'bad';
+}
+
 function renderBacktest() {
   if (!btData || !btData.results) return;
   const res = btData.results;
 
-  // --- Summary table ---
+  // --- Band coverage section ---
   const horizons = ['1m','2m','3m','4m'].filter(h => res[h]);
   if (!horizons.length) return;
 
+  const hasCoverage = horizons.some(h => res[h].coverage_68 != null);
+  if (hasCoverage) {
+    const cards = horizons.map(h => {
+      const s = res[h];
+      const c68 = (s.coverage_68 * 100).toFixed(1) + '%';
+      const c95 = (s.coverage_95 * 100).toFixed(1) + '%';
+      const cl68 = coverageColor(s.coverage_68, 0.68);
+      const cl95 = coverageColor(s.coverage_95, 0.95);
+      const abv1 = (s.pct_above_upper1 * 100).toFixed(1);
+      const blw1 = (s.pct_below_lower1 * 100).toFixed(1);
+      return `<div class="coverage-card">
+        <div class="horizon-label">${s.label} horizon</div>
+        <div class="cov-row">
+          <span class="cov-label">68% band:</span>
+          <span class="cov-pct ${cl68}">${c68}</span>
+        </div>
+        <div class="cov-row">
+          <span class="cov-label">95% band:</span>
+          <span class="cov-pct ${cl95}">${c95}</span>
+        </div>
+        <div class="asym-row">
+          When outside 68%: ${abv1}% above · ${blw1}% below
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('bt-coverage-container').innerHTML =
+      `<div class="coverage-grid">${cards}</div>
+       <p class="legend-note">
+         <span class="good">Green</span> = within 5 pp of target;
+         <span class="bad">red</span> = off by more than 12 pp.
+         "Above/below" shows whether the model is systematically too tight
+         on the upside or downside.
+       </p>`;
+    document.getElementById('bt-coverage-section').style.display = '';
+  }
+
+  // --- Point forecast summary table ---
   const thead = `<tr>
     <th>Horizon</th>
     <th>N <span class="note">(days)</span></th>
@@ -1019,9 +1123,8 @@ function renderBacktest() {
        Bias: positive = futures systematically under-predicted realized prices.
        RMSE in <span class="good">green</span> = better than naive random-walk benchmark;
        <span class="bad">red</span> = worse.
-       Computed on WTI NYMEX (EIA RCLC1-4) vs FRED spot, 2004–2024.
-       Source: <a href="https://www.eia.gov/dnav/pet/hist/RCLC1D.htm" target="_blank">EIA</a>,
-       <a href="https://fred.stlouisfed.org/series/DCOILWTICO" target="_blank">FRED</a>.
+       Computed on WTI NYMEX (EIA RCLC1-4) vs EIA spot (RWTC), 2004–present.
+       Source: <a href="https://www.eia.gov/dnav/pet/hist/RCLC1D.htm" target="_blank">EIA</a>.
      </p>`;
 
   document.getElementById('bt-error-section').style.display = '';
