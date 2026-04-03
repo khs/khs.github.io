@@ -263,6 +263,28 @@
       max-width: 700px;
     }
 
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.8em;
+      margin-top: 0.6em;
+      font-size: 0.85em;
+      color: #666;
+      max-width: 900px;
+    }
+
+    .slider-row input[type=range] {
+      flex: 1;
+      accent-color: #2c5282;
+      cursor: pointer;
+    }
+
+    .slider-row .slider-label {
+      min-width: 90px;
+      color: #444;
+      font-variant-numeric: tabular-nums;
+    }
+
     /* ---- Page chrome ---- */
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -389,10 +411,15 @@
   <div class="chart-container">
     <canvas id="curveChart"></canvas>
   </div>
+  <div class="slider-row" id="history-slider-row" style="display:none">
+    <span>History shown:</span>
+    <input type="range" id="time-slider" min="1" max="36" value="6"
+           oninput="updateHistorySlider(+this.value)">
+    <span class="slider-label" id="slider-label">6 months</span>
+  </div>
   <p class="legend-note" id="curve-legend">
     Dark band: ±1&sigma; (68% interval) &nbsp;|&nbsp; Light band: ±2&sigma; (95% interval).
-    Bands are <strong>asymmetric</strong>: downside uses 50% annualised vol vs 28% upside,
-    reflecting that oil crashes faster than it rallies (2008, 2020).
+    Bands use 33% annualised vol, symmetric up/down.
     Uncertainty plateaus past ~2.5 years due to long-run mean reversion.
     Calibrated from 20-year WTI backtest (EIA RCLC1–4 vs EIA spot).
   </p>
@@ -604,6 +631,7 @@ let showPump  = true;
 let pumpRegion = 'national';
 let curveChart   = null;
 let historyChart = null;
+let historyMonths = 6;   // how many months of history to show on the curve chart
 
 // Asymmetric uncertainty parameters, calibrated from 20-year WTI backtest.
 //
@@ -620,6 +648,39 @@ let historyChart = null;
 const VOL_UP   = 0.33;   // annualised upside vol
 const VOL_DOWN = 0.33;   // annualised downside vol
 const MR_CAP   = 2.5;    // mean-reversion cap: uncertainty plateaus past ~2.5 years
+
+// ---------------------------------------------------------------------------
+// "Today" vertical line plugin (drawn on the curveChart between historical
+// and future segments)
+// ---------------------------------------------------------------------------
+const todayLinePlugin = {
+  id: 'todayLine',
+  afterDraw(chart) {
+    const opts = chart.options.plugins?.todayLine;
+    if (!opts?.show || opts.todayIndex == null || opts.todayIndex === 0) return;
+    const { ctx, scales: { x, y } } = chart;
+    const idx = opts.todayIndex;
+    const x0  = x.getPixelForValue(idx - 1);
+    const x1  = x.getPixelForValue(idx);
+    const xPos = (x0 + x1) / 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(xPos, y.top);
+    ctx.lineTo(xPos, y.bottom);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(80,80,80,0.55)';
+    ctx.setLineDash([5, 3]);
+    ctx.stroke();
+    ctx.restore();
+    ctx.save();
+    ctx.font = 'italic 11px Georgia, serif';
+    ctx.fillStyle = 'rgba(80,80,80,0.7)';
+    ctx.textAlign = 'center';
+    ctx.fillText('Today', xPos, y.top - 4);
+    ctx.restore();
+  },
+};
+Chart.register(todayLinePlugin);
 
 // ---------------------------------------------------------------------------
 // Load data
@@ -665,6 +726,7 @@ function init() {
   document.getElementById('snapshot-count').textContent =
     sc + ' weekly snapshot' + (sc === 1 ? '' : 's') + ' stored';
 
+  updateSliderRange();
   renderCurve();
 }
 
@@ -738,6 +800,39 @@ function computeBands(contracts) {
 }
 
 // ---------------------------------------------------------------------------
+// Historical segment builder
+// ---------------------------------------------------------------------------
+function buildHistoricalSegment() {
+  const snapshots = oilData?.snapshots || [];
+  if (!snapshots.length || historyMonths <= 0) return { labels: [], prices: [] };
+
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - historyMonths);
+
+  // Collect snapshots within the window; take front-month price as spot proxy
+  const pts = snapshots
+    .filter(s => new Date(s.date) >= cutoff)
+    .map(s => {
+      const contracts = s[benchmark] || [];
+      return { date: s.date, price: contracts.length ? contracts[0].price : null };
+    })
+    .filter(s => s.price != null);
+
+  // Reduce to one data point per calendar month (keep latest in that month)
+  const byMonth = {};
+  pts.forEach(s => { byMonth[s.date.slice(0, 7)] = s; });
+  const reduced = Object.values(byMonth).sort((a, b) => a.date.localeCompare(b.date));
+
+  const MTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const labels = reduced.map(s => {
+    const [y, m] = s.date.split('-');
+    return MTHS[parseInt(m, 10) - 1] + ' \'' + y.slice(2);
+  });
+  const prices = reduced.map(s => s.price);
+  return { labels, prices };
+}
+
+// ---------------------------------------------------------------------------
 // Forward curve chart
 // ---------------------------------------------------------------------------
 function renderCurve() {
@@ -746,11 +841,10 @@ function renderCurve() {
   if (!contracts.length) return;
 
   const bands     = computeBands(contracts);
-  const labels    = bands.map(b => b.label);
   const showBands = document.getElementById('show-bands').checked;
   const isBrent   = benchmark === 'brent';
 
-  const prices = bands.map((b, i) =>
+  const futurePrices = bands.map((b, i) =>
     showPump ? pumpForContract(contracts, bands, i, isBrent) : b.price);
   const upper1 = bands.map((b, i) =>
     showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.upper1) : b.upper1);
@@ -761,6 +855,16 @@ function renderCurve() {
   const lower2 = bands.map((b, i) =>
     showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.lower2) : b.lower2);
 
+  // Historical segment (crude $/bbl front-month from snapshots; not converted
+  // to pump price since we don't have the lag inputs for past dates)
+  const hist   = buildHistoricalSegment();
+  const nHist  = hist.labels.length;
+  const nFut   = bands.length;
+  const nullH  = new Array(nHist).fill(null);  // nHist nulls for future-only series
+  const nullF  = new Array(nFut).fill(null);   // nFut  nulls for history-only series
+
+  const allLabels = [...hist.labels, ...bands.map(b => b.label)];
+
   const yLabel    = showPump ? '$/gallon at pump' : '$/barrel';
   const lineLabel = showPump
     ? `Est. pump price — ${PUMP_REGIONS[pumpRegion].label}`
@@ -768,32 +872,51 @@ function renderCurve() {
 
   const datasets = [];
 
+  // Historical line (always crude $/bbl regardless of showPump toggle,
+  // since we can't reconstruct old pump prices from snapshot data alone)
+  if (nHist > 0) {
+    datasets.push({
+      label: `${benchmark.toUpperCase()} (historical)`,
+      data: [...hist.prices, ...nullF],
+      borderColor: 'rgba(120,120,120,0.75)',
+      backgroundColor: 'rgba(120,120,120,0.75)',
+      borderWidth: 2,
+      pointRadius: 2.5,
+      pointHoverRadius: 5,
+      fill: false,
+      order: 2,
+      tension: 0.2,
+    });
+  }
+
   if (showBands) {
     datasets.push({
-      label: '95% upper', data: upper2,
+      label: '95% upper', data: [...nullH, ...upper2],
       borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.10)',
       fill: '+1', pointRadius: 0, order: 4,
     });
     datasets.push({
-      label: '95% lower', data: lower2,
+      label: '95% lower', data: [...nullH, ...lower2],
       borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.10)',
       fill: false, pointRadius: 0, order: 4,
     });
     datasets.push({
-      label: '68% upper', data: upper1,
+      label: '68% upper', data: [...nullH, ...upper1],
       borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.18)',
       fill: '+1', pointRadius: 0, order: 3,
     });
     datasets.push({
-      label: '68% lower', data: lower1,
+      label: '68% lower', data: [...nullH, ...lower1],
       borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.18)',
       fill: false, pointRadius: 0, order: 3,
     });
   }
 
+  // Index of the forward-curve line dataset (used for tooltip filtering)
+  const fwdDatasetIdx = datasets.length;
   datasets.push({
     label: lineLabel,
-    data: prices,
+    data: [...nullH, ...futurePrices],
     borderColor: '#2c5282', backgroundColor: '#2c5282',
     borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6,
     fill: false, order: 1, tension: 0.2,
@@ -804,12 +927,13 @@ function renderCurve() {
   const ctx = document.getElementById('curveChart').getContext('2d');
   curveChart = new Chart(ctx, {
     type: 'line',
-    data: { labels, datasets },
+    data: { labels: allLabels, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
+        todayLine: { show: nHist > 0, todayIndex: nHist },
         legend: {
           display: true,
           labels: {
@@ -818,19 +942,30 @@ function renderCurve() {
           },
         },
         tooltip: {
-          filter: item => item.datasetIndex === datasets.length - 1,
+          filter: item => {
+            const i = item.dataIndex;
+            if (i < nHist) return item.datasetIndex === 0;        // historical segment
+            return item.datasetIndex === fwdDatasetIdx;            // future segment
+          },
           callbacks: {
             title: ctx => ctx[0].label,
             label: ctx => {
               const i = ctx.dataIndex;
-              const b = bands[i];
+              // Historical segment: show raw crude price
+              if (i < nHist) {
+                const v = hist.prices[i];
+                return v != null ? `${benchmark.toUpperCase()}: $${v}/bbl` : '';
+              }
+              // Future segment
+              const bandIdx = i - nHist;
+              const b = bands[bandIdx];
               if (!b) return '';
               const fmt = showPump
                 ? v => `$${v.toFixed(2)}/gal`
                 : v => `$${v}/bbl`;
-              const mid   = prices[i];
-              const u1    = upper1[i], l1 = lower1[i];
-              const u2    = upper2[i], l2 = lower2[i];
+              const mid = futurePrices[bandIdx];
+              const u1  = upper1[bandIdx], l1 = lower1[bandIdx];
+              const u2  = upper2[bandIdx], l2 = lower2[bandIdx];
               if (!showBands) {
                 return showPump
                   ? `Expected: ${fmt(mid)}`
@@ -902,6 +1037,33 @@ function renderCurve() {
   } else {
     pumpNote.style.display = 'none';
   }
+}
+
+// ---------------------------------------------------------------------------
+// Time slider helpers
+// ---------------------------------------------------------------------------
+function updateSliderRange() {
+  const snapshots = oilData?.snapshots || [];
+  const row = document.getElementById('history-slider-row');
+  if (!snapshots.length) { row.style.display = 'none'; return; }
+
+  const oldest   = new Date(snapshots[0].date);
+  const today    = new Date();
+  const maxMonths = Math.max(1, Math.ceil((today - oldest) / (30.5 * 86400000)));
+  const slider   = document.getElementById('time-slider');
+  slider.max     = maxMonths;
+  historyMonths  = Math.min(historyMonths, maxMonths);
+  slider.value   = historyMonths;
+  document.getElementById('slider-label').textContent =
+    historyMonths + (historyMonths === 1 ? ' month' : ' months');
+  row.style.display = '';
+}
+
+function updateHistorySlider(val) {
+  historyMonths = val;
+  document.getElementById('slider-label').textContent =
+    val + (val === 1 ? ' month' : ' months');
+  renderCurve();
 }
 
 // ---------------------------------------------------------------------------
