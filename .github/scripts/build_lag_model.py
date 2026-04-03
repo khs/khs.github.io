@@ -59,9 +59,10 @@ def fetch_with_retry(url: str, retries: int = 4, base_timeout: int = 60) -> byte
                 raise
 
 
-def fetch_eia_series(series_id: str, lookback_years: int = 3) -> pd.Series:
-    """Download an EIA series from the public XLS endpoint (no API key needed)."""
-    url     = f"https://www.eia.gov/dnav/pet/hist_xls/{series_id}d.xls"
+def fetch_eia_series(series_id: str, lookback_years: int = 3, freq: str = "d") -> pd.Series:
+    """Download an EIA series from the public XLS endpoint (no API key needed).
+    freq: 'd' for daily, 'w' for weekly, 'm' for monthly."""
+    url     = f"https://www.eia.gov/dnav/pet/hist_xls/{series_id}{freq}.xls"
     content = fetch_with_retry(url)
     # EIA XLS: rows 0-1 are metadata, row 2 is header, data from row 3.
     for sheet in ("Data 1", 0):
@@ -243,7 +244,7 @@ def compute_seasonal_premium(residuals: np.ndarray, dates: pd.DatetimeIndex) -> 
 
 def main():
     print("Fetching EIA EMM_EPMR_PTE_NUS_DPG (US retail gasoline, weekly)...")
-    gas_raw = fetch_eia_series("EMM_EPMR_PTE_NUS_DPG", lookback_years=3)
+    gas_raw = fetch_eia_series("EMM_EPMR_PTE_NUS_DPG", lookback_years=3, freq="w")
     print(f"  {len(gas_raw)} weekly obs, {gas_raw.index.min().date()} – {gas_raw.index.max().date()}")
 
     print("Fetching EIA RWTC (WTI crude, daily)...")
