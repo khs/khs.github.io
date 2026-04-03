@@ -23,7 +23,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install yfinance requests pandas openpyxl scipy
+        run: pip install yfinance requests pandas openpyxl xlrd scipy
 
       - name: Fetch futures data
         run: python .github/scripts/fetch_oil_futures.py
