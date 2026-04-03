@@ -59,52 +59,81 @@ def fetch_with_retry(url: str, retries: int = 4, base_timeout: int = 60) -> byte
                 raise
 
 
-def fetch_eia_gasoline(lookback_years: int = 3) -> pd.Series:
-    """
-    Fetch US weekly retail regular gasoline price from EIA's CSV LeafHandler.
-    Falls back to the XLS endpoint if the CSV fails.
-    Returns a pd.Series indexed by date.
-    """
-    # Primary: EIA CSV (no Excel library needed)
-    csv_url = (
-        "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx"
-        "?n=PET&s=EMM_EPMR_PTE_NUS_DPG&f=W"
-    )
-    try:
-        content = fetch_with_retry(csv_url)
-        # EIA CSV: first 2 rows are metadata, row 3 is header, data follows
-        from io import StringIO
-        text = content.decode("utf-8", errors="replace")
-        df = pd.read_csv(StringIO(text), skiprows=2, header=0)
-        df.columns = ["date", "price"] + list(df.columns[2:])
-        df = df[["date", "price"]].dropna()
-        df["date"] = pd.to_datetime(df["date"])
-        s = df.set_index("date")["price"].astype(float)
-        s.index.name = "date"
-        cutoff = pd.Timestamp.today() - pd.DateOffset(years=lookback_years)
-        s = s[s.index >= cutoff]
-        if len(s) > 10:
-            return s
-        raise ValueError("Too few rows from CSV")
-    except Exception as e:
-        print(f"  CSV attempt failed ({e}), trying XLS...")
+def fetch_gasoline_fred_streaming() -> pd.Series:
+    """FRED GASREGCOVW via streaming GET — avoids the read-timeout that
+    kills a blocking request on slow FRED responses."""
+    import requests as _req
+    url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=GASREGCOVW"
+    r = _req.get(url, headers=HEADERS, timeout=(10, 120), stream=True)
+    r.raise_for_status()
+    chunks = []
+    for chunk in r.iter_content(chunk_size=8192):
+        chunks.append(chunk)
+    content = b"".join(chunks)
+    from io import StringIO
+    df = pd.read_csv(StringIO(content.decode("utf-8", errors="replace")),
+                     parse_dates=["DATE"], index_col="DATE", na_values=[".", ""])
+    s = df.squeeze().dropna().astype(float)
+    s.index.name = "date"
+    return s
 
-    # Fallback: XLS endpoint
-    xls_url = "https://www.eia.gov/dnav/pet/hist_xls/EMM_EPMR_PTE_NUS_DPGw.xls"
-    content = fetch_with_retry(xls_url)
-    for sheet in ("Data 1", 0):
+
+def fetch_eia_gasoline_csv() -> pd.Series:
+    """EIA LeafHandler CSV for US regular gasoline retail price (weekly)."""
+    url = ("https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx"
+           "?n=PET&s=EMM_EPMR_PTE_NUS_DPG&f=W")
+    content = fetch_with_retry(url, retries=2, base_timeout=30)
+    from io import StringIO
+    text = content.decode("utf-8", errors="replace")
+    df = pd.read_csv(StringIO(text), skiprows=2, header=0)
+    df.columns = ["date", "price"] + list(df.columns[2:])
+    df = df[["date", "price"]].dropna()
+    df["date"] = pd.to_datetime(df["date"])
+    s = df.set_index("date")["price"].astype(float)
+    s.index.name = "date"
+    if len(s) < 10:
+        raise ValueError("Too few rows")
+    return s
+
+
+def fetch_gasoline_rbob_proxy() -> pd.Series:
+    """Last resort: RBOB futures from yfinance as a proxy for retail gasoline.
+    RBOB ≈ retail minus taxes/distribution (~$1.05/gal markup) but the
+    lag-model coefficients are still meaningful since RBOB tracks retail closely."""
+    import yfinance as yf
+    raw = yf.download("RB=F", start="2020-01-01", auto_adjust=True, progress=False)
+    if raw.empty:
+        raise ValueError("yfinance RB=F returned empty")
+    s = raw["Close"].squeeze()
+    if hasattr(s.index, "tz") and s.index.tz is not None:
+        s.index = s.index.tz_localize(None)
+    s.index.name = "date"
+    # RBOB is in $/gallon already; add avg fixed retail markup to approximate retail
+    RBOB_TO_RETAIL = 1.05   # taxes + distribution + retail margin
+    return (s.dropna() + RBOB_TO_RETAIL).resample("W-MON").last().dropna()
+
+
+def fetch_gasoline_weekly(lookback_years: int = 3) -> pd.Series:
+    """Try multiple sources for US weekly retail gasoline price."""
+    cutoff = pd.Timestamp.today() - pd.DateOffset(years=lookback_years)
+
+    for name, fn in [
+        ("FRED streaming",  fetch_gasoline_fred_streaming),
+        ("EIA LeafHandler", fetch_eia_gasoline_csv),
+        ("RBOB proxy",      fetch_gasoline_rbob_proxy),
+    ]:
         try:
-            df = pd.read_excel(BytesIO(content), sheet_name=sheet, skiprows=2, header=0)
-            df.columns = ["date", "price"] + list(df.columns[2:])
-            df = df[["date", "price"]].dropna()
-            df["date"] = pd.to_datetime(df["date"])
-            s = df.set_index("date")["price"].astype(float)
-            s.index.name = "date"
-            cutoff = pd.Timestamp.today() - pd.DateOffset(years=lookback_years)
-            return s[s.index >= cutoff]
-        except Exception:
-            continue
-    raise ValueError("Could not fetch EIA gasoline price data via CSV or XLS")
+            print(f"  Trying {name}...")
+            s = fn()
+            s = s[s.index >= cutoff]
+            if len(s) < 10:
+                raise ValueError("Too few observations")
+            print(f"  {name} OK: {len(s)} obs, {s.index.min().date()} – {s.index.max().date()}")
+            return s
+        except Exception as e:
+            print(f"  {name} failed: {e}")
+
+    raise RuntimeError("All gasoline data sources failed")
 
 
 def fetch_crude_weekly(lookback_years: int = 3) -> pd.Series:
@@ -312,7 +341,7 @@ def compute_seasonal_premium(residuals: np.ndarray, dates: pd.DatetimeIndex) -> 
 
 def main():
     print("Fetching US retail gasoline price (weekly)...")
-    gas_raw = fetch_eia_gasoline(lookback_years=3)
+    gas_raw = fetch_gasoline_weekly(lookback_years=3)
     print(f"  {len(gas_raw)} weekly obs, {gas_raw.index.min().date()} – {gas_raw.index.max().date()}")
 
     print("Fetching WTI crude price (weekly)...")
