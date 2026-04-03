@@ -431,8 +431,19 @@ def main():
 
 if __name__ == "__main__":
     import traceback
+    DEBUG_FILE = Path(__file__).parents[2] / "data" / "lag-model-debug.json"
     try:
         main()
+        # Clear any previous debug file on success
+        if DEBUG_FILE.exists():
+            DEBUG_FILE.unlink()
     except Exception:
+        tb = traceback.format_exc()
         traceback.print_exc()
+        with open(DEBUG_FILE, "w") as f:
+            json.dump({
+                "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                "error": tb,
+            }, f, indent=2)
+        print(f"Wrote error details to {DEBUG_FILE}")
         raise
