@@ -833,39 +833,11 @@ function renderCurve() {
                 return lines;
               }
 
-              // Pump mode: show model-aware breakdown
-              const pumpMid  = prices[ctx.dataIndex];
-              const regional = PUMP_REGIONS[pumpRegion].offset;
-              const lines    = [`Pump est: $${pumpMid.toFixed(2)}/gal`];
-
-              if (lagModel) {
-                const { alpha, betas, total_passthrough, n_obs, data_end } = lagModel;
-                const K = betas.length;
-                const deliveryWeeks = (new Date(b.expiry + '-15') - Date.now()) / (7 * 86400000);
-                let weightedCrudeGal = 0;
-                for (let k = 0; k < K; k++) {
-                  const crudeBbl = interpolateCrude(contracts, deliveryWeeks - k);
-                  const brentBbl = isBrent ? crudeBbl : crudeBbl + WTI_TO_BRENT_ADJ;
-                  weightedCrudeGal += betas[k] * (brentBbl / 42);
-                }
-                lines.push(`  crude (lag-weighted, ${K}-wk dist): $${weightedCrudeGal.toFixed(3)}`);
-                lines.push(`  non-crude costs (α):  $${alpha.toFixed(3)}`);
-                lines.push(`  total pass-through:   ${(total_passthrough * 100).toFixed(1)}%`);
-                lines.push(`  model: ${n_obs} obs thru ${data_end}`);
-              } else {
-                const lagBand   = bands[Math.max(0, ctx.dataIndex - 1)];
-                const brentBbl  = isBrent ? lagBand.price : lagBand.price + WTI_TO_BRENT_ADJ;
-                lines.push(`  crude (1-month lag): $${(brentBbl/42).toFixed(3)}/gal`);
-                lines.push(`  non-crude costs: $${PUMP_FIXED_TOTAL.toFixed(3)}/gal`);
-                lines.push(`  (empirical model not yet available)`);
-              }
-
-              if (regional !== 0)
-                lines.push(`  regional adj: ${regional >= 0 ? '+' : ''}$${regional.toFixed(2)}`);
-              if (!isBrent)
-                lines.push(`  WTI→Brent adj: +$${WTI_TO_BRENT_ADJ}/bbl`);
+              // Pump mode
+              const pumpMid = prices[ctx.dataIndex];
+              const lines   = [`Est. pump price: $${pumpMid.toFixed(2)}/gal`];
               if (showBands)
-                lines.push(`68%: $${lower1[ctx.dataIndex].toFixed(2)} – $${upper1[ctx.dataIndex].toFixed(2)}`);
+                lines.push(`68% range: $${lower1[ctx.dataIndex].toFixed(2)} – $${upper1[ctx.dataIndex].toFixed(2)}/gal`);
               return lines;
             },
           },
