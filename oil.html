@@ -376,12 +376,7 @@
   Data updated weekly.
 </p>
 
-<div class="tabs">
-  <div class="tab active" data-tab="curve" onclick="switchTab('curve', this)">Forward Curve</div>
-  <div class="tab" data-tab="history" onclick="switchTab('history', this)">Prediction History</div>
-</div>
-
-<!-- CURVE TAB -->
+<!-- CURVE -->
 <div id="tab-curve">
   <div class="controls">
     <div class="btn-group">
@@ -426,25 +421,6 @@
   <p class="pump-note" id="pump-note" style="display:none"></p>
 </div>
 
-<!-- HISTORY TAB -->
-<div id="tab-history" style="display:none">
-  <div class="controls">
-    <div class="btn-group">
-      <button id="btn-wti-h" onclick="setBenchmarkH('wti')">WTI</button>
-      <button id="btn-brent-h" class="active" onclick="setBenchmarkH('brent')">Brent</button>
-    </div>
-    <span class="meta" id="snapshot-count"></span>
-  </div>
-
-  <div class="chart-container">
-    <canvas id="historyChart"></canvas>
-  </div>
-  <p class="legend-note">
-    Each line is a weekly snapshot of the forward curve at that date.
-    Older snapshots appear lighter. As the dataset grows, you will be able to
-    compare past predictions against realised prices.
-  </p>
-</div>
 
 <div id="no-data-msg" style="display:none">
   <div class="no-data">
@@ -626,11 +602,9 @@ function pumpBandEndpoint(contracts, bands, idx, isBrent, crudeBandBbl) {
 let oilData  = null;
 let lagModel = null;    // empirical distributed lag coefficients
 let benchmark  = 'brent';
-let benchmarkH = 'brent';
 let showPump  = true;
 let pumpRegion = 'national';
 let curveChart   = null;
-let historyChart = null;
 let historyMonths = 36;  // how many months of history to show on the curve chart
 
 // Asymmetric uncertainty parameters, calibrated from 20-year WTI backtest.
@@ -722,24 +696,8 @@ function init() {
       'Last updated: ' + d.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
   }
 
-  const sc = oilData.snapshots ? oilData.snapshots.length : 0;
-  document.getElementById('snapshot-count').textContent =
-    sc + ' weekly snapshot' + (sc === 1 ? '' : 's') + ' stored';
-
   updateSliderRange();
   renderCurve();
-}
-
-// ---------------------------------------------------------------------------
-// Tab switching
-// ---------------------------------------------------------------------------
-function switchTab(tab, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('tab-curve').style.display   = tab === 'curve'   ? '' : 'none';
-  document.getElementById('tab-history').style.display = tab === 'history' ? '' : 'none';
-
-  if (tab === 'history' && !historyChart) renderHistory();
 }
 
 // ---------------------------------------------------------------------------
@@ -761,13 +719,6 @@ function togglePump() {
 function setPumpRegion(r) {
   pumpRegion = r;
   renderCurve();
-}
-
-function setBenchmarkH(b) {
-  benchmarkH = b;
-  document.getElementById('btn-wti-h').classList.toggle('active', b === 'wti');
-  document.getElementById('btn-brent-h').classList.toggle('active', b === 'brent');
-  renderHistory();
 }
 
 // ---------------------------------------------------------------------------
@@ -1089,96 +1040,6 @@ function updateHistorySlider(val) {
   renderCurve();
 }
 
-// ---------------------------------------------------------------------------
-// Prediction history chart
-// ---------------------------------------------------------------------------
-function renderHistory() {
-  if (!oilData) return;
-  const snapshots = oilData.snapshots || [];
-  if (!snapshots.length) {
-    // nothing yet
-    if (historyChart) historyChart.destroy();
-    return;
-  }
-
-  // Collect all expiry labels across snapshots
-  const expirySet = new Set();
-  snapshots.forEach(s => (s[benchmarkH] || []).forEach(c => expirySet.add(c.expiry)));
-  const expiries = Array.from(expirySet).sort();
-  const labels = expiries.map(e => {
-    const [y, m] = e.split('-');
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return months[parseInt(m, 10) - 1] + ' ' + y;
-  });
-
-  const n = snapshots.length;
-  const datasets = snapshots.map((snap, i) => {
-    const priceMap = {};
-    (snap[benchmarkH] || []).forEach(c => { priceMap[c.expiry] = c.price; });
-    const data = expiries.map(e => priceMap[e] ?? null);
-
-    // Fade older snapshots
-    const alpha = 0.15 + 0.85 * (i / Math.max(n - 1, 1));
-    const color = `rgba(44,82,130,${alpha.toFixed(2)})`;
-
-    return {
-      label: snap.date,
-      data,
-      borderColor: color,
-      backgroundColor: 'transparent',
-      borderWidth: i === n - 1 ? 2.5 : 1,
-      pointRadius: i === n - 1 ? 4 : 0,
-      fill: false,
-      tension: 0.2,
-    };
-  });
-
-  if (historyChart) historyChart.destroy();
-
-  const ctx = document.getElementById('historyChart').getContext('2d');
-  historyChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: ctx => ctx[0].label,
-            label: ctx => {
-              const snap = snapshots[ctx.datasetIndex];
-              const v = ctx.raw;
-              return v != null ? `${snap.date}: $${v}` : null;
-            },
-          },
-          filter: item => item.raw != null,
-        },
-      },
-      scales: {
-        x: {
-          ticks: { font: { family: 'Georgia, serif', size: 11 }, maxRotation: 45 },
-          grid: { color: '#f0f0f0' },
-        },
-        y: {
-          ticks: {
-            font: { family: 'Georgia, serif', size: 11 },
-            callback: v => '$' + v,
-          },
-          grid: { color: '#f0f0f0' },
-          title: {
-            display: true,
-            text: '$/barrel',
-            font: { family: 'Georgia, serif', size: 12 },
-            color: '#666',
-          },
-        },
-      },
-    },
-  });
-}
 
 </script>
 

@@ -403,6 +403,33 @@
 
 <hr class="divider">
 
+<h2 class="section-head">Forward curve predictions vs. realized prices</h2>
+<p style="font-size:0.85em;color:#666;margin-bottom:0.8em">
+  Each faded line is a weekly forward-curve snapshot. The bold grey line is
+  the EIA realized WTI spot price. Where the snapshot lines end before the
+  realized line begins, the prediction has not yet come due.
+</p>
+<div class="controls" style="margin-bottom:0.8em">
+  <div class="btn-group" id="ph-bench-btns">
+    <button onclick="setPhBenchmark('wti',this)">WTI</button>
+    <button class="active" onclick="setPhBenchmark('brent',this)">Brent</button>
+  </div>
+  <span class="meta" id="ph-snapshot-count"></span>
+</div>
+<div class="bt-section" id="ph-section" style="display:none">
+  <div class="chart-container"><canvas id="predHistoryChart"></canvas></div>
+  <p class="legend-note">
+    Faded blue lines = weekly forward-curve snapshots (older = lighter).
+    Bold grey line = realized EIA WTI spot price (monthly average).
+    For Brent, a +$4/bbl spread is added to the realized WTI series.
+  </p>
+</div>
+<div id="ph-no-data" style="font-size:0.85em;color:#888;margin-bottom:1.5em;display:none">
+  No snapshot data yet. Run the GitHub Actions workflow to capture the first forward curve.
+</div>
+
+<hr class="divider">
+
 <h2 class="section-head">References</h2>
 <div class="references">
   <ol>
@@ -432,11 +459,14 @@
 </site-footer>
 
 <script>
-let btData = null;
+let btData       = null;
+let futuresData  = null;
 let activeHorizon = '1m';
 let btErrorChart  = null;
 let btYearChart   = null;
+let predHistChart = null;
 let btType        = 'crude';   // 'crude' | 'pump'
+let phBenchmark   = 'brent';   // benchmark for prediction history chart
 
 function getBtResults() {
   if (!btData) return null;
@@ -501,6 +531,11 @@ const KEY_EVENTS = {
 fetch('data/oil-backtest.json')
   .then(r => r.json())
   .then(data => { btData = data; renderBacktest(); })
+  .catch(() => {});
+
+fetch('data/oil-futures.json')
+  .then(r => r.json())
+  .then(data => { futuresData = data; renderPredHistory(); })
   .catch(() => {});
 
 function setHorizon(h, btn) {
@@ -748,6 +783,132 @@ function renderBtRegimes() {
     </table>
     <p class="legend-note">1-month horizon only. Illustrates how error varies across different market environments.</p>
   `;
+}
+
+// ---------------------------------------------------------------------------
+// Prediction history chart
+// ---------------------------------------------------------------------------
+
+function setPhBenchmark(b, btn) {
+  phBenchmark = b;
+  document.querySelectorAll('#ph-bench-btns button').forEach(el => el.classList.remove('active'));
+  btn.classList.add('active');
+  renderPredHistory();
+}
+
+function renderPredHistory() {
+  if (!futuresData) return;
+
+  const WTI_TO_BRENT = 4.0;
+  const MTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // ---- realized prices (historical_wti monthly averages) ----
+  const histWti = futuresData.historical_wti || [];
+  const realizedMap = {};
+  histWti.forEach(h => {
+    const price = phBenchmark === 'brent' ? +(h.price + WTI_TO_BRENT).toFixed(2) : h.price;
+    realizedMap[h.month] = price;
+  });
+
+  // ---- snapshots (forward curve predictions) ----
+  const snapshots = futuresData.snapshots || [];
+
+  const sc = snapshots.length;
+  document.getElementById('ph-snapshot-count').textContent =
+    sc + ' weekly snapshot' + (sc === 1 ? '' : 's');
+
+  if (!histWti.length && !sc) {
+    document.getElementById('ph-no-data').style.display = '';
+    document.getElementById('ph-section').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('ph-no-data').style.display = 'none';
+  document.getElementById('ph-section').style.display = '';
+
+  // Union of all months across realized + all snapshot expiries
+  const monthSet = new Set(Object.keys(realizedMap));
+  snapshots.forEach(s => (s[phBenchmark] || []).forEach(c => monthSet.add(c.expiry)));
+  const allMonths = Array.from(monthSet).sort();
+  const labels = allMonths.map(ym => {
+    const [y, m] = ym.split('-');
+    return MTHS[parseInt(m, 10) - 1] + ' ' + y;
+  });
+
+  const datasets = [];
+
+  // Faded snapshot lines (oldest first = lightest)
+  const n = snapshots.length;
+  snapshots.forEach((snap, i) => {
+    const priceMap = {};
+    (snap[phBenchmark] || []).forEach(c => { priceMap[c.expiry] = c.price; });
+    const data = allMonths.map(ym => priceMap[ym] ?? null);
+    const alpha = 0.08 + 0.55 * (i / Math.max(n - 1, 1));
+    datasets.push({
+      label: snap.date,
+      data,
+      borderColor: `rgba(44,82,130,${alpha.toFixed(2)})`,
+      backgroundColor: 'transparent',
+      borderWidth: i === n - 1 ? 2 : 1,
+      pointRadius: 0,
+      fill: false,
+      tension: 0.2,
+      order: 2,
+    });
+  });
+
+  // Bold realized line on top
+  const realizedData = allMonths.map(ym => realizedMap[ym] ?? null);
+  datasets.push({
+    label: phBenchmark === 'brent' ? 'Realized (WTI + Brent adj)' : 'Realized WTI spot',
+    data: realizedData,
+    borderColor: 'rgba(80,80,80,0.85)',
+    backgroundColor: 'transparent',
+    borderWidth: 2.5,
+    pointRadius: 0,
+    fill: false,
+    tension: 0.2,
+    order: 1,
+  });
+
+  if (predHistChart) predHistChart.destroy();
+  const ctx = document.getElementById('predHistoryChart').getContext('2d');
+  predHistChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          filter: item => item.raw != null,
+          callbacks: {
+            title: ctx => ctx[0]?.label,
+            label: ctx => {
+              const v = ctx.raw;
+              if (v == null) return null;
+              const isRealized = ctx.datasetIndex === datasets.length - 1;
+              const prefix = isRealized ? 'Realized' : `Predicted (${ctx.dataset.label})`;
+              return `${prefix}: $${v}/bbl`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'Georgia, serif', size: 10 }, maxTicksLimit: 24, maxRotation: 45 },
+          grid: { color: '#f0f0f0' },
+        },
+        y: {
+          ticks: { font: { family: 'Georgia, serif', size: 11 }, callback: v => '$' + v },
+          grid: { color: '#f0f0f0' },
+          title: { display: true, text: '$/barrel', font: { family: 'Georgia, serif', size: 12 }, color: '#666' },
+        },
+      },
+    },
+  });
 }
 </script>
 
