@@ -809,12 +809,22 @@ function buildHistoricalSegment() {
   const cutoff = new Date();
   cutoff.setMonth(cutoff.getMonth() - historyMonths);
 
+  const isBrent = benchmark === 'brent';
+
   // Collect snapshots within the window; take front-month price as spot proxy
   const pts = snapshots
     .filter(s => new Date(s.date) >= cutoff)
     .map(s => {
       const contracts = s[benchmark] || [];
-      return { date: s.date, price: contracts.length ? contracts[0].price : null };
+      if (!contracts.length) return { date: s.date, price: null };
+      const crudeBbl = contracts[0].price;
+      // Convert to pump price if pump mode is on, using the simple (no-lag)
+      // formula — historical lag inputs aren't available, so this is an
+      // approximation, but it keeps both series on the same Y-axis scale.
+      const price = showPump
+        ? crudeToGallon(crudeBbl, isBrent, pumpRegion, PUMP_FIXED.refining)
+        : crudeBbl;
+      return { date: s.date, price };
     })
     .filter(s => s.price != null);
 
@@ -872,11 +882,9 @@ function renderCurve() {
 
   const datasets = [];
 
-  // Historical line (always crude $/bbl regardless of showPump toggle,
-  // since we can't reconstruct old pump prices from snapshot data alone)
   if (nHist > 0) {
     datasets.push({
-      label: `${benchmark.toUpperCase()} (historical)`,
+      label: showPump ? 'Historical (approx.)' : `${benchmark.toUpperCase()} (historical)`,
       data: [...hist.prices, ...nullF],
       borderColor: 'rgba(120,120,120,0.75)',
       backgroundColor: 'rgba(120,120,120,0.75)',
@@ -951,10 +959,13 @@ function renderCurve() {
             title: ctx => ctx[0].label,
             label: ctx => {
               const i = ctx.dataIndex;
-              // Historical segment: show raw crude price
+              // Historical segment
               if (i < nHist) {
                 const v = hist.prices[i];
-                return v != null ? `${benchmark.toUpperCase()}: $${v}/bbl` : '';
+                if (v == null) return '';
+                return showPump
+                  ? `Est. pump: $${v.toFixed(2)}/gal (approx.)`
+                  : `${benchmark.toUpperCase()}: $${v}/bbl`;
               }
               // Future segment
               const bandIdx = i - nHist;
