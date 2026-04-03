@@ -189,4 +189,17 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import traceback, sys
+    try:
+        main()
+    except Exception:
+        traceback.print_exc()
+        # Write whatever partial data we have so the file timestamp updates
+        # even on failure, giving the commit step something to commit.
+        err_path = Path(__file__).parents[2] / "data" / "futures-error.json"
+        with open(err_path, "w") as f:
+            json.dump({
+                "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                "error": traceback.format_exc(),
+            }, f, indent=2)
+        sys.exit(1)
