@@ -413,7 +413,7 @@
   </div>
   <div class="slider-row" id="history-slider-row" style="display:none">
     <span>History shown:</span>
-    <input type="range" id="time-slider" min="1" max="36" value="6"
+    <input type="range" id="time-slider" min="0" max="36" value="6"
            oninput="updateHistorySlider(+this.value)">
     <span class="slider-label" id="slider-label">6 months</span>
   </div>
@@ -1057,23 +1057,18 @@ function updateSliderRange() {
   const snapshots = oilData?.snapshots || [];
   const row = document.getElementById('history-slider-row');
   if (!snapshots.length) { row.style.display = 'none'; return; }
-
-  const oldest   = new Date(snapshots[0].date);
-  const today    = new Date();
-  const maxMonths = Math.max(1, Math.ceil((today - oldest) / (30.5 * 86400000)));
-  const slider   = document.getElementById('time-slider');
-  slider.max     = maxMonths;
-  historyMonths  = Math.min(historyMonths, maxMonths);
-  slider.value   = historyMonths;
-  document.getElementById('slider-label').textContent =
-    historyMonths + (historyMonths === 1 ? ' month' : ' months');
+  // Keep the slider range fixed at 0–36 months so it's always draggable.
+  // buildHistoricalSegment() will naturally return only what data exists.
   row.style.display = '';
+  const label = historyMonths === 0 ? 'None'
+    : historyMonths === 1 ? '1 month' : `${historyMonths} months`;
+  document.getElementById('slider-label').textContent = label;
 }
 
 function updateHistorySlider(val) {
   historyMonths = val;
-  document.getElementById('slider-label').textContent =
-    val + (val === 1 ? ' month' : ' months');
+  const label = val === 0 ? 'None' : val === 1 ? '1 month' : `${val} months`;
+  document.getElementById('slider-label').textContent = label;
   renderCurve();
 }
 
