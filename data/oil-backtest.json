@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-03T00:11:50+00:00",
+  "generated": "2026-04-03T01:46:00+00:00",
   "description": "How well did WTI futures predict realized spot prices, and how well were the uncertainty bands calibrated? Prediction = EIA nth-nearby futures (RCLC1-4). Realized = EIA RWTC WTI Cushing spot price. Naive benchmark = today's spot price used as forecast. Bands: VOL_UP=0.28, VOL_DOWN=0.5, MR_CAP=2.5y.",
   "results": {
     "1m": {
