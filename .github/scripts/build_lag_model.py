@@ -59,12 +59,39 @@ def fetch_with_retry(url: str, retries: int = 4, base_timeout: int = 60) -> byte
                 raise
 
 
-def fetch_eia_series(series_id: str, lookback_years: int = 3, freq: str = "d") -> pd.Series:
-    """Download an EIA series from the public XLS endpoint (no API key needed).
-    freq: 'd' for daily, 'w' for weekly, 'm' for monthly."""
-    url     = f"https://www.eia.gov/dnav/pet/hist_xls/{series_id}{freq}.xls"
-    content = fetch_with_retry(url)
-    # EIA XLS: rows 0-1 are metadata, row 2 is header, data from row 3.
+def fetch_eia_gasoline(lookback_years: int = 3) -> pd.Series:
+    """
+    Fetch US weekly retail regular gasoline price from EIA's CSV LeafHandler.
+    Falls back to the XLS endpoint if the CSV fails.
+    Returns a pd.Series indexed by date.
+    """
+    # Primary: EIA CSV (no Excel library needed)
+    csv_url = (
+        "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx"
+        "?n=PET&s=EMM_EPMR_PTE_NUS_DPG&f=W"
+    )
+    try:
+        content = fetch_with_retry(csv_url)
+        # EIA CSV: first 2 rows are metadata, row 3 is header, data follows
+        from io import StringIO
+        text = content.decode("utf-8", errors="replace")
+        df = pd.read_csv(StringIO(text), skiprows=2, header=0)
+        df.columns = ["date", "price"] + list(df.columns[2:])
+        df = df[["date", "price"]].dropna()
+        df["date"] = pd.to_datetime(df["date"])
+        s = df.set_index("date")["price"].astype(float)
+        s.index.name = "date"
+        cutoff = pd.Timestamp.today() - pd.DateOffset(years=lookback_years)
+        s = s[s.index >= cutoff]
+        if len(s) > 10:
+            return s
+        raise ValueError("Too few rows from CSV")
+    except Exception as e:
+        print(f"  CSV attempt failed ({e}), trying XLS...")
+
+    # Fallback: XLS endpoint
+    xls_url = "https://www.eia.gov/dnav/pet/hist_xls/EMM_EPMR_PTE_NUS_DPGw.xls"
+    content = fetch_with_retry(xls_url)
     for sheet in ("Data 1", 0):
         try:
             df = pd.read_excel(BytesIO(content), sheet_name=sheet, skiprows=2, header=0)
@@ -77,7 +104,48 @@ def fetch_eia_series(series_id: str, lookback_years: int = 3, freq: str = "d") -
             return s[s.index >= cutoff]
         except Exception:
             continue
-    raise ValueError(f"Could not parse EIA XLS for {series_id}")
+    raise ValueError("Could not fetch EIA gasoline price data via CSV or XLS")
+
+
+def fetch_crude_weekly(lookback_years: int = 3) -> pd.Series:
+    """
+    Fetch weekly WTI crude price via yfinance (CL=F front-month continuous).
+    Falls back to EIA RWTC XLS if yfinance fails.
+    Returns a pd.Series indexed by date, resampled to weekly (Monday).
+    """
+    import yfinance as yf
+    cutoff = pd.Timestamp.today() - pd.DateOffset(years=lookback_years)
+    try:
+        raw = yf.download("CL=F", start=cutoff.strftime("%Y-%m-%d"),
+                          auto_adjust=True, progress=False)
+        if raw.empty:
+            raise ValueError("yfinance returned empty data")
+        s = raw["Close"].squeeze()
+        if hasattr(s.index, "tz") and s.index.tz is not None:
+            s.index = s.index.tz_localize(None)
+        s.index.name = "date"
+        s = s.dropna()
+        weekly = s.resample("W-MON").last().dropna()
+        print(f"  yfinance CL=F: {len(weekly)} weekly obs")
+        return weekly
+    except Exception as e:
+        print(f"  yfinance failed ({e}), falling back to EIA RWTC XLS...")
+
+    # Fallback: EIA RWTC XLS (daily → weekly)
+    content = fetch_with_retry("https://www.eia.gov/dnav/pet/hist_xls/RWTCd.xls")
+    for sheet in ("Data 1", 0):
+        try:
+            df = pd.read_excel(BytesIO(content), sheet_name=sheet, skiprows=2, header=0)
+            df.columns = ["date", "price"] + list(df.columns[2:])
+            df = df[["date", "price"]].dropna()
+            df["date"] = pd.to_datetime(df["date"])
+            s = df.set_index("date")["price"].astype(float)
+            s.index.name = "date"
+            s = s[s.index >= cutoff].dropna()
+            return s.resample("W-MON").last().dropna()
+        except Exception:
+            continue
+    raise ValueError("Could not fetch crude price data via yfinance or EIA")
 
 
 # ---------------------------------------------------------------------------
@@ -243,18 +311,14 @@ def compute_seasonal_premium(residuals: np.ndarray, dates: pd.DatetimeIndex) -> 
 # ---------------------------------------------------------------------------
 
 def main():
-    print("Fetching EIA EMM_EPMR_PTE_NUS_DPG (US retail gasoline, weekly)...")
-    gas_raw = fetch_eia_series("EMM_EPMR_PTE_NUS_DPG", lookback_years=3, freq="w")
+    print("Fetching US retail gasoline price (weekly)...")
+    gas_raw = fetch_eia_gasoline(lookback_years=3)
     print(f"  {len(gas_raw)} weekly obs, {gas_raw.index.min().date()} – {gas_raw.index.max().date()}")
 
-    print("Fetching EIA RWTC (WTI crude, daily)...")
-    crude_raw = fetch_eia_series("RWTC", lookback_years=3)
-    print(f"  {len(crude_raw)} daily obs, {crude_raw.index.min().date()} – {crude_raw.index.max().date()}")
-
-    # Resample crude to match gas price observation frequency.
-    # Gas is observed on Mondays; take Monday crude price (or nearest prior day).
-    crude_weekly = crude_raw.resample("W-MON").last().dropna()
+    print("Fetching WTI crude price (weekly)...")
+    crude_weekly = fetch_crude_weekly(lookback_years=3)
     crude_gal    = crude_weekly / 42.0
+    print(f"  {len(crude_weekly)} weekly obs, {crude_weekly.index.min().date()} – {crude_weekly.index.max().date()}")
 
     # Trim to last 2 years for modelling (keep 3-year download for lag build-up)
     cutoff_2y = pd.Timestamp.today() - pd.DateOffset(years=2)
