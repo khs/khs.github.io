@@ -818,27 +818,31 @@ function renderCurve() {
           },
         },
         tooltip: {
+          filter: item => item.datasetIndex === datasets.length - 1,
           callbacks: {
             title: ctx => ctx[0].label,
             label: ctx => {
-              const b    = bands[ctx.dataIndex];
+              const i = ctx.dataIndex;
+              const b = bands[i];
               if (!b) return '';
-
-              if (!showPump) {
-                const lines = [`${benchmark.toUpperCase()}: $${b.price}/bbl`];
-                if (showBands) {
-                  lines.push(`68% range: $${b.lower1} – $${b.upper1}`);
-                  lines.push(`95% range: $${b.lower2} – $${b.upper2}`);
-                }
-                return lines;
+              const fmt = showPump
+                ? v => `$${v.toFixed(2)}/gal`
+                : v => `$${v}/bbl`;
+              const mid   = prices[i];
+              const u1    = upper1[i], l1 = lower1[i];
+              const u2    = upper2[i], l2 = lower2[i];
+              if (!showBands) {
+                return showPump
+                  ? `Expected: ${fmt(mid)}`
+                  : `${benchmark.toUpperCase()}: ${fmt(b.price)}`;
               }
-
-              // Pump mode
-              const pumpMid = prices[ctx.dataIndex];
-              const lines   = [`Est. pump price: $${pumpMid.toFixed(2)}/gal`];
-              if (showBands)
-                lines.push(`68% range: $${lower1[ctx.dataIndex].toFixed(2)} – $${upper1[ctx.dataIndex].toFixed(2)}/gal`);
-              return lines;
+              return [
+                `97.5th pct: ${fmt(showPump ? u2 : b.upper2)}`,
+                `84th pct:   ${fmt(showPump ? u1 : b.upper1)}`,
+                `Expected:   ${fmt(showPump ? mid : b.price)}`,
+                `16th pct:   ${fmt(showPump ? l1 : b.lower1)}`,
+                `2.5th pct:  ${fmt(showPump ? l2 : b.lower2)}`,
+              ];
             },
           },
         },
