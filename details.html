@@ -281,10 +281,10 @@
   <p>No autoregressive term is included — the model must be applicable to future dates where pump prices are not yet known.</p>
 </div>
 
-<h2 class="section-head">Why are the uncertainty bands asymmetric?</h2>
+<h2 class="section-head">How wide are the uncertainty bands?</h2>
 <div class="prose">
-  <p>Oil crashes faster and further than it rallies. The 2008 financial crisis wiped out 75% of the oil price in six months. The 2020 COVID shock cut prices in half in weeks. Upside moves — like the 2021&#8211;22 post-COVID recovery or the 2022 Ukraine supply shock — tend to unfold over months to years and partially reverse.</p>
-  <p>This asymmetry is built into the model: the downside band uses 50% annualised volatility, the upside uses 28%. Past roughly 2.5 years, the bands stop widening: long-run mean reversion kicks in, as prices tend to gravitate back toward production costs (~$50&#8211;70/bbl for most global producers at current technology).</p>
+  <p>The bands use 35% annualised volatility on both the upside and downside — calibrated against 20 years of historical futures prediction errors. Backtesting shows that roughly 68% of realized prices fell within the inner band and ~95% within the outer band, broadly matching the target coverage rates.</p>
+  <p>Past roughly 2.5 years the bands stop widening: long-run mean reversion kicks in, as prices tend to gravitate back toward production costs (~$50&#8211;70/bbl for most global producers at current technology).</p>
 </div>
 
 <h2 class="section-head">Limitations</h2>
@@ -299,7 +299,7 @@
 
 <h2 class="section-head">Did the prediction bands hold up historically?</h2>
 <p class="prose" style="font-size:0.88em;color:#666;margin-bottom:1.5em">
-  For every historical week since 2004, the model computed asymmetric uncertainty bands around the futures price, then checked whether the realized spot price fell inside them. Well-calibrated bands should hit ~68% and ~95% coverage respectively.
+  For every historical week since 2004, the model computed uncertainty bands around the futures price, then checked whether the realized spot price fell inside them. Well-calibrated bands should hit ~68% and ~95% coverage respectively.
 </p>
 
 <div class="bt-section" id="bt-coverage-section" style="display:none">
