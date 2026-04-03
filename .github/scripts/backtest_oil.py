@@ -9,7 +9,7 @@ Realized series    : EIA RWTC (WTI Cushing spot price, daily)
 Naive benchmark    : spot_t used as forecast for spot_{t+h}
 
 Also computes band coverage: what % of realized prices fell inside the
-symmetric lognormal bands used by the widget (VOL_UP=0.35, VOL_DOWN=0.35).
+symmetric lognormal bands used by the widget (VOL_UP=0.30, VOL_DOWN=0.30).
 
 Outputs data/oil-backtest.json consumed by the oil.html widget.
 """
@@ -49,8 +49,8 @@ REGIMES = [
 HEADERS = {"User-Agent": "oil-backtest-script/1.0 (academic/personal use)"}
 
 # Band parameters — must match oil.html constants exactly
-VOL_UP   = 0.35   # annualised upside vol
-VOL_DOWN = 0.35   # annualised downside vol
+VOL_UP   = 0.30   # annualised upside vol
+VOL_DOWN = 0.30   # annualised downside vol
 MR_CAP   = 2.5    # mean-reversion cap in years
 
 
