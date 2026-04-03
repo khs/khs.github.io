@@ -266,17 +266,23 @@ def fit_ols(X: np.ndarray, y: np.ndarray):
 # ---------------------------------------------------------------------------
 
 def rockets_feathers_test(X_raw: np.ndarray, y: np.ndarray,
-                           crude_gal: pd.Series) -> dict:
+                           crude_gal: pd.Series, dates=None) -> dict:
     """
     Add a single indicator term D_t × Δcrude_t where D_t = 1 if crude rose.
     Tests whether β_asymmetry is significantly positive (rockets > feathers).
     Returns dict with coefficient and p-value (approximate, based on t-ratio).
     """
-    delta   = crude_gal.diff().dropna()
-    aligned = delta.reindex(pd.RangeIndex(len(y)))  # rough alignment
+    delta = crude_gal.diff().dropna()
+    if dates is not None:
+        aligned = delta.reindex(dates)
+    else:
+        # Fallback: align by tail length
+        tail = delta.iloc[-len(y):] if len(delta) >= len(y) else delta
+        pad  = len(y) - len(tail)
+        aligned = pd.Series([np.nan] * pad + list(tail.values))
     # If alignment fails, skip
     if aligned.isna().all():
-        return {"coeff": None, "p_approx": None, "significant": False}
+        return {"coeff": None, "t_stat": None, "p_approx": None, "significant": False}
 
     indicator = (aligned > 0).astype(float).fillna(0).values
     asym_term = (indicator * aligned.fillna(0)).values
@@ -386,7 +392,7 @@ def main():
     print(f"  Total pass-through: {total_passthrough:.3f}")
 
     # Asymmetry test (informational; symmetric model retained regardless)
-    asym = rockets_feathers_test(X_raw, y, crude_2y)
+    asym = rockets_feathers_test(X_raw, y, crude_2y, dates=dates)
     print(f"\nRockets-and-feathers test: coeff={asym['coeff']}, "
           f"t={asym['t_stat']}, p≈{asym['p_approx']} "
           f"({'significant' if asym['significant'] else 'not significant'})")
