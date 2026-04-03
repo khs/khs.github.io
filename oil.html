@@ -413,9 +413,9 @@
   </div>
   <div class="slider-row" id="history-slider-row" style="display:none">
     <span>History shown:</span>
-    <input type="range" id="time-slider" min="0" max="36" value="6"
+    <input type="range" id="time-slider" min="0" max="36" value="36"
            oninput="updateHistorySlider(+this.value)">
-    <span class="slider-label" id="slider-label">6 months</span>
+    <span class="slider-label" id="slider-label">36 months</span>
   </div>
   <p class="legend-note" id="curve-legend">
     Dark band: ±1&sigma; (68% interval) &nbsp;|&nbsp; Light band: ±2&sigma; (95% interval).
@@ -631,7 +631,7 @@ let showPump  = true;
 let pumpRegion = 'national';
 let curveChart   = null;
 let historyChart = null;
-let historyMonths = 6;   // how many months of history to show on the curve chart
+let historyMonths = 36;  // how many months of history to show on the curve chart
 
 // Asymmetric uncertainty parameters, calibrated from 20-year WTI backtest.
 //
@@ -803,42 +803,58 @@ function computeBands(contracts) {
 // Historical segment builder
 // ---------------------------------------------------------------------------
 function buildHistoricalSegment() {
-  const snapshots = oilData?.snapshots || [];
-  if (!snapshots.length || historyMonths <= 0) return { labels: [], prices: [] };
+  if (historyMonths <= 0) return { labels: [], prices: [] };
 
-  const cutoff = new Date();
-  cutoff.setMonth(cutoff.getMonth() - historyMonths);
+  const cutoffDate = new Date();
+  cutoffDate.setMonth(cutoffDate.getMonth() - historyMonths);
+  const cutoffYM = cutoffDate.toISOString().slice(0, 7); // "YYYY-MM"
 
   const isBrent = benchmark === 'brent';
 
-  // Collect snapshots within the window; take front-month price as spot proxy
-  const pts = snapshots
-    .filter(s => new Date(s.date) >= cutoff)
-    .map(s => {
-      const contracts = s[benchmark] || [];
-      if (!contracts.length) return { date: s.date, price: null };
-      const crudeBbl = contracts[0].price;
-      // Convert to pump price if pump mode is on, using the simple (no-lag)
-      // formula — historical lag inputs aren't available, so this is an
-      // approximation, but it keeps both series on the same Y-axis scale.
-      const price = showPump
-        ? crudeToGallon(crudeBbl, isBrent, pumpRegion, PUMP_FIXED.refining)
-        : crudeBbl;
-      return { date: s.date, price };
-    })
-    .filter(s => s.price != null);
+  // Primary source: historical_wti monthly closes stored in the JSON.
+  // These are WTI prices; add the Brent adjustment when benchmark is Brent.
+  const histWti = oilData?.historical_wti || [];
 
-  // Reduce to one data point per calendar month (keep latest in that month)
+  // Secondary source: weekly snapshots (front-month price).
+  // Used to fill in months more recent than historical_wti covers.
+  const snapshotByMonth = {};
+  (oilData?.snapshots || []).forEach(s => {
+    const ym = s.date.slice(0, 7);
+    const contracts = s[benchmark] || [];
+    if (contracts.length) snapshotByMonth[ym] = contracts[0].price;
+  });
+
+  // Merge: historical_wti wins for older months; snapshots fill recent gaps
   const byMonth = {};
-  pts.forEach(s => { byMonth[s.date.slice(0, 7)] = s; });
-  const reduced = Object.values(byMonth).sort((a, b) => a.date.localeCompare(b.date));
+
+  histWti.forEach(h => {
+    if (h.month >= cutoffYM) {
+      // historical_wti is always WTI; convert to Brent if needed
+      const crudeBbl = isBrent ? h.price + WTI_TO_BRENT_ADJ : h.price;
+      byMonth[h.month] = crudeBbl;
+    }
+  });
+
+  Object.entries(snapshotByMonth).forEach(([ym, crudeBbl]) => {
+    if (ym >= cutoffYM && !(ym in byMonth)) {
+      byMonth[ym] = crudeBbl; // snapshots already in the correct benchmark
+    }
+  });
+
+  if (!Object.keys(byMonth).length) return { labels: [], prices: [] };
 
   const MTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const labels = reduced.map(s => {
-    const [y, m] = s.date.split('-');
+  const sorted = Object.keys(byMonth).sort();
+  const labels = sorted.map(ym => {
+    const [y, m] = ym.split('-');
     return MTHS[parseInt(m, 10) - 1] + ' \'' + y.slice(2);
   });
-  const prices = reduced.map(s => s.price);
+  const prices = sorted.map(ym => {
+    const crudeBbl = byMonth[ym];
+    return showPump
+      ? crudeToGallon(crudeBbl, isBrent, pumpRegion, PUMP_FIXED.refining)
+      : +crudeBbl.toFixed(2);
+  });
   return { labels, prices };
 }
 
@@ -1054,9 +1070,10 @@ function renderCurve() {
 // Time slider helpers
 // ---------------------------------------------------------------------------
 function updateSliderRange() {
-  const snapshots = oilData?.snapshots || [];
+  const hasHistory = (oilData?.historical_wti?.length > 0) ||
+                     (oilData?.snapshots?.length > 0);
   const row = document.getElementById('history-slider-row');
-  if (!snapshots.length) { row.style.display = 'none'; return; }
+  if (!hasHistory) { row.style.display = 'none'; return; }
   // Keep the slider range fixed at 0–36 months so it's always draggable.
   // buildHistoricalSegment() will naturally return only what data exists.
   row.style.display = '';
