@@ -73,6 +73,37 @@
       color: #444;
     }
 
+    .formula {
+      background: #f5f7fa;
+      border-left: 3px solid #2c5282;
+      padding: 0.55em 1em;
+      margin: 0.75em 0 0.85em;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.88em;
+      color: #1a1a1a;
+      overflow-x: auto;
+      max-width: 680px;
+    }
+
+    a.ref-sup {
+      color: #2c5282;
+      text-decoration: none;
+      font-size: 0.78em;
+      vertical-align: super;
+      line-height: 0;
+    }
+    a.ref-sup:hover { text-decoration: underline; }
+
+    .references {
+      max-width: 700px;
+      font-size: 0.86em;
+      line-height: 1.65;
+    }
+    .references ol { padding-left: 1.6em; margin: 0; }
+    .references li { margin-bottom: 0.7em; color: #333; }
+    .references li .ref-journal { font-style: italic; }
+    .references li a { color: #2c5282; }
+
     h2.section-head {
       font-size: 1.1em;
       font-weight: bold;
@@ -264,33 +295,43 @@
 
 <h2 class="section-head">Why use futures prices?</h2>
 <div class="prose">
-  <p>Oil futures markets aggregate the expectations of thousands of traders — refiners locking in supply costs, airlines hedging fuel bills, financial investors taking directional bets. The consensus price embedded in a futures contract is therefore the market&#8217;s best collective guess about where prices will be at a given date in the future.</p>
-  <p>This doesn&#8217;t mean futures are always right. No model predicts geopolitical shocks, pandemics, or sudden OPEC policy reversals. But futures represent a continuously updated, publicly visible, financially-backed baseline — considerably more rigorous than any single analyst&#8217;s projection.</p>
+  <p>Oil futures markets aggregate the price expectations of thousands of traders — refiners locking in supply costs, airlines hedging fuel bills, financial investors taking directional bets. The price embedded in a futures contract is therefore the market&#8217;s revealed, financially-backed consensus for where prices will be on a given date.</p>
+  <p>Empirical research offers a nuanced picture: Alquist and Kilian<a class="ref-sup" href="#ref-2">[2]</a> find that crude oil futures do not systematically outperform a simple no-change (random-walk) forecast, particularly at horizons beyond a few months. Hamilton<a class="ref-sup" href="#ref-7">[7]</a> similarly documents how much of the crude price series is consistent with an unpredictable random walk driven by shocks. This model therefore treats futures prices as a market consensus &#8212; the best publicly available, continuously updated baseline &#8212; rather than as a reliable predictor. The uncertainty bands exist precisely because the future is genuinely uncertain.</p>
 </div>
 
 <h2 class="section-head">Why Brent, not WTI?</h2>
 <div class="prose">
-  <p>There are two main global crude benchmarks: WTI (West Texas Intermediate, produced in the US Midcontinent) and Brent (produced in the North Sea, used as the international reference price). Before the US shale boom around 2011, they tracked closely. After shale flooded the Midcontinent faster than export infrastructure could handle it, WTI developed a persistent discount to Brent.</p>
-  <p>US retail gasoline prices are set with reference to the global market — where Brent dominates — so Brent has a materially stronger statistical relationship to US pump prices since 2011. This model uses Brent as its primary benchmark. When displaying WTI, a +$4/bbl adjustment is added to approximate the Brent-equivalent price before converting to pump estimates.</p>
+  <p>There are two main global crude benchmarks: WTI (West Texas Intermediate, US Midcontinent) and Brent (North Sea, international reference). Before the US shale boom they tracked closely. After 2011, a surge in unconventional production from the Williston Basin and Permian Basin flooded Midcontinent pipeline capacity, creating a large and persistent WTI discount to Brent. Borenstein and Kellogg<a class="ref-sup" href="#ref-6">[6]</a> document this infrastructure bottleneck and its consequences for US regional crude prices; Kilian<a class="ref-sup" href="#ref-8">[8]</a> traces the spread&#8217;s evolution through the shale revolution.</p>
+  <p>Because US retail gasoline is priced off the global market (where Brent dominates), Brent has a materially stronger statistical relationship to US pump prices post-2011. This model uses Brent as its primary benchmark. WTI prices are shown with a +$4/bbl adjustment to approximate the Brent-equivalent before converting to pump estimates.</p>
 </div>
 
 <h2 class="section-head">The lag model: crude to pump prices</h2>
 <div class="prose">
-  <p>Crude oil doesn&#8217;t appear at the pump the next day. It takes time to ship to refineries, refine into gasoline, blend with ethanol, transport through pipelines to distribution terminals, and finally reach retail stations. Econometric analysis of weekly EIA data finds that crude oil price changes take roughly 6&#8211;9 weeks to fully pass through to retail gasoline prices.</p>
-  <p>The model fits a distributed lag specification: <code>pump&#x209C; = &#945; + &sum;(&#946;&#8336; &times; crude&#x209C;&#8331;&#8336; / 42)</code>, summing over 8 weekly lags. The total pass-through is typically around 0.75 — meaning a sustained $1/bbl change in crude eventually results in roughly $0.018/gallon at the pump ($1 &divide; 42 &times; 0.75). A live crack spread correction (the current refining margin vs. its historical average) is applied on top.</p>
-  <p>No autoregressive term is included — the model must be applicable to future dates where pump prices are not yet known.</p>
+  <p>Crude oil does not appear at the pump immediately. It must be shipped to refineries, cracked into gasoline, blended with ethanol, moved through pipelines, and finally reach retail stations. The pass-through of crude price changes to retail gasoline prices therefore plays out over several weeks. Borenstein, Cameron, and Gilbert<a class="ref-sup" href="#ref-5">[5]</a> provide the canonical empirical study of this relationship, documenting both the lag structure and significant asymmetries (discussed below).</p>
+  <p>The model fits a finite distributed lag (FDL) specification over weekly data:<a class="ref-sup" href="#ref-5">[5]</a></p>
+  <div class="formula">pump<sub>t</sub> = &#945; + &#946;<sub>0</sub>&thinsp;(crude<sub>t</sub>/42) + &#946;<sub>1</sub>&thinsp;(crude<sub>t&#8722;1</sub>/42) + &hellip; + &#946;<sub>8</sub>&thinsp;(crude<sub>t&#8722;8</sub>/42) + &epsilon;<sub>t</sub></div>
+  <p>Dividing crude by 42 converts $/barrel to $/gallon (one barrel = 42 US gallons). The constant &#945; captures average non-crude costs: taxes, distribution, retail margin, and the long-run average refining margin. The coefficients &#946;<sub>k</sub> measure the share of a crude price change that passes through to pump prices after <em>k</em> weeks; their sum &#x03A3;&#946;<sub>k</sub> is the total pass-through, typically around 0.70&#8211;0.80 in EIA data.</p>
+  <p>Weekly crude prices are highly autocorrelated, making adjacent lag values nearly collinear. When the maximum pairwise correlation among lags exceeds 0.95, the model switches to a Polynomial Distributed Lag (PDL) estimator due to Almon,<a class="ref-sup" href="#ref-1">[1]</a> which constrains the &#946;<sub>k</sub> to lie on a low-degree polynomial in <em>k</em>. This stabilises the individual coefficient estimates while preserving an unbiased estimate of total pass-through.</p>
+  <p><strong>Rockets-and-feathers test.</strong> Bacon<a class="ref-sup" href="#ref-3">[3]</a> coined the term &#8220;rockets and feathers&#8221; to describe the empirical regularity that retail gasoline prices rise quickly when crude rises (&#8220;rockets&#8221;) but fall slowly when crude falls (&#8220;feathers&#8221;). Borenstein, Cameron, and Gilbert<a class="ref-sup" href="#ref-5">[5]</a> confirm this asymmetry for the US market. The model tests for asymmetry by adding a single indicator term:</p>
+  <div class="formula">D<sub>t</sub> &times; &Delta;crude<sub>t</sub>, where D<sub>t</sub> = 1 if crude rose that week, 0 otherwise</div>
+  <p>A significantly positive coefficient on this term would indicate faster upward pass-through. The test is informational: the symmetric specification is retained regardless, because the short two-year estimation window contains too few large price swings to estimate asymmetric dynamics reliably. The symmetric model is appropriate for the forward-looking forecast use case.</p>
+  <p>No autoregressive (AR) term is included. The model must produce forecasts for future dates where pump prices are not yet observed, so lagged pump prices cannot appear as regressors.</p>
 </div>
 
-<h2 class="section-head">How wide are the uncertainty bands?</h2>
+<h2 class="section-head">The uncertainty bands</h2>
 <div class="prose">
-  <p>The bands use 30% annualised volatility on both the upside and downside — calibrated against 20 years of historical futures prediction errors. Backtesting shows that roughly 68% of realized prices fell within the inner band and ~95% within the outer band, broadly matching the target coverage rates.</p>
-  <p>Past roughly 2.5 years the bands stop widening: long-run mean reversion kicks in, as prices tend to gravitate back toward production costs (~$50&#8211;70/bbl for most global producers at current technology).</p>
+  <p>If the logarithm of future oil prices follows a random walk with drift &#8212; the core assumption of Black&#8217;s<a class="ref-sup" href="#ref-4">[4]</a> commodity futures pricing model &#8212; then over a horizon of <em>T</em> years the log-price is normally distributed with standard deviation &#963;&#8730;<em>T</em>. The &#177;1&#963; interval in price space is therefore:</p>
+  <div class="formula">upper<sub>1&#963;</sub> = F &times; exp(+&#963; &times; &radic;T)<br>lower<sub>1&#963;</sub> = F &times; exp(&#8722;&#963; &times; &radic;T)</div>
+  <p>where <em>F</em> is today&#8217;s futures price and &#963; is the annualised volatility (here calibrated to 0.30, or 30%). The &#177;2&#963; bands substitute 2&#963; for &#963;. The inner band targets ~68% coverage and the outer band ~95% &#8212; the conventional one- and two-standard-deviation probability intervals for a normal distribution.</p>
+  <p><strong>Mean-reversion cap.</strong> For very long horizons the &#963;&#8730;<em>T</em> formula implies indefinitely widening uncertainty, which contradicts the empirical behaviour of commodity prices. Schwartz<a class="ref-sup" href="#ref-10">[10]</a> shows that commodity prices exhibit mean reversion: deviations from a long-run equilibrium level decay at a rate governed by a speed-of-adjustment parameter &#954;, so the long-run variance is proportional to &#963;&#178;/(2&#954;) rather than growing without bound. Pindyck<a class="ref-sup" href="#ref-9">[9]</a> documents that real energy prices do indeed revert toward a slowly-drifting long-run trend tied to production costs. To capture this parsimoniously, the effective horizon is capped at 2.5 years:</p>
+  <div class="formula">T<sub>eff</sub> = min(T, 2.5)<br>band = F &times; exp(&#177;&#963; &times; &radic;T<sub>eff</sub>)</div>
+  <p>Past 2.5 years the bands plateau rather than continuing to widen. The 30% volatility figure is calibrated empirically: backtesting against 20 years of EIA futures and spot data finds that this value produces ~68% coverage in the inner band and ~95% in the outer band.</p>
 </div>
 
 <h2 class="section-head">Limitations</h2>
 <div class="prose">
-  <p>No model reliably forecasts geopolitical shocks (a sudden supply embargo, a war that closes a shipping lane, an unexpected OPEC+ decision) or major demand shocks (a pandemic, a rapid shift in EV adoption). The uncertainty bands are designed to convey honest humility about a deeply complex system — not false precision.</p>
-  <p>The bands are derived from 20 years of historical volatility and will be systematically too narrow in genuine tail events. The pump price lag model is re-estimated from two years of data and may drift when refining economics or retail market structure changes significantly.</p>
+  <p>No model reliably forecasts geopolitical shocks (a supply embargo, a war that closes a shipping lane, an unexpected OPEC+ decision) or major demand shocks (a pandemic, a rapid shift in EV adoption). The uncertainty bands are designed to convey honest humility about a deeply complex system &#8212; not false precision.</p>
+  <p>The bands are derived from historical volatility and will be systematically too narrow in genuine tail events. The pump price lag model is re-estimated from two years of weekly data and may drift when refining economics, retail market structure, or the US crude export regime changes significantly.</p>
 </div>
 
 <hr class="divider">
@@ -350,6 +391,25 @@
 <div class="bt-section" id="bt-regime-section" style="display:none">
   <h2 class="section-head">Performance by market regime (1-month horizon)</h2>
   <div id="bt-regime-container"></div>
+</div>
+
+
+<hr class="divider">
+
+<h2 class="section-head">References</h2>
+<div class="references">
+  <ol>
+    <li id="ref-1">Almon, S. (1965). &#8220;The Distributed Lag Between Capital Appropriations and Expenditures.&#8221; <span class="ref-journal">Econometrica</span>, 33(1), 178&#8211;196. <a href="https://www.jstor.org/stable/1911894" target="_blank" rel="noopener">JSTOR</a></li>
+    <li id="ref-2">Alquist, R., &amp; Kilian, L. (2010). &#8220;What Do We Learn from the Price of Crude Oil Futures?&#8221; <span class="ref-journal">Journal of Applied Econometrics</span>, 25(4), 539&#8211;573. <a href="https://doi.org/10.1002/jae.1159" target="_blank" rel="noopener">DOI</a></li>
+    <li id="ref-3">Bacon, R. W. (1991). &#8220;Rockets and Feathers: The Asymmetric Speed of Adjustment of UK Retail Gasoline Prices to Cost Changes.&#8221; <span class="ref-journal">Energy Economics</span>, 13(3), 211&#8211;218. <a href="https://doi.org/10.1016/0140-9883(91)90022-R" target="_blank" rel="noopener">DOI</a></li>
+    <li id="ref-4">Black, F. (1976). &#8220;The Pricing of Commodity Contracts.&#8221; <span class="ref-journal">Journal of Financial Economics</span>, 3(1&#8211;2), 167&#8211;179. <a href="https://doi.org/10.1016/0304-405X(76)90024-6" target="_blank" rel="noopener">DOI</a></li>
+    <li id="ref-5">Borenstein, S., Cameron, A. C., &amp; Gilbert, R. (1997). &#8220;Do Gasoline Prices Respond Asymmetrically to Crude Oil Price Changes?&#8221; <span class="ref-journal">Quarterly Journal of Economics</span>, 112(1), 305&#8211;339. <a href="https://doi.org/10.1162/003355397555118" target="_blank" rel="noopener">DOI</a></li>
+    <li id="ref-6">Borenstein, S., &amp; Kellogg, R. (2014). &#8220;The Incidence of an Oil Glut: Who Benefits from Cheap Crude Oil in the Midwest?&#8221; <span class="ref-journal">Energy Journal</span>, 35(1), 15&#8211;33. <a href="https://doi.org/10.5547/01956574.35.1.2" target="_blank" rel="noopener">DOI</a></li>
+    <li id="ref-7">Hamilton, J. D. (2009). &#8220;Understanding Crude Oil Prices.&#8221; <span class="ref-journal">Energy Journal</span>, 30(2), 179&#8211;206. <a href="https://doi.org/10.5547/ISSN0195-6574-EJ-Vol30-No2-9" target="_blank" rel="noopener">DOI</a></li>
+    <li id="ref-8">Kilian, L. (2016). &#8220;The Impact of the Shale Oil Revolution on U.S. Oil and Gasoline Prices.&#8221; <span class="ref-journal">Review of Environmental Economics and Policy</span>, 10(2), 185&#8211;205. <a href="https://doi.org/10.1093/reep/rew001" target="_blank" rel="noopener">DOI</a></li>
+    <li id="ref-9">Pindyck, R. S. (1999). &#8220;The Long-Run Evolution of Energy Prices.&#8221; <span class="ref-journal">Energy Journal</span>, 20(2), 1&#8211;27. <a href="https://doi.org/10.5547/ISSN0195-6574-EJ-Vol20-No2-1" target="_blank" rel="noopener">DOI</a></li>
+    <li id="ref-10">Schwartz, E. S. (1997). &#8220;The Stochastic Behavior of Commodity Prices: Implications for Valuation and Hedging.&#8221; <span class="ref-journal">Journal of Finance</span>, 52(3), 923&#8211;973. <a href="https://doi.org/10.1111/j.1540-6261.1997.tb02721.x" target="_blank" rel="noopener">DOI</a></li>
+  </ol>
 </div>
 
 </div><!-- /.content -->
