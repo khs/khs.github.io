@@ -408,9 +408,9 @@
   </div>
   <div class="slider-row" id="history-slider-row" style="display:none">
     <span>History shown:</span>
-    <input type="range" id="time-slider" min="0" max="36" value="36"
+    <input type="range" id="time-slider" min="0" max="36" value="0"
            oninput="updateHistorySlider(+this.value)">
-    <span class="slider-label" id="slider-label">36 months</span>
+    <span class="slider-label" id="slider-label">None</span>
   </div>
   <p class="legend-note" id="curve-legend">
     Dark band: ±1&sigma; (68% interval) &nbsp;|&nbsp; Light band: ±2&sigma; (95% interval).
@@ -605,7 +605,7 @@ let benchmark  = 'brent';
 let showPump  = true;
 let pumpRegion = 'national';
 let curveChart   = null;
-let historyMonths = 36;  // how many months of history to show on the curve chart
+let historyMonths = 0;   // default: no history shown (avoids the data-gap artefact)
 
 // Asymmetric uncertainty parameters, calibrated from 20-year WTI backtest.
 //
@@ -668,8 +668,6 @@ fetch('data/oil-futures.json')
   .catch(() => {
     document.getElementById('no-data-msg').style.display = 'block';
     document.getElementById('tab-curve').style.display = 'none';
-    document.getElementById('tab-history').style.display = 'none';
-    document.querySelectorAll('.tabs').forEach(t => t.style.display = 'none');
   });
 
 fetch('data/lag-model.json')
@@ -685,8 +683,6 @@ function init() {
   if (!oilData.data_available) {
     document.getElementById('no-data-msg').style.display = 'block';
     document.getElementById('tab-curve').style.display = 'none';
-    document.getElementById('tab-history').style.display = 'none';
-    document.querySelectorAll('.tabs').forEach(t => t.style.display = 'none');
     return;
   }
 
@@ -1021,13 +1017,27 @@ function renderCurve() {
 // Time slider helpers
 // ---------------------------------------------------------------------------
 function updateSliderRange() {
-  const hasHistory = (oilData?.historical_wti?.length > 0) ||
-                     (oilData?.snapshots?.length > 0);
+  const histWti = oilData?.historical_wti || [];
+  const snaps   = oilData?.snapshots || [];
+  const hasHistory = histWti.length > 0 || snaps.length > 0;
   const row = document.getElementById('history-slider-row');
   if (!hasHistory) { row.style.display = 'none'; return; }
-  // Keep the slider range fixed at 0–36 months so it's always draggable.
-  // buildHistoricalSegment() will naturally return only what data exists.
   row.style.display = '';
+
+  // Compute how many months back the oldest available data point is.
+  // This caps the slider so users can't drag past what exists.
+  const today = new Date();
+  const allMonths = [
+    ...histWti.map(h => h.month),
+    ...snaps.map(s => s.date.slice(0, 7)),
+  ].filter(m => m <= today.toISOString().slice(0, 7));
+  if (allMonths.length) {
+    const oldest = allMonths.sort()[0];
+    const [oy, om] = oldest.split('-').map(Number);
+    const monthsBack = (today.getFullYear() - oy) * 12 + (today.getMonth() + 1 - om) + 1;
+    document.getElementById('time-slider').max = Math.min(36, monthsBack);
+  }
+
   const label = historyMonths === 0 ? 'None'
     : historyMonths === 1 ? '1 month' : `${historyMonths} months`;
   document.getElementById('slider-label').textContent = label;
