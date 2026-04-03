@@ -408,9 +408,9 @@
   </div>
   <div class="slider-row" id="history-slider-row" style="display:none">
     <span>History shown:</span>
-    <input type="range" id="time-slider" min="0" max="36" value="0"
+    <input type="range" id="time-slider" min="0" max="36" value="6"
            oninput="updateHistorySlider(+this.value)">
-    <span class="slider-label" id="slider-label">None</span>
+    <span class="slider-label" id="slider-label">6 months</span>
   </div>
   <p class="legend-note" id="curve-legend">
     Dark band: ±1&sigma; (68% interval) &nbsp;|&nbsp; Light band: ±2&sigma; (95% interval).
@@ -613,7 +613,7 @@ let benchmark  = 'brent';
 let showPump  = true;
 let pumpRegion = 'national';
 let curveChart   = null;
-let historyMonths = 0;   // default: no history shown (avoids the data-gap artefact)
+let historyMonths = 6;   // default: show 6 months of history
 
 // Asymmetric uncertainty parameters, calibrated from 20-year WTI backtest.
 //
@@ -1046,7 +1046,11 @@ function updateSliderRange() {
     const oldest = allMonths.sort()[0];
     const [oy, om] = oldest.split('-').map(Number);
     const monthsBack = (today.getFullYear() - oy) * 12 + (today.getMonth() + 1 - om) + 1;
-    document.getElementById('time-slider').max = Math.min(36, monthsBack);
+    const maxMonths = Math.min(36, monthsBack);
+    document.getElementById('time-slider').max = maxMonths;
+    // Clamp historyMonths to the available range and sync the slider position
+    historyMonths = Math.min(historyMonths, maxMonths);
+    document.getElementById('time-slider').value = historyMonths;
   }
 
   const label = historyMonths === 0 ? 'None'
