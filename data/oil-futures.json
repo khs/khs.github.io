@@ -185,6 +185,13 @@
       "price": 75.51
     },
     {
+      "ticker": "(interpolated)",
+      "expiry": "2027-05",
+      "label": "May 2027",
+      "price": 75.11,
+      "interpolated": true
+    },
+    {
       "ticker": "BZM27.NYM",
       "expiry": "2027-06",
       "label": "Jun 2027",

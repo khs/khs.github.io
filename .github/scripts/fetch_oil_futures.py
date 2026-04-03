@@ -85,6 +85,67 @@ def fetch_curve(base: str, exchange: str) -> list[dict]:
     return contracts
 
 
+def fill_gaps(contracts: list[dict]) -> list[dict]:
+    """
+    Linearly interpolate any months that are missing between the first and
+    last fetched contract.  Yahoo Finance occasionally omits a low-liquidity
+    month; leaving it out creates a visible jump in the forward curve chart.
+    Interpolated entries are flagged with "interpolated": true.
+    """
+    if len(contracts) < 2:
+        return contracts
+
+    # Build a price map keyed by (year, month)
+    price_map = {}
+    for c in contracts:
+        y, m = int(c["expiry"][:4]), int(c["expiry"][5:7])
+        price_map[(y, m)] = c["price"]
+
+    first = contracts[0]
+    last  = contracts[-1]
+    y0, m0 = int(first["expiry"][:4]), int(first["expiry"][5:7])
+    y1, m1 = int(last["expiry"][:4]),  int(last["expiry"][5:7])
+
+    filled = []
+    y, m = y0, m0
+    while (y, m) <= (y1, m1):
+        if (y, m) in price_map:
+            # Real contract — find original entry to preserve ticker etc.
+            entry = next(c for c in contracts
+                         if int(c["expiry"][:4]) == y and int(c["expiry"][5:7]) == m)
+            filled.append(entry)
+        else:
+            # Find the nearest real contracts on either side for interpolation
+            prev_ym = max((k for k in price_map if k < (y, m)), default=None)
+            next_ym = min((k for k in price_map if k > (y, m)), default=None)
+            if prev_ym and next_ym:
+                py, pm = prev_ym
+                ny, nm = next_ym
+                # Ordinal month distances
+                prev_ord = py * 12 + pm
+                next_ord = ny * 12 + nm
+                cur_ord  = y  * 12 + m
+                frac  = (cur_ord - prev_ord) / (next_ord - prev_ord)
+                price = round(price_map[prev_ym] + frac * (price_map[next_ym] - price_map[prev_ym]), 2)
+                expiry = f"{y}-{m:02d}"
+                filled.append({
+                    "ticker":       f"(interpolated)",
+                    "expiry":       expiry,
+                    "label":        f"{calendar.month_abbr[m]} {y}",
+                    "price":        price,
+                    "interpolated": True,
+                })
+                print(f"  Interpolated missing contract {expiry} at ${price}")
+
+        # Advance one month
+        m += 1
+        if m > 12:
+            m = 1
+            y += 1
+
+    return filled
+
+
 def fetch_crack_spreads(wti_contracts: list[dict]) -> dict:
     """
     Fetch RBOB gasoline futures for each WTI contract month and compute the
@@ -142,11 +203,11 @@ def main():
 
     # Fetch fresh curves
     print("Fetching WTI futures (CL, NYM)...")
-    wti = fetch_curve("CL", "NYM")
+    wti = fill_gaps(fetch_curve("CL", "NYM"))
     print(f"  Got {len(wti)} contracts")
 
     print("Fetching Brent futures (BZ, NYM)...")
-    brent = fetch_curve("BZ", "NYM")
+    brent = fill_gaps(fetch_curve("BZ", "NYM"))
     print(f"  Got {len(brent)} contracts")
 
     # Crack spreads: RBOB gasoline futures vs WTI (use WTI as the refinery input)
