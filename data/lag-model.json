@@ -1,6 +1,43 @@
 {
-  "generated": null,
-  "description": "Lag model not yet built. Trigger the GitHub Actions workflow.",
-  "alpha": null,
-  "betas": null
+  "generated": "2026-04-03T13:12:39+00:00",
+  "data_start": "2024-06-03",
+  "data_end": "2026-03-30",
+  "n_obs": 96,
+  "method": "OLS",
+  "n_lags": 8,
+  "r2": 0.7164,
+  "rmse": 0.11368,
+  "mae": 0.09754,
+  "alpha": 1.594193,
+  "betas": [
+    0.36468,
+    0.335321,
+    0.363089,
+    0.020103,
+    -0.208896,
+    -0.034065,
+    -0.042827,
+    0.110134,
+    0.046324
+  ],
+  "cumulative_passthrough": [
+    0.3647,
+    0.7,
+    1.0631,
+    1.0832,
+    0.8743,
+    0.8402,
+    0.7974,
+    0.9075,
+    0.9539
+  ],
+  "total_passthrough": 0.9539,
+  "seasonal_premium": 0.1331,
+  "asymmetry_test": {
+    "coeff": 0.914092,
+    "t_stat": 2.177,
+    "p_approx": 0.0295,
+    "significant": true
+  },
+  "note": "alpha captures national-average non-crude costs (taxes, distribution, avg crack spread). Add regional_offset for non-average regions. seasonal_premium is added Apr-Sep on top of model output."
 }

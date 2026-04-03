@@ -1,4 +1,0 @@
-{
-  "timestamp": "2026-04-03T12:32:52+00:00",
-  "error": "Traceback (most recent call last):\n  File \"/home/user/khs.github.io/.github/scripts/build_lag_model.py\", line 442, in <module>\n    main()\n  File \"/home/user/khs.github.io/.github/scripts/build_lag_model.py\", line 350, in main\n    gas_raw = fetch_gasoline_weekly(lookback_years=3)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/khs.github.io/.github/scripts/build_lag_model.py\", line 136, in fetch_gasoline_weekly\n    raise RuntimeError(\"All gasoline data sources failed\")\nRuntimeError: All gasoline data sources failed\n"
-}
