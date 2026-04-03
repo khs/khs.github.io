@@ -106,7 +106,7 @@ def fetch_gasoline_rbob_proxy() -> pd.Series:
         raise ValueError("yfinance RB=F returned empty")
     s = raw["Close"].squeeze()
     if hasattr(s.index, "tz") and s.index.tz is not None:
-        s.index = s.index.tz_localize(None)
+        s.index = s.index.tz_convert(None)
     s.index.name = "date"
     # RBOB is in $/gallon already; add avg fixed retail markup to approximate retail
     RBOB_TO_RETAIL = 1.05   # taxes + distribution + retail margin
@@ -175,7 +175,7 @@ def fetch_crude_weekly(lookback_years: int = 3) -> pd.Series:
             raise ValueError("yfinance returned empty data")
         s = raw["Close"].squeeze()
         if hasattr(s.index, "tz") and s.index.tz is not None:
-            s.index = s.index.tz_localize(None)
+            s.index = s.index.tz_convert(None)
         s.index.name = "date"
         s = s.dropna()
         weekly = s.resample("W-MON").last().dropna()
