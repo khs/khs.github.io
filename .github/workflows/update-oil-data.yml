@@ -26,6 +26,7 @@ jobs:
         run: pip install yfinance requests pandas openpyxl xlrd scipy
 
       - name: Diagnose environment
+        continue-on-error: true
         run: |
           python - <<'EOF'
           import sys, pandas as pd
