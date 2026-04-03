@@ -8,6 +8,10 @@ Prediction series  : EIA RCLC1-4 (1st through 4th nearby NYMEX WTI futures)
 Realized series    : EIA RWTC (WTI Cushing spot price, daily)
 Naive benchmark    : spot_t used as forecast for spot_{t+h}
 
+Also computes pump-price backtest:
+Prediction: WTI futures → simple crude-to-pump passthrough (Brent adj + fixed costs)
+Realized  : EIA US retail gasoline price (weekly, EMM_EPMR_PTE_NUS_DPG)
+
 Also computes band coverage: what % of realized prices fell inside the
 symmetric lognormal bands used by the widget (VOL_UP=0.33, VOL_DOWN=0.33).
 
@@ -52,6 +56,10 @@ HEADERS = {"User-Agent": "oil-backtest-script/1.0 (academic/personal use)"}
 VOL_UP   = 0.33   # annualised upside vol
 VOL_DOWN = 0.33   # annualised downside vol
 MR_CAP   = 2.5    # mean-reversion cap in years
+
+# Crude → pump passthrough constants — must match oil.html exactly
+WTI_TO_BRENT_ADJ = 4.0    # $/bbl premium Brent over WTI
+PUMP_FIXED_TOTAL  = 1.399  # $/gal: federal+state tax + refining + distribution + retail
 
 
 # ---------------------------------------------------------------------------
@@ -116,6 +124,33 @@ def fetch_eia_futures(series: str) -> pd.Series:
         except Exception:
             continue
     raise ValueError(f"Could not parse EIA XLS for {series}")
+
+
+def fetch_eia_gasoline() -> pd.Series:
+    """Download EIA US National Average retail gasoline price (weekly)."""
+    print("Fetching EIA retail gasoline (EMM_EPMR_PTE_NUS_DPG)...")
+    content = fetch_with_retry(
+        "https://www.eia.gov/dnav/pet/hist_xls/EMM_EPMR_PTE_NUS_DPGw.xls"
+    )
+    for sheet in ("Data 1", 0):
+        try:
+            df = pd.read_excel(BytesIO(content), sheet_name=sheet, skiprows=2, header=0)
+            df.columns = ["date", "price"] + list(df.columns[2:])
+            df = df[["date", "price"]].dropna()
+            df["date"] = pd.to_datetime(df["date"])
+            s = df.set_index("date")["price"].astype(float)
+            s.index.name = "date"
+            print(f"  {len(s)} observations, {s.index.min().date()} – {s.index.max().date()}")
+            return s
+        except Exception:
+            continue
+    raise ValueError("Could not parse EIA retail gasoline XLS")
+
+
+def crude_to_pump_simple(wti_bbl: float) -> float:
+    """WTI $/bbl → US national avg pump price $/gal (simple passthrough, no lag)."""
+    brent_bbl = wti_bbl + WTI_TO_BRENT_ADJ
+    return brent_bbl / 42.0 + PUMP_FIXED_TOTAL
 
 
 # ---------------------------------------------------------------------------
@@ -356,6 +391,151 @@ def run_backtest(spot: pd.Series, futures_map: dict[str, pd.Series]) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Pump price backtest
+# ---------------------------------------------------------------------------
+
+def run_pump_backtest(gasoline: pd.Series, futures_map: dict[str, pd.Series]) -> dict:
+    """
+    Backtest pump price predictions against realized EIA retail gasoline.
+    Prediction = crude_to_pump_simple(WTI RCLC{n} futures at date t).
+    Realized   = EIA weekly retail gasoline price at t + h weeks.
+    """
+    results = {}
+
+    for key, cfg in HORIZONS.items():
+        series_name = cfg["series"]
+        biz_days    = cfg["biz_days"]
+
+        if series_name not in futures_map:
+            continue
+
+        fut = futures_map[series_name]
+
+        # Align daily crude futures to weekly gasoline dates via forward-fill
+        combined = pd.concat([fut.rename("fut"), gasoline.rename("gas")], axis=1)
+        combined["fut"] = combined["fut"].ffill(limit=7)
+        joined = combined.dropna()
+        joined = joined[joined.index >= "2004-01-01"]
+
+        if len(joined) < 50:
+            continue
+
+        gas_sorted  = joined["gas"]
+        pump_pred_s = joined["fut"].apply(crude_to_pump_simple)
+
+        # Shift gasoline forward to get realized price at horizon
+        # Gasoline is weekly, so approximate biz_days as calendar weeks
+        weeks_ahead = max(1, round(biz_days / 5))
+        realized_gas = gas_sorted.shift(-weeks_ahead)
+
+        mask = ~realized_gas.isna()
+        pump_pred = pump_pred_s[mask].values
+        gas_real  = realized_gas[mask].values
+        gas_t     = gas_sorted[mask].values
+        dates     = joined.index[mask]
+
+        err       = gas_real - pump_pred
+        naive_err = gas_real - gas_t
+
+        avg_price = float(np.median(gas_real))
+
+        T_years  = biz_days / 252.0
+        band_arr = np.array([list(compute_bands(p, T_years).values()) for p in pump_pred])
+        upper1, lower1, upper2, lower2 = (
+            band_arr[:, 0], band_arr[:, 1], band_arr[:, 2], band_arr[:, 3]
+        )
+        inside_68 = (gas_real >= lower1) & (gas_real <= upper1)
+        inside_95 = (gas_real >= lower2) & (gas_real <= upper2)
+
+        stats = {
+            "label":            cfg["label"],
+            "n":                int(len(err)),
+            "date_start":       str(dates.min().date()),
+            "date_end":         str(dates.max().date()),
+            "bias":             round2(bias(err)),
+            "mae":              round2(mae(err)),
+            "rmse":             round2(rmse(err)),
+            "naive_rmse":       round2(rmse(naive_err)),
+            "r2":               round2(r_squared(gas_real, pump_pred)),
+            "hit_rate":         round2(hit_rate(gas_t, pump_pred, gas_real)),
+            "within_10pct":     round2(within_pct(err, 0.10, avg_price)),
+            "within_20pct":     round2(within_pct(err, 0.20, avg_price)),
+            "coverage_68":      round2(float(inside_68.mean())),
+            "coverage_95":      round2(float(inside_95.mean())),
+            "pct_above_upper1": round2(float((gas_real > upper1).mean())),
+            "pct_below_lower1": round2(float((gas_real < lower1).mean())),
+            "pct_above_upper2": round2(float((gas_real > upper2).mean())),
+            "pct_below_lower2": round2(float((gas_real < lower2).mean())),
+        }
+
+        # Monthly summary
+        df_m = pd.DataFrame({
+            "date":      dates,
+            "error":     err,
+            "pct_error": err / gas_t * 100,
+            "pred":      pump_pred,
+            "realized":  gas_real,
+            "inside_68": inside_68,
+            "inside_95": inside_95,
+        })
+        df_m["month"] = df_m["date"].dt.to_period("M").astype(str)
+        monthly_agg = (
+            df_m.groupby("month")
+            .agg(
+                error     = ("error",     "mean"),
+                pct_error = ("pct_error", "mean"),
+                pred      = ("pred",      "mean"),
+                realized  = ("realized",  "mean"),
+                inside_68 = ("inside_68", "mean"),
+                inside_95 = ("inside_95", "mean"),
+            )
+            .reset_index()
+        )
+        stats["monthly"] = [
+            {
+                "month":     r["month"],
+                "error":     round2(r["error"]),
+                "pct_error": round2(r["pct_error"]),
+                "pred":      round2(r["pred"]),
+                "realized":  round2(r["realized"]),
+                "inside_68": round2(r["inside_68"]),
+                "inside_95": round2(r["inside_95"]),
+            }
+            for _, r in monthly_agg.iterrows()
+        ]
+
+        # Per-year breakdown
+        df_m["year"] = pd.to_datetime(df_m["month"]).dt.year
+        by_year = (
+            df_m.assign(abs_err=lambda d: d["error"].abs())
+            .groupby("year")
+            .agg(
+                mae       = ("abs_err",   "mean"),
+                rmse_val  = ("error",     lambda x: math.sqrt((x**2).mean())),
+                bias_val  = ("error",     "mean"),
+                pct_error = ("pct_error", lambda x: x.abs().mean()),
+                n         = ("error",     "count"),
+            )
+            .reset_index()
+        )
+        stats["by_year"] = [
+            {
+                "year":      int(r["year"]),
+                "mae":       round2(r["mae"]),
+                "rmse":      round2(r["rmse_val"]),
+                "bias":      round2(r["bias_val"]),
+                "pct_error": round2(r["pct_error"]),
+                "n":         int(r["n"]),
+            }
+            for _, r in by_year.iterrows()
+        ]
+
+        results[key] = stats
+
+    return results
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -376,7 +556,7 @@ def main():
         print("ERROR: No futures data fetched. Aborting.")
         return
 
-    print("\nRunning backtest...")
+    print("\nRunning WTI crude backtest...")
     backtest = run_backtest(spot, futures_map)
 
     output = {
@@ -387,10 +567,25 @@ def main():
             "Prediction = EIA nth-nearby futures (RCLC1-4). "
             "Realized = EIA RWTC WTI Cushing spot price. "
             "Naive benchmark = today's spot price used as forecast. "
-            f"Bands: VOL_UP={VOL_UP}, VOL_DOWN={VOL_DOWN}, MR_CAP={MR_CAP}y."
+            f"Bands: VOL_UP={VOL_UP}, VOL_DOWN={VOL_DOWN}, MR_CAP={MR_CAP}y. "
+            "pump_results: same horizons but prediction = WTI futures converted to "
+            "pump price via simple passthrough; realized = EIA retail gasoline weekly."
         ),
         "results": backtest,
     }
+
+    try:
+        gasoline = fetch_eia_gasoline()
+        print("\nRunning pump price backtest...")
+        pump_backtest = run_pump_backtest(gasoline, futures_map)
+        output["pump_results"] = pump_backtest
+        for key, stats in pump_backtest.items():
+            print(
+                f"  pump {key}: n={stats['n']}, bias={stats['bias']:+.4f}, "
+                f"RMSE={stats['rmse']:.4f} (naive={stats['naive_rmse']:.4f})"
+            )
+    except Exception as e:
+        print(f"  WARNING: Pump backtest skipped: {e}")
 
     with open(OUT_FILE, "w") as f:
         json.dump(output, f, indent=2)

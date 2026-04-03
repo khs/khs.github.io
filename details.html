@@ -339,16 +339,23 @@
 <!-- BACKTEST -->
 
 <h2 class="section-head">Did the prediction bands hold up historically?</h2>
-<p class="prose" style="font-size:0.88em;color:#666;margin-bottom:1.5em">
-  For every historical week since 2004, the model computed uncertainty bands around the futures price, then checked whether the realized spot price fell inside them. Well-calibrated bands should hit ~68% and ~95% coverage respectively.
+<p class="prose" style="font-size:0.88em;color:#666;margin-bottom:1em">
+  For every historical week since 2004, the model computed uncertainty bands around the futures-implied price, then checked whether the realized price fell inside them. Well-calibrated bands should hit ~68% and ~95% coverage respectively.
 </p>
+<div class="controls" style="margin-bottom:1.2em">
+  <div class="btn-group" id="bt-type-btns">
+    <button class="active" onclick="setBtType('crude',this)">Crude ($/bbl)</button>
+    <button onclick="setBtType('pump',this)">Pump price ($/gal)</button>
+  </div>
+  <span id="bt-type-note" style="font-size:0.82em;color:#888"></span>
+</div>
 
 <div class="bt-section" id="bt-coverage-section" style="display:none">
   <div id="bt-coverage-container"></div>
 </div>
 
-<h2 class="section-head">Point forecast accuracy — WTI, 2004&#8211;present</h2>
-<p style="font-size:0.85em;color:#666;margin-bottom:0.8em">
+<h2 class="section-head" id="bt-forecast-heading">Point forecast accuracy — WTI, 2004&#8211;present</h2>
+<p style="font-size:0.85em;color:#666;margin-bottom:0.8em" id="bt-forecast-desc">
   Prediction = EIA NYMEX nth-nearby futures price on date <em>t</em>.
   Realized = WTI spot price (EIA) at <em>t + h</em>.
   Naive = today&#8217;s spot used as forecast (random-walk benchmark).
@@ -427,8 +434,48 @@
 <script>
 let btData = null;
 let activeHorizon = '1m';
-let btErrorChart = null;
-let btYearChart  = null;
+let btErrorChart  = null;
+let btYearChart   = null;
+let btType        = 'crude';   // 'crude' | 'pump'
+
+function getBtResults() {
+  if (!btData) return null;
+  if (btType === 'pump' && btData.pump_results) return btData.pump_results;
+  return btData.results;
+}
+
+function btUnit() {
+  return btType === 'pump' ? '$/gal' : '$/bbl';
+}
+
+function setBtType(type, btn) {
+  btType = type;
+  document.querySelectorAll('#bt-type-btns button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (type === 'pump') {
+    document.getElementById('bt-type-note').textContent =
+      'Prediction: WTI futures → simple crude-to-pump passthrough (Brent adj + fixed costs). ' +
+      'Realized: EIA US national avg retail gasoline price.';
+    document.getElementById('bt-forecast-heading').textContent =
+      'Point forecast accuracy — pump price, 2004–present';
+    document.getElementById('bt-forecast-desc').innerHTML =
+      'Prediction = WTI futures converted to pump price ($/gal) via simple passthrough on date <em>t</em>. ' +
+      'Realized = EIA national avg retail gasoline at <em>t + h</em>. ' +
+      'Naive = today\'s pump price used as forecast.';
+  } else {
+    document.getElementById('bt-type-note').textContent = '';
+    document.getElementById('bt-forecast-heading').textContent =
+      'Point forecast accuracy — WTI, 2004–present';
+    document.getElementById('bt-forecast-desc').innerHTML =
+      'Prediction = EIA NYMEX nth-nearby futures price on date <em>t</em>. ' +
+      'Realized = WTI spot price (EIA) at <em>t + h</em>. ' +
+      'Naive = today\'s spot used as forecast (random-walk benchmark). ' +
+      'Positive bias means futures systematically under-predicted realized prices.';
+  }
+
+  renderBacktest();
+}
 
 const HORIZON_COLORS = {
   '1m': '#2c5282',
@@ -472,9 +519,12 @@ function coverageColor(actual, target) {
 
 function renderBacktest() {
   if (!btData || !btData.results) return;
-  const res = btData.results;
+  const res = getBtResults();
+  if (!res) return;
   const horizons = ['1m','2m','3m','4m'].filter(h => res[h]);
   if (!horizons.length) return;
+
+  const unit = btUnit();
 
   // Band coverage cards
   const hasCoverage = horizons.some(h => res[h].coverage_68 != null);
@@ -514,9 +564,9 @@ function renderBacktest() {
   const thead = `<tr>
     <th>Horizon</th>
     <th>N <span class="note">(obs)</span></th>
-    <th>Bias <span class="note">$/bbl</span></th>
-    <th>MAE <span class="note">$/bbl</span></th>
-    <th>RMSE <span class="note">$/bbl</span></th>
+    <th>Bias <span class="note">${unit}</span></th>
+    <th>MAE <span class="note">${unit}</span></th>
+    <th>RMSE <span class="note">${unit}</span></th>
     <th>Naive RMSE</th>
     <th>R&sup2;</th>
     <th>Hit rate</th>
@@ -540,29 +590,35 @@ function renderBacktest() {
     </tr>`;
   }).join('');
 
+  const srcNote = btType === 'pump'
+    ? 'Source: EIA RCLC1&ndash;4 (crude futures), EIA retail gasoline weekly.'
+    : 'Source: <a href="https://www.eia.gov/dnav/pet/hist/RCLC1D.htm" target="_blank">EIA RCLC1&ndash;4</a>, EIA RWTC spot.';
+
   document.getElementById('bt-summary-container').innerHTML =
     `<table class="bt"><thead>${thead}</thead><tbody>${rows}</tbody></table>
      <p class="legend-note">
        RMSE in <span class="good">green</span> = better than naive random-walk benchmark;
-       <span class="bad">red</span> = worse.
-       Source: <a href="https://www.eia.gov/dnav/pet/hist/RCLC1D.htm" target="_blank">EIA RCLC1&ndash;4</a>,
-       EIA RWTC spot.
+       <span class="bad">red</span> = worse. ${srcNote}
      </p>`;
 
   document.getElementById('bt-error-section').style.display = '';
   document.getElementById('bt-year-section').style.display = '';
-  if (res.regimes) document.getElementById('bt-regime-section').style.display = '';
+  // Regime breakdown is crude-only — hide when pump is selected
+  if (btData.results?.regimes)
+    document.getElementById('bt-regime-section').style.display = btType === 'crude' ? '' : 'none';
 
   renderBtErrorChart();
   renderBtYearChart();
-  renderBtRegimes();
+  if (btType === 'crude') renderBtRegimes();
 }
 
 function renderBtErrorChart() {
-  if (!btData || !btData.results) return;
-  const series = btData.results[activeHorizon];
+  const res = getBtResults();
+  if (!res) return;
+  const series = res[activeHorizon];
   if (!series || !series.monthly) return;
 
+  const unit    = btUnit();
   const monthly = series.monthly;
   const labels  = monthly.map(m => m.month);
   const errors  = monthly.map(m => m.error);
@@ -577,7 +633,7 @@ function renderBtErrorChart() {
     type: 'bar',
     data: {
       labels,
-      datasets: [{ label: 'Monthly avg error ($/bbl)', data: errors, backgroundColor: bgColors, borderWidth: 0 }],
+      datasets: [{ label: `Monthly avg error (${unit})`, data: errors, backgroundColor: bgColors, borderWidth: 0 }],
     },
     options: {
       responsive: true,
@@ -593,7 +649,7 @@ function renderBtErrorChart() {
             label: ctx => {
               const e = ctx.raw;
               const dir = e >= 0 ? 'under-predicted' : 'over-predicted';
-              return `Futures ${dir} by avg $${Math.abs(e).toFixed(2)}/bbl`;
+              return `Prediction ${dir} by avg $${Math.abs(e).toFixed(btType === 'pump' ? 3 : 2)} ${unit}`;
             },
           },
         },
@@ -604,9 +660,9 @@ function renderBtErrorChart() {
           grid: { display: false },
         },
         y: {
-          ticks: { font: { family: 'Georgia, serif', size: 11 }, callback: v => (v >= 0 ? '+' : '') + '$' + v },
+          ticks: { font: { family: 'Georgia, serif', size: 11 }, callback: v => (v >= 0 ? '+' : '') + '$' + v.toFixed(btType === 'pump' ? 2 : 0) },
           grid: { color: '#f0f0f0' },
-          title: { display: true, text: 'Error ($/bbl)', font: { family: 'Georgia, serif', size: 11 }, color: '#666' },
+          title: { display: true, text: `Error (${unit})`, font: { family: 'Georgia, serif', size: 11 }, color: '#666' },
         },
       },
     },
@@ -614,17 +670,20 @@ function renderBtErrorChart() {
 }
 
 function renderBtYearChart() {
-  if (!btData || !btData.results) return;
-  const horizons = ['1m','2m','3m','4m'].filter(h => btData.results[h]?.by_year);
+  const res = getBtResults();
+  if (!res) return;
+  const horizons = ['1m','2m','3m','4m'].filter(h => res[h]?.by_year);
   if (!horizons.length) return;
 
+  const unit = btUnit();
+
   const yearSet = new Set();
-  horizons.forEach(h => btData.results[h].by_year.forEach(r => yearSet.add(r.year)));
+  horizons.forEach(h => res[h].by_year.forEach(r => yearSet.add(r.year)));
   const years = Array.from(yearSet).sort();
 
   const datasets = horizons.map(h => {
     const byYear = {};
-    btData.results[h].by_year.forEach(r => { byYear[r.year] = r.mae; });
+    res[h].by_year.forEach(r => { byYear[r.year] = r.mae; });
     return {
       label: HORIZON_LABELS[h],
       data: years.map(y => byYear[y] ?? null),
@@ -645,14 +704,14 @@ function renderBtYearChart() {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: true, labels: { font: { family: 'Georgia, serif', size: 12 } } },
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.raw?.toFixed(2) ?? '\u2014'} MAE` } },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.raw?.toFixed(btType === 'pump' ? 3 : 2) ?? '\u2014'} MAE` } },
       },
       scales: {
         x: { ticks: { font: { family: 'Georgia, serif', size: 11 } }, grid: { display: false } },
         y: {
           ticks: { font: { family: 'Georgia, serif', size: 11 }, callback: v => '$' + v },
           grid: { color: '#f0f0f0' },
-          title: { display: true, text: 'MAE ($/bbl)', font: { family: 'Georgia, serif', size: 11 }, color: '#666' },
+          title: { display: true, text: `MAE (${unit})`, font: { family: 'Georgia, serif', size: 11 }, color: '#666' },
         },
       },
     },
