@@ -473,19 +473,22 @@ const PUMP_REGIONS = {
 };
 
 // April–September: summer-blend switchover adds ~$0.12/gal.
-function seasonalAdj() {
-  const m = new Date().getMonth(); // 0-indexed
+// Pass a 1-indexed month (1–12) to get the correct seasonal for that month.
+// Defaults to today if no month supplied (legacy fallback).
+function seasonalAdj(month1indexed) {
+  const m = month1indexed != null ? month1indexed - 1 : new Date().getMonth();
   return (m >= 3 && m <= 8) ? 0.12 : 0.00;
 }
 
 // Convert crude $/bbl → retail $/gal using a specific crack spread.
-function crudeToGallon(bbl, isBrent, region, crackSpread) {
+// Pass deliveryMonth (1–12) to apply the correct seasonal for that month.
+function crudeToGallon(bbl, isBrent, region, crackSpread, deliveryMonth) {
   const brentBbl    = isBrent ? bbl : bbl + WTI_TO_BRENT_ADJ;
   const crudePerGal = brentBbl / 42;
   const fixed       = PUMP_FIXED.federal_tax + PUMP_FIXED.state_tax
                     + PUMP_FIXED.distribution + PUMP_FIXED.retail;
   const regional    = PUMP_REGIONS[region]?.offset ?? 0;
-  return +(crudePerGal + crackSpread + fixed + regional + seasonalAdj()).toFixed(3);
+  return +(crudePerGal + crackSpread + fixed + regional + seasonalAdj(deliveryMonth)).toFixed(3);
 }
 
 // ---------------------------------------------------------------------------
@@ -562,23 +565,25 @@ function pumpForContract(contracts, bands, idx, isBrent) {
       weightedCrudeGal += betas[k] * (brentBbl / 42);
     }
 
-    // Crack spread deviation: how different is today's crack from training avg?
-    const crackNow = crackSpreadFor(contracts[0].expiry);  // current front-month
+    // Crack spread deviation: how different is this contract's crack from training avg?
+    // Use per-contract RBOB data (falls back to average if month not available).
+    const crackNow = crackSpreadFor(expiry);
     const crackAvg = oilData?.crack_spreads?.average ?? PUMP_FIXED.refining;
     const crackDev = crackNow - crackAvg;
 
-    // Seasonal premium (measured from regression residuals)
-    const isSummer  = (new Date().getMonth() + 1) >= 4 &&
-                      (new Date().getMonth() + 1) <= 9;
+    // Seasonal premium based on the DELIVERY month, not today.
+    const deliveryMonth = parseInt(expiry.slice(5, 7), 10);
+    const isSummer  = deliveryMonth >= 4 && deliveryMonth <= 9;
     const seasonal  = isSummer ? (seasonal_premium ?? 0.12) : 0;
 
     return +(alpha + weightedCrudeGal + crackDev + regional + seasonal).toFixed(3);
 
   } else {
-    // Fallback: previous contract (simple 1-month lag)
-    const lagBand  = bands[Math.max(0, idx - 1)];
-    const crack    = crackSpreadFor(lagBand.expiry);
-    return crudeToGallon(lagBand.price, isBrent, pumpRegion, crack);
+    // Fallback: previous contract (simple 1-month lag), seasonal by delivery month
+    const lagBand      = bands[Math.max(0, idx - 1)];
+    const crack        = crackSpreadFor(lagBand.expiry);
+    const deliveryMon  = parseInt(expiry.slice(5, 7), 10);
+    return crudeToGallon(lagBand.price, isBrent, pumpRegion, crack, deliveryMon);
   }
 }
 
@@ -803,8 +808,9 @@ function buildHistoricalSegment() {
   });
   const prices = sorted.map(ym => {
     const crudeBbl = byMonth[ym];
+    const month    = parseInt(ym.slice(5, 7), 10);
     return showPump
-      ? crudeToGallon(crudeBbl, isBrent, pumpRegion, PUMP_FIXED.refining)
+      ? crudeToGallon(crudeBbl, isBrent, pumpRegion, PUMP_FIXED.refining, month)
       : +crudeBbl.toFixed(2);
   });
   return { labels, prices };

@@ -230,6 +230,8 @@ def build_lag_matrix(crude_gal: pd.Series, gas: pd.Series, n_lags: int):
 
 def max_off_diagonal_corr(X_raw: np.ndarray) -> float:
     """Return the maximum absolute off-diagonal correlation in X_raw."""
+    if X_raw.shape[1] < 2:
+        return 0.0   # single column has no off-diagonal entries
     corr = np.corrcoef(X_raw.T)
     np.fill_diagonal(corr, 0.0)
     return float(np.max(np.abs(corr)))
