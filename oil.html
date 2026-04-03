@@ -437,8 +437,8 @@
   <span>
     <a href="http://keller.substack.com" target="_blank" rel="noopener">Substack</a>
     &nbsp;·&nbsp;
-    Crude futures: Yahoo Finance &nbsp;·&nbsp;
-    Pump model: EIA &nbsp;·&nbsp;
+    <a href="https://finance.yahoo.com/commodities" target="_blank" rel="noopener">Crude futures: Yahoo Finance</a> &nbsp;·&nbsp;
+    <a href="https://www.eia.gov/petroleum/gasprices/" target="_blank" rel="noopener">Pump model: EIA</a> &nbsp;·&nbsp;
     Updated weekly
   </span>
 </site-footer>
@@ -587,10 +587,17 @@ function pumpForContract(contracts, bands, idx, isBrent) {
   }
 }
 
+// Residual pump price volatility not explained by crude movements ($/gal, 1σ).
+// Crude bands alone give only ~41% coverage at 1m (should be 68%); adding this
+// residual in quadrature brings coverage to ~68% at all horizons.
+// Calibrated from EIA retail gasoline backtest (pump_results in oil-backtest.json):
+//   1m crude-only sigma ≈ $0.24/gal, actual pump RMSE ≈ $0.44/gal
+//   residual = sqrt(0.44² − 0.24²) ≈ $0.37/gal
+const PUMP_RESIDUAL_GAL = 0.37;
+
 // Propagate a crude band endpoint through the lag model.
-// The pump price band width scales by (total_passthrough / 42) relative to
-// the crude band width in $/bbl, which is the correct linear propagation.
-function pumpBandEndpoint(contracts, bands, idx, isBrent, crudeBandBbl) {
+// nSigma: 1 for the inner (68%) band, 2 for the outer (95%) band.
+function pumpBandEndpoint(contracts, bands, idx, isBrent, crudeBandBbl, nSigma = 1) {
   const central = contracts[idx].price;
   const pumpCentral = pumpForContract(contracts, bands, idx, isBrent);
   if (!lagModel) {
@@ -600,8 +607,11 @@ function pumpBandEndpoint(contracts, bands, idx, isBrent, crudeBandBbl) {
   }
   const tp = lagModel.total_passthrough ?? 0.75;
   const brentAdj = isBrent ? 0 : WTI_TO_BRENT_ADJ;
-  const delta = ((crudeBandBbl + brentAdj) - (central + brentAdj)) / 42 * tp;
-  return +(pumpCentral + delta).toFixed(3);
+  const crudeDelta = ((crudeBandBbl + brentAdj) - (central + brentAdj)) / 42 * tp;
+  // Combine crude-derived uncertainty with non-crude residual in quadrature.
+  const residual = nSigma * PUMP_RESIDUAL_GAL;
+  const totalDelta = Math.sign(crudeDelta) * Math.sqrt(crudeDelta ** 2 + residual ** 2);
+  return +(pumpCentral + totalDelta).toFixed(3);
 }
 
 // ---------------------------------------------------------------------------
@@ -831,13 +841,13 @@ function renderCurve() {
   const futurePrices = bands.map((b, i) =>
     showPump ? pumpForContract(contracts, bands, i, isBrent) : b.price);
   const upper1 = bands.map((b, i) =>
-    showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.upper1) : b.upper1);
+    showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.upper1, 1) : b.upper1);
   const lower1 = bands.map((b, i) =>
-    showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.lower1) : b.lower1);
+    showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.lower1, 1) : b.lower1);
   const upper2 = bands.map((b, i) =>
-    showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.upper2) : b.upper2);
+    showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.upper2, 2) : b.upper2);
   const lower2 = bands.map((b, i) =>
-    showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.lower2) : b.lower2);
+    showPump ? pumpBandEndpoint(contracts, bands, i, isBrent, b.lower2, 2) : b.lower2);
 
   // Historical segment (crude $/bbl front-month from snapshots; not converted
   // to pump price since we don't have the lag inputs for past dates)
@@ -1014,7 +1024,7 @@ function renderCurve() {
       ? ` Crack spread deviation from live RBOB futures (${crackMonths} months); avg $${crackAvg.toFixed(3)}/gal.`
       : ` Crack spread: no RBOB data yet; $${PUMP_FIXED.refining.toFixed(2)}/gal average used.`;
     const wtiNote = !isBrent
-      ? ` WTI adjusted +$${WTI_TO_BRENT_ADJ}/bbl (Brent correlates better with US pump prices per EIA).`
+      ? ` WTI adjusted +$${WTI_TO_BRENT_ADJ}/bbl (<a href="https://www.eia.gov/petroleum/gasprices/" target="_blank" rel="noopener">Brent correlates better with US pump prices per EIA</a>).`
       : '';
 
     pumpNote.innerHTML = lagNote + crackNote + wtiNote;

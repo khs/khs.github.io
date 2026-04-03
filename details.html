@@ -430,6 +430,29 @@
 
 <hr class="divider">
 
+<h2 class="section-head">Pump price: predicted vs. realized</h2>
+<p style="font-size:0.85em;color:#666;margin-bottom:0.8em">
+  For each calendar month since 2004, the model used WTI futures (converted to
+  pump price via the lag model) to predict the US national average pump price
+  1, 2, 3, and 4 months out. The chart aligns all predictions to their
+  <em>delivery month</em> — the month the pump price was actually observed —
+  so you can see how far in advance the model was useful.
+  Source: EIA retail gasoline weekly series.
+</p>
+<div id="pph-section">
+  <div class="chart-container"><canvas id="pumpPredHistChart"></canvas></div>
+  <p class="legend-note">
+    Colored lines = predictions made 1–4 months before delivery.
+    Bold grey line = realized EIA national average pump price.
+    2004–2024 backtest data.
+  </p>
+</div>
+<div id="pph-no-data" style="font-size:0.85em;color:#888;margin-bottom:1.5em;display:none">
+  No backtest data available.
+</div>
+
+<hr class="divider">
+
 <h2 class="section-head">References</h2>
 <div class="references">
   <ol>
@@ -453,7 +476,7 @@
   <span>
     <a href="http://keller.substack.com" target="_blank" rel="noopener">Substack</a>
     &nbsp;&middot;&nbsp;
-    Data: EIA, Yahoo Finance &nbsp;&middot;&nbsp;
+    Data: <a href="https://www.eia.gov/petroleum/gasprices/" target="_blank" rel="noopener">EIA</a>, <a href="https://finance.yahoo.com/commodities" target="_blank" rel="noopener">Yahoo Finance</a> &nbsp;&middot;&nbsp;
     Updated weekly
   </span>
 </site-footer>
@@ -530,7 +553,7 @@ const KEY_EVENTS = {
 
 fetch('data/oil-backtest.json')
   .then(r => r.json())
-  .then(data => { btData = data; renderBacktest(); })
+  .then(data => { btData = data; renderBacktest(); renderPumpPredHistory(); })
   .catch(() => {});
 
 fetch('data/oil-futures.json')
@@ -843,7 +866,7 @@ function renderPredHistory() {
     const priceMap = {};
     (snap[phBenchmark] || []).forEach(c => { priceMap[c.expiry] = c.price; });
     const data = allMonths.map(ym => priceMap[ym] ?? null);
-    const alpha = 0.08 + 0.55 * (i / Math.max(n - 1, 1));
+    const alpha = 0.30 + 0.55 * (i / Math.max(n - 1, 1));
     datasets.push({
       label: snap.date,
       data,
@@ -905,6 +928,114 @@ function renderPredHistory() {
           ticks: { font: { family: 'Georgia, serif', size: 11 }, callback: v => '$' + v },
           grid: { color: '#f0f0f0' },
           title: { display: true, text: '$/barrel', font: { family: 'Georgia, serif', size: 12 }, color: '#666' },
+        },
+      },
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Pump price predicted vs. realized chart
+// ---------------------------------------------------------------------------
+let pumpPredHistChart = null;
+
+function renderPumpPredHistory() {
+  if (!btData || !btData.pump_results) {
+    document.getElementById('pph-no-data').style.display = '';
+    document.getElementById('pph-section').style.display = 'none';
+    return;
+  }
+
+  const MTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const horizons = [
+    { key: '1m', months: 1, color: 'rgba(44,82,130,0.85)',  label: '1m prediction' },
+    { key: '2m', months: 2, color: 'rgba(90,150,60,0.85)',  label: '2m prediction' },
+    { key: '3m', months: 3, color: 'rgba(180,100,20,0.85)', label: '3m prediction' },
+    { key: '4m', months: 4, color: 'rgba(140,30,120,0.85)', label: '4m prediction' },
+  ];
+
+  // Align all predictions to delivery month (prediction_month + horizon)
+  const byDelivery = {};
+  horizons.forEach(({ key, months }) => {
+    const monthly = btData.pump_results[key]?.monthly || [];
+    monthly.forEach(entry => {
+      const [y, m] = entry.month.split('-').map(Number);
+      const d = new Date(y, m - 1 + months, 1);
+      const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+      if (!byDelivery[ym]) byDelivery[ym] = {};
+      byDelivery[ym]['pred_' + key] = entry.pred;
+      // realized is the same price regardless of horizon; take first available
+      if (byDelivery[ym].realized == null) byDelivery[ym].realized = entry.realized;
+    });
+  });
+
+  const allMonths = Object.keys(byDelivery).sort();
+  const labels = allMonths.map(ym => {
+    const [y, m] = ym.split('-');
+    return MTHS[parseInt(m, 10) - 1] + ' ' + y;
+  });
+
+  const datasets = horizons.map(({ key, color, label }) => ({
+    label,
+    data: allMonths.map(ym => byDelivery[ym]?.['pred_' + key] ?? null),
+    borderColor: color,
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    pointRadius: 0,
+    fill: false,
+    tension: 0.2,
+    order: 2,
+  }));
+
+  // Realized line on top
+  datasets.push({
+    label: 'Realized (EIA)',
+    data: allMonths.map(ym => byDelivery[ym]?.realized ?? null),
+    borderColor: 'rgba(80,80,80,0.9)',
+    backgroundColor: 'transparent',
+    borderWidth: 2.5,
+    pointRadius: 0,
+    fill: false,
+    tension: 0.2,
+    order: 1,
+  });
+
+  if (pumpPredHistChart) pumpPredHistChart.destroy();
+  const ctx = document.getElementById('pumpPredHistChart').getContext('2d');
+  pumpPredHistChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: { font: { family: 'Georgia, serif', size: 11 }, boxWidth: 20, padding: 12 },
+        },
+        tooltip: {
+          filter: item => item.raw != null,
+          callbacks: {
+            title: ctx => ctx[0]?.label,
+            label: ctx => {
+              const v = ctx.raw;
+              if (v == null) return null;
+              return `${ctx.dataset.label}: $${v.toFixed(2)}/gal`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'Georgia, serif', size: 10 }, maxTicksLimit: 24, maxRotation: 45 },
+          grid: { color: '#f0f0f0' },
+        },
+        y: {
+          ticks: { font: { family: 'Georgia, serif', size: 11 }, callback: v => '$' + v.toFixed(2) },
+          grid: { color: '#f0f0f0' },
+          title: { display: true, text: '$/gallon (US national avg)', font: { family: 'Georgia, serif', size: 12 }, color: '#666' },
         },
       },
     },
