@@ -516,6 +516,9 @@ function interpolateCrude(contracts, weeksFromNow) {
     p: c.price,
   }));
 
+  // Clamp to front contract when before the curve starts
+  if (weeksFromNow < pts[0].w) return pts[0].p;
+
   for (let i = 0; i < pts.length - 1; i++) {
     if (weeksFromNow >= pts[i].w && weeksFromNow <= pts[i + 1].w) {
       const frac = (weeksFromNow - pts[i].w) / (pts[i + 1].w - pts[i].w);
@@ -792,9 +795,11 @@ function buildHistoricalSegment() {
 
   const MTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const sorted = Object.keys(byMonth).sort();
+  const currentYM = new Date().toISOString().slice(0, 7);
   const labels = sorted.map(ym => {
     const [y, m] = ym.split('-');
-    return MTHS[parseInt(m, 10) - 1] + ' \'' + y.slice(2);
+    const base = MTHS[parseInt(m, 10) - 1] + ' \'' + y.slice(2);
+    return ym === currentYM ? base + ' (to date)' : base;
   });
   const prices = sorted.map(ym => {
     const crudeBbl = byMonth[ym];
