@@ -1,0 +1,4 @@
+{
+  "timestamp": "2026-04-03T12:16:28+00:00",
+  "error": "Traceback (most recent call last):\n  File \"/home/runner/work/khs.github.io/khs.github.io/.github/scripts/build_lag_model.py\", line 436, in <module>\n    main()\n  File \"/home/runner/work/khs.github.io/khs.github.io/.github/scripts/build_lag_model.py\", line 391, in main\n    f\"t={asym['t_stat']}, p\u2248{asym['p_approx']} \"\n         ~~~~^^^^^^^^^^\nKeyError: 't_stat'\n"
+}
