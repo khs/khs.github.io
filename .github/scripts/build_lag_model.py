@@ -113,12 +113,34 @@ def fetch_gasoline_rbob_proxy() -> pd.Series:
     return (s.dropna() + RBOB_TO_RETAIL).resample("W-MON").last().dropna()
 
 
+def fetch_eia_gasoline_xls() -> pd.Series:
+    """EIA hist_xls endpoint — same pattern as the working RWTC crude fetch."""
+    url = "https://www.eia.gov/dnav/pet/hist_xls/EMM_EPMR_PTE_NUS_DPGw.xls"
+    content = fetch_with_retry(url, retries=2, base_timeout=30)
+    for sheet in ("Data 1", 0):
+        try:
+            df = pd.read_excel(BytesIO(content), sheet_name=sheet, skiprows=2, header=0)
+            df.columns = ["date", "price"] + list(df.columns[2:])
+            df = df[["date", "price"]].dropna()
+            df["date"] = pd.to_datetime(df["date"])
+            s = df.set_index("date")["price"].astype(float)
+            s.index.name = "date"
+            if len(s) < 10:
+                raise ValueError("Too few rows")
+            return s
+        except Exception:
+            continue
+    raise ValueError("Could not parse EIA gasoline XLS")
+
+
 def fetch_gasoline_weekly(lookback_years: int = 3) -> pd.Series:
     """Try multiple sources for US weekly retail gasoline price."""
     cutoff = pd.Timestamp.today() - pd.DateOffset(years=lookback_years)
+    errors = []
 
     for name, fn in [
         ("FRED streaming",  fetch_gasoline_fred_streaming),
+        ("EIA XLS",         fetch_eia_gasoline_xls),
         ("EIA LeafHandler", fetch_eia_gasoline_csv),
         ("RBOB proxy",      fetch_gasoline_rbob_proxy),
     ]:
@@ -131,9 +153,11 @@ def fetch_gasoline_weekly(lookback_years: int = 3) -> pd.Series:
             print(f"  {name} OK: {len(s)} obs, {s.index.min().date()} – {s.index.max().date()}")
             return s
         except Exception as e:
+            msg = f"{name}: {e}"
             print(f"  {name} failed: {e}")
+            errors.append(msg)
 
-    raise RuntimeError("All gasoline data sources failed")
+    raise RuntimeError("All gasoline data sources failed:\n" + "\n".join(errors))
 
 
 def fetch_crude_weekly(lookback_years: int = 3) -> pd.Series:
