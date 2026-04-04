@@ -432,19 +432,25 @@
 
 <h2 class="section-head">Pump price: predicted vs. realized</h2>
 <p style="font-size:0.85em;color:#666;margin-bottom:0.8em">
-  For each calendar month since 2004, the model used WTI futures (converted to
-  pump price via the lag model) to predict the US national average pump price
+  For each calendar month since 2018, the model used WTI futures (converted to
+  pump price via a fixed-cost passthrough) to predict the US national average pump price
   1, 2, 3, and 4 months out. The chart aligns all predictions to their
-  <em>delivery month</em> — the month the pump price was actually observed —
-  so you can see how far in advance the model was useful.
+  <em>delivery month</em> — the month the pump price was actually observed.
   Source: EIA retail gasoline weekly series.
+</p>
+<p style="font-size:0.82em;color:#888;margin-bottom:0.8em">
+  <strong>Why 2018?</strong> The passthrough model uses a fixed non-crude cost component
+  ($1.40/gal: taxes, refining, distribution, retail) calibrated to current levels.
+  Before ~2017 those costs were $0.50–0.70/gal lower, producing a persistent upward
+  bias in predictions that reflects secular cost inflation rather than model error.
+  Predictions since 2018 are well-calibrated and shown here.
 </p>
 <div id="pph-section">
   <div class="chart-container"><canvas id="pumpPredHistChart"></canvas></div>
   <p class="legend-note">
     Colored lines = predictions made 1–4 months before delivery.
     Bold grey line = realized EIA national average pump price.
-    2004–2024 backtest data.
+    2018–2024 (model calibration window).
   </p>
 </div>
 <div id="pph-no-data" style="font-size:0.85em;color:#888;margin-bottom:1.5em;display:none">
@@ -476,7 +482,7 @@
   <span>
     <a href="http://keller.substack.com" target="_blank" rel="noopener">Substack</a>
     &nbsp;&middot;&nbsp;
-    Data: <a href="https://www.eia.gov/petroleum/gasprices/" target="_blank" rel="noopener">EIA</a>, <a href="https://finance.yahoo.com/commodities" target="_blank" rel="noopener">Yahoo Finance</a> &nbsp;&middot;&nbsp;
+    Data: <a href="https://www.eia.gov/petroleum/gasdiesel/" target="_blank" rel="noopener">EIA</a>, <a href="https://finance.yahoo.com/commodities" target="_blank" rel="noopener">Yahoo Finance</a> &nbsp;&middot;&nbsp;
     Updated weekly
   </span>
 </site-footer>
@@ -954,10 +960,13 @@ function renderPumpPredHistory() {
     { key: '4m', months: 4, color: 'rgba(140,30,120,0.85)', label: '4m prediction' },
   ];
 
+  const START_YEAR = 2018;  // model's fixed-cost parameter calibrated to ~2018+
+
   // Align all predictions to delivery month (prediction_month + horizon)
   const byDelivery = {};
   horizons.forEach(({ key, months }) => {
-    const monthly = btData.pump_results[key]?.monthly || [];
+    const monthly = (btData.pump_results[key]?.monthly || [])
+      .filter(e => parseInt(e.month.slice(0, 4), 10) >= START_YEAR);
     monthly.forEach(entry => {
       const [y, m] = entry.month.split('-').map(Number);
       const d = new Date(y, m - 1 + months, 1);

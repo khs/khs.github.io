@@ -438,7 +438,7 @@
     <a href="http://keller.substack.com" target="_blank" rel="noopener">Substack</a>
     &nbsp;·&nbsp;
     <a href="https://finance.yahoo.com/commodities" target="_blank" rel="noopener">Crude futures: Yahoo Finance</a> &nbsp;·&nbsp;
-    <a href="https://www.eia.gov/petroleum/gasprices/" target="_blank" rel="noopener">Pump model: EIA</a> &nbsp;·&nbsp;
+    <a href="https://www.eia.gov/petroleum/gasdiesel/" target="_blank" rel="noopener">Pump model: EIA</a> &nbsp;·&nbsp;
     Updated weekly
   </span>
 </site-footer>
@@ -1024,7 +1024,7 @@ function renderCurve() {
       ? ` Crack spread deviation from live RBOB futures (${crackMonths} months); avg $${crackAvg.toFixed(3)}/gal.`
       : ` Crack spread: no RBOB data yet; $${PUMP_FIXED.refining.toFixed(2)}/gal average used.`;
     const wtiNote = !isBrent
-      ? ` WTI adjusted +$${WTI_TO_BRENT_ADJ}/bbl (<a href="https://www.eia.gov/petroleum/gasprices/" target="_blank" rel="noopener">Brent correlates better with US pump prices per EIA</a>).`
+      ? ` WTI adjusted +$${WTI_TO_BRENT_ADJ}/bbl (<a href="https://www.eia.gov/petroleum/gasdiesel/" target="_blank" rel="noopener">Brent correlates better with US pump prices per EIA</a>).`
       : '';
 
     pumpNote.innerHTML = lagNote + crackNote + wtiNote;
