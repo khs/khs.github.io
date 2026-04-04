@@ -601,9 +601,10 @@ function pumpBandEndpoint(contracts, bands, idx, isBrent, crudeBandBbl, nSigma =
   const central = contracts[idx].price;
   const pumpCentral = pumpForContract(contracts, bands, idx, isBrent);
   if (!lagModel) {
-    const lagBand = bands[Math.max(0, idx - 1)];
-    const crack   = crackSpreadFor(lagBand.expiry);
-    return crudeToGallon(crudeBandBbl, isBrent, pumpRegion, crack);
+    const lagBand    = bands[Math.max(0, idx - 1)];
+    const crack      = crackSpreadFor(lagBand.expiry);
+    const deliveryMon = parseInt(contracts[idx].expiry.slice(5, 7), 10);
+    return crudeToGallon(crudeBandBbl, isBrent, pumpRegion, crack, deliveryMon);
   }
   const tp = lagModel.total_passthrough ?? 0.75;
   const brentAdj = isBrent ? 0 : WTI_TO_BRENT_ADJ;

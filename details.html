@@ -591,7 +591,10 @@ function renderBacktest() {
   const unit = btUnit();
 
   // Band coverage cards
-  const hasCoverage = horizons.some(h => res[h].coverage_68 != null);
+  // For pump results, the coverage statistics in the current JSON reflect the
+  // pre-calibration bands (before PUMP_RESIDUAL_GAL was added). Hide them until
+  // the next backtest workflow run regenerates the data with the corrected bands.
+  const hasCoverage = btType !== 'pump' && horizons.some(h => res[h].coverage_68 != null);
   if (hasCoverage) {
     const cards = horizons.map(h => {
       const s = res[h];

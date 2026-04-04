@@ -58,8 +58,12 @@ VOL_DOWN = 0.33   # annualised downside vol
 MR_CAP   = 2.5    # mean-reversion cap in years
 
 # Crude → pump passthrough constants — must match oil.html exactly
-WTI_TO_BRENT_ADJ = 4.0    # $/bbl premium Brent over WTI
-PUMP_FIXED_TOTAL  = 1.399  # $/gal: federal+state tax + refining + distribution + retail
+WTI_TO_BRENT_ADJ  = 4.0    # $/bbl premium Brent over WTI
+PUMP_FIXED_TOTAL   = 1.399  # $/gal: federal+state tax + refining + distribution + retail
+# Non-crude pump price residual — calibrated so 1m pump band achieves ~68% coverage.
+# Represents crack-spread, tax, and distribution variance not captured by crude alone.
+# Must match PUMP_RESIDUAL_GAL in oil.html.
+PUMP_RESIDUAL_GAL  = 0.37
 
 
 # ---------------------------------------------------------------------------
@@ -167,6 +171,27 @@ def compute_bands(price: float, T_years: float) -> dict:
         "lower1": price * math.exp(-   sig_down),
         "upper2": price * math.exp(2 * sig_up),
         "lower2": price * math.exp(-2 * sig_down),
+    }
+
+
+def compute_pump_bands(pump_price: float, T_years: float) -> dict:
+    """Band endpoints for pump price predictions ($/gal).
+
+    Mirrors oil.html pumpBandEndpoint: crude lognormal uncertainty propagated
+    via passthrough, then PUMP_RESIDUAL_GAL added in quadrature to account for
+    non-crude variance (crack spreads, taxes, distribution).
+    """
+    crude = compute_bands(pump_price, T_years)
+    def combine(band_endpoint: float, n: int) -> float:
+        delta = band_endpoint - pump_price
+        return pump_price + math.copysign(
+            math.sqrt(delta ** 2 + (n * PUMP_RESIDUAL_GAL) ** 2), delta
+        )
+    return {
+        "upper1": combine(crude["upper1"], 1),
+        "lower1": combine(crude["lower1"], 1),
+        "upper2": combine(crude["upper2"], 2),
+        "lower2": combine(crude["lower2"], 2),
     }
 
 
@@ -440,7 +465,7 @@ def run_pump_backtest(gasoline: pd.Series, futures_map: dict[str, pd.Series]) ->
         avg_price = float(np.median(gas_real))
 
         T_years  = biz_days / 252.0
-        band_arr = np.array([list(compute_bands(p, T_years).values()) for p in pump_pred])
+        band_arr = np.array([list(compute_pump_bands(p, T_years).values()) for p in pump_pred])
         upper1, lower1, upper2, lower2 = (
             band_arr[:, 0], band_arr[:, 1], band_arr[:, 2], band_arr[:, 3]
         )
@@ -569,7 +594,9 @@ def main():
             "Naive benchmark = today's spot price used as forecast. "
             f"Bands: VOL_UP={VOL_UP}, VOL_DOWN={VOL_DOWN}, MR_CAP={MR_CAP}y. "
             "pump_results: same horizons but prediction = WTI futures converted to "
-            "pump price via simple passthrough; realized = EIA retail gasoline weekly."
+            "pump price via simple passthrough; realized = EIA retail gasoline weekly. "
+            f"Pump bands add PUMP_RESIDUAL_GAL={PUMP_RESIDUAL_GAL} $/gal in quadrature "
+            "to account for non-crude pump price variance (crack spreads, taxes, distribution)."
         ),
         "results": backtest,
     }
