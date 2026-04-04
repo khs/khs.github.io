@@ -1,6 +1,6 @@
 {
-  "generated": "2026-04-03T14:46:10+00:00",
-  "description": "How well did WTI futures predict realized spot prices, and how well were the uncertainty bands calibrated? Prediction = EIA nth-nearby futures (RCLC1-4). Realized = EIA RWTC WTI Cushing spot price. Naive benchmark = today's spot price used as forecast. Bands: VOL_UP=0.33, VOL_DOWN=0.33, MR_CAP=2.5y. pump_results: same horizons but prediction = WTI futures converted to pump price via simple passthrough; realized = EIA retail gasoline weekly.",
+  "generated": "2026-04-04T01:58:09+00:00",
+  "description": "How well did WTI futures predict realized spot prices, and how well were the uncertainty bands calibrated? Prediction = EIA nth-nearby futures (RCLC1-4). Realized = EIA RWTC WTI Cushing spot price. Naive benchmark = today's spot price used as forecast. Bands: VOL_UP=0.33, VOL_DOWN=0.33, MR_CAP=2.5y. pump_results: same horizons but prediction = WTI futures converted to pump price via simple passthrough; realized = EIA retail gasoline weekly. Pump bands add PUMP_RESIDUAL_GAL=0.37 $/gal in quadrature to account for non-crude pump price variance (crack spreads, taxes, distribution).",
   "results": {
     "1m": {
       "label": "1 month",
@@ -9553,12 +9553,12 @@
       "hit_rate": 0.59,
       "within_10pct": 0.41,
       "within_20pct": 0.77,
-      "coverage_68": 0.41,
-      "coverage_95": 0.77,
-      "pct_above_upper1": 0.03,
-      "pct_below_lower1": 0.56,
+      "coverage_68": 0.68,
+      "coverage_95": 0.99,
+      "pct_above_upper1": 0.01,
+      "pct_below_lower1": 0.31,
       "pct_above_upper2": 0.0,
-      "pct_below_lower2": 0.23,
+      "pct_below_lower2": 0.01,
       "monthly": [
         {
           "month": "2004-01",
@@ -9567,7 +9567,7 @@
           "pred": 2.32,
           "realized": 1.65,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2004-02",
@@ -9576,7 +9576,7 @@
           "pred": 2.31,
           "realized": 1.73,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2004-03",
@@ -9585,7 +9585,7 @@
           "pred": 2.37,
           "realized": 1.79,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2004-04",
@@ -9593,8 +9593,8 @@
           "pct_error": -22.3,
           "pred": 2.37,
           "realized": 1.97,
-          "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_68": 0.5,
+          "inside_95": 1.0
         },
         {
           "month": "2004-05",
@@ -9602,8 +9602,8 @@
           "pct_error": -23.19,
           "pred": 2.45,
           "realized": 1.99,
-          "inside_68": 0.0,
-          "inside_95": 0.4
+          "inside_68": 0.4,
+          "inside_95": 1.0
         },
         {
           "month": "2004-06",
@@ -9612,7 +9612,7 @@
           "pred": 2.39,
           "realized": 1.91,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2004-07",
@@ -9621,7 +9621,7 @@
           "pred": 2.45,
           "realized": 1.88,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2004-08",
@@ -9630,7 +9630,7 @@
           "pred": 2.56,
           "realized": 1.87,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2004-09",
@@ -9639,7 +9639,7 @@
           "pred": 2.59,
           "realized": 2.0,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2004-10",
@@ -9648,7 +9648,7 @@
           "pred": 2.75,
           "realized": 1.99,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2004-11",
@@ -9657,7 +9657,7 @@
           "pred": 2.66,
           "realized": 1.86,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 0.8
         },
         {
           "month": "2004-12",
@@ -9666,7 +9666,7 @@
           "pred": 2.51,
           "realized": 1.81,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2005-01",
@@ -9675,7 +9675,7 @@
           "pred": 2.6,
           "realized": 1.91,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2005-02",
@@ -9684,7 +9684,7 @@
           "pred": 2.64,
           "realized": 2.08,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2005-03",
@@ -9693,7 +9693,7 @@
           "pred": 2.8,
           "realized": 2.24,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2005-04",
@@ -9702,7 +9702,7 @@
           "pred": 2.78,
           "realized": 2.18,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2005-05",
@@ -9711,7 +9711,7 @@
           "pred": 2.7,
           "realized": 2.14,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2005-06",
@@ -9720,7 +9720,7 @@
           "pred": 2.86,
           "realized": 2.29,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2005-07",
@@ -9728,8 +9728,8 @@
           "pct_error": -18.91,
           "pred": 2.89,
           "realized": 2.46,
-          "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_68": 0.5,
+          "inside_95": 1.0
         },
         {
           "month": "2005-08",
@@ -9737,7 +9737,7 @@
           "pct_error": -7.81,
           "pred": 3.04,
           "realized": 2.84,
-          "inside_68": 0.6,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -9746,7 +9746,7 @@
           "pct_error": -10.17,
           "pred": 3.07,
           "realized": 2.78,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -9756,7 +9756,7 @@
           "pred": 2.98,
           "realized": 2.3,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2005-11",
@@ -9765,7 +9765,7 @@
           "pred": 2.88,
           "realized": 2.19,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2005-12",
@@ -9774,7 +9774,7 @@
           "pred": 2.9,
           "realized": 2.31,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2006-01",
@@ -9783,7 +9783,7 @@
           "pred": 3.04,
           "realized": 2.3,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2006-02",
@@ -9791,8 +9791,8 @@
           "pct_error": -23.65,
           "pred": 2.97,
           "realized": 2.42,
-          "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_68": 0.5,
+          "inside_95": 1.0
         },
         {
           "month": "2006-03",
@@ -9800,7 +9800,7 @@
           "pct_error": -9.76,
           "pred": 2.97,
           "realized": 2.74,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -9809,7 +9809,7 @@
           "pct_error": -8.65,
           "pred": 3.16,
           "realized": 2.92,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -9818,7 +9818,7 @@
           "pct_error": -10.2,
           "pred": 3.18,
           "realized": 2.88,
-          "inside_68": 0.6,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -9836,7 +9836,7 @@
           "pct_error": -10.21,
           "pred": 3.27,
           "realized": 2.96,
-          "inside_68": 0.6,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -9846,7 +9846,7 @@
           "pred": 3.24,
           "realized": 2.55,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2006-09",
@@ -9855,7 +9855,7 @@
           "pred": 3.04,
           "realized": 2.25,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2006-10",
@@ -9864,7 +9864,7 @@
           "pred": 2.91,
           "realized": 2.23,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2006-11",
@@ -9873,7 +9873,7 @@
           "pred": 2.91,
           "realized": 2.31,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2006-12",
@@ -9882,7 +9882,7 @@
           "pred": 2.97,
           "realized": 2.26,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2007-01",
@@ -9890,8 +9890,8 @@
           "pct_error": -24.38,
           "pred": 2.81,
           "realized": 2.26,
-          "inside_68": 0.0,
-          "inside_95": 0.4
+          "inside_68": 0.4,
+          "inside_95": 1.0
         },
         {
           "month": "2007-02",
@@ -9899,7 +9899,7 @@
           "pct_error": -15.14,
           "pred": 2.91,
           "realized": 2.56,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -9944,7 +9944,7 @@
           "pct_error": -15.15,
           "pred": 3.25,
           "realized": 2.8,
-          "inside_68": 0.0,
+          "inside_68": 0.4,
           "inside_95": 1.0
         },
         {
@@ -9953,7 +9953,7 @@
           "pct_error": -14.28,
           "pred": 3.2,
           "realized": 2.8,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -9962,8 +9962,8 @@
           "pct_error": -20.4,
           "pred": 3.36,
           "realized": 2.79,
-          "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_68": 0.25,
+          "inside_95": 1.0
         },
         {
           "month": "2007-10",
@@ -9971,7 +9971,7 @@
           "pct_error": -17.33,
           "pred": 3.53,
           "realized": 3.04,
-          "inside_68": 0.0,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -9981,7 +9981,7 @@
           "pred": 3.76,
           "realized": 3.01,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2007-12",
@@ -9989,8 +9989,8 @@
           "pct_error": -20.87,
           "pred": 3.67,
           "realized": 3.04,
-          "inside_68": 0.0,
-          "inside_95": 0.6
+          "inside_68": 0.2,
+          "inside_95": 1.0
         },
         {
           "month": "2008-01",
@@ -9999,7 +9999,7 @@
           "pred": 3.7,
           "realized": 3.03,
           "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_95": 1.0
         },
         {
           "month": "2008-02",
@@ -10007,7 +10007,7 @@
           "pct_error": -16.95,
           "pred": 3.75,
           "realized": 3.23,
-          "inside_68": 0.0,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -10016,8 +10016,8 @@
           "pct_error": -16.65,
           "pred": 3.96,
           "realized": 3.42,
-          "inside_68": 0.2,
-          "inside_95": 0.8
+          "inside_68": 0.4,
+          "inside_95": 1.0
         },
         {
           "month": "2008-04",
@@ -10025,7 +10025,7 @@
           "pct_error": -13.02,
           "pred": 4.21,
           "realized": 3.77,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10034,7 +10034,7 @@
           "pct_error": -11.82,
           "pred": 4.49,
           "realized": 4.04,
-          "inside_68": 0.25,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -10043,8 +10043,8 @@
           "pct_error": -15.58,
           "pred": 4.7,
           "realized": 4.07,
-          "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_68": 0.2,
+          "inside_95": 1.0
         },
         {
           "month": "2008-07",
@@ -10053,7 +10053,7 @@
           "pred": 4.72,
           "realized": 3.78,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 0.75
         },
         {
           "month": "2008-08",
@@ -10061,7 +10061,7 @@
           "pct_error": -14.12,
           "pred": 4.26,
           "realized": 3.72,
-          "inside_68": 0.25,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -10098,7 +10098,7 @@
           "pred": 2.53,
           "realized": 1.75,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 0.8
         },
         {
           "month": "2009-01",
@@ -10106,8 +10106,8 @@
           "pct_error": -32.42,
           "pred": 2.5,
           "realized": 1.92,
-          "inside_68": 0.0,
-          "inside_95": 0.25
+          "inside_68": 0.25,
+          "inside_95": 1.0
         },
         {
           "month": "2009-02",
@@ -10116,7 +10116,7 @@
           "pred": 2.42,
           "realized": 1.94,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2009-03",
@@ -10124,8 +10124,8 @@
           "pct_error": -29.25,
           "pred": 2.62,
           "realized": 2.05,
-          "inside_68": 0.0,
-          "inside_95": 0.2
+          "inside_68": 0.2,
+          "inside_95": 1.0
         },
         {
           "month": "2009-04",
@@ -10133,8 +10133,8 @@
           "pct_error": -19.65,
           "pred": 2.67,
           "realized": 2.27,
-          "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_68": 0.5,
+          "inside_95": 1.0
         },
         {
           "month": "2009-05",
@@ -10142,7 +10142,7 @@
           "pct_error": -11.4,
           "pred": 2.89,
           "realized": 2.63,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10152,7 +10152,7 @@
           "pred": 3.14,
           "realized": 2.55,
           "inside_68": 0.0,
-          "inside_95": 0.4
+          "inside_95": 1.0
         },
         {
           "month": "2009-07",
@@ -10160,7 +10160,7 @@
           "pct_error": -15.88,
           "pred": 3.02,
           "realized": 2.62,
-          "inside_68": 0.0,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -10170,7 +10170,7 @@
           "pred": 3.18,
           "realized": 2.57,
           "inside_68": 0.0,
-          "inside_95": 0.2
+          "inside_95": 1.0
         },
         {
           "month": "2009-09",
@@ -10178,8 +10178,8 @@
           "pct_error": -22.29,
           "pred": 3.12,
           "realized": 2.55,
-          "inside_68": 0.0,
-          "inside_95": 0.25
+          "inside_68": 0.25,
+          "inside_95": 1.0
         },
         {
           "month": "2009-10",
@@ -10188,7 +10188,7 @@
           "pred": 3.29,
           "realized": 2.66,
           "inside_68": 0.0,
-          "inside_95": 0.25
+          "inside_95": 1.0
         },
         {
           "month": "2009-11",
@@ -10197,7 +10197,7 @@
           "pred": 3.36,
           "realized": 2.61,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2009-12",
@@ -10205,8 +10205,8 @@
           "pct_error": -20.44,
           "pred": 3.25,
           "realized": 2.71,
-          "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_68": 0.25,
+          "inside_95": 1.0
         },
         {
           "month": "2010-01",
@@ -10215,7 +10215,7 @@
           "pred": 3.38,
           "realized": 2.64,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2010-02",
@@ -10223,7 +10223,7 @@
           "pct_error": -19.61,
           "pred": 3.28,
           "realized": 2.76,
-          "inside_68": 0.0,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -10233,7 +10233,7 @@
           "pred": 3.42,
           "realized": 2.84,
           "inside_68": 0.0,
-          "inside_95": 0.6
+          "inside_95": 1.0
         },
         {
           "month": "2010-04",
@@ -10242,7 +10242,7 @@
           "pred": 3.5,
           "realized": 2.86,
           "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_95": 1.0
         },
         {
           "month": "2010-05",
@@ -10250,8 +10250,8 @@
           "pct_error": -19.68,
           "pred": 3.29,
           "realized": 2.73,
-          "inside_68": 0.0,
-          "inside_95": 0.6
+          "inside_68": 0.4,
+          "inside_95": 1.0
         },
         {
           "month": "2010-06",
@@ -10259,8 +10259,8 @@
           "pct_error": -20.75,
           "pred": 3.3,
           "realized": 2.73,
-          "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_68": 0.25,
+          "inside_95": 1.0
         },
         {
           "month": "2010-07",
@@ -10269,7 +10269,7 @@
           "pred": 3.3,
           "realized": 2.74,
           "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_95": 1.0
         },
         {
           "month": "2010-08",
@@ -10278,7 +10278,7 @@
           "pred": 3.33,
           "realized": 2.7,
           "inside_68": 0.0,
-          "inside_95": 0.4
+          "inside_95": 1.0
         },
         {
           "month": "2010-09",
@@ -10286,7 +10286,7 @@
           "pct_error": -18.43,
           "pred": 3.3,
           "realized": 2.8,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -10296,7 +10296,7 @@
           "pred": 3.45,
           "realized": 2.86,
           "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_95": 1.0
         },
         {
           "month": "2010-11",
@@ -10304,8 +10304,8 @@
           "pct_error": -18.89,
           "pred": 3.51,
           "realized": 2.97,
-          "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_68": 0.4,
+          "inside_95": 1.0
         },
         {
           "month": "2010-12",
@@ -10322,7 +10322,7 @@
           "pct_error": -14.86,
           "pred": 3.65,
           "realized": 3.19,
-          "inside_68": 0.2,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -10358,7 +10358,7 @@
           "pct_error": -5.86,
           "pred": 3.93,
           "realized": 3.7,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10403,7 +10403,7 @@
           "pct_error": -4.71,
           "pred": 3.56,
           "realized": 3.4,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10412,7 +10412,7 @@
           "pct_error": -16.05,
           "pred": 3.81,
           "realized": 3.27,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -10421,7 +10421,7 @@
           "pct_error": -14.2,
           "pred": 3.83,
           "realized": 3.37,
-          "inside_68": 0.25,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -10430,7 +10430,7 @@
           "pct_error": -9.23,
           "pred": 3.86,
           "realized": 3.55,
-          "inside_68": 0.6,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10520,7 +10520,7 @@
           "pct_error": -7.36,
           "pred": 3.57,
           "realized": 3.31,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10592,7 +10592,7 @@
           "pct_error": -10.44,
           "pred": 3.97,
           "realized": 3.59,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10601,7 +10601,7 @@
           "pct_error": -13.13,
           "pred": 4.03,
           "realized": 3.56,
-          "inside_68": 0.0,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -10611,7 +10611,7 @@
           "pred": 4.02,
           "realized": 3.36,
           "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_95": 1.0
         },
         {
           "month": "2013-10",
@@ -10620,7 +10620,7 @@
           "pred": 3.9,
           "realized": 3.24,
           "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_95": 1.0
         },
         {
           "month": "2013-11",
@@ -10628,7 +10628,7 @@
           "pct_error": -14.65,
           "pred": 3.74,
           "realized": 3.26,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10637,7 +10637,7 @@
           "pct_error": -15.14,
           "pred": 3.81,
           "realized": 3.32,
-          "inside_68": 0.0,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -10646,7 +10646,7 @@
           "pct_error": -11.23,
           "pred": 3.73,
           "realized": 3.36,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10655,7 +10655,7 @@
           "pct_error": -10.45,
           "pred": 3.87,
           "realized": 3.52,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10664,7 +10664,7 @@
           "pct_error": -7.27,
           "pred": 3.9,
           "realized": 3.64,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10691,7 +10691,7 @@
           "pct_error": -9.91,
           "pred": 4.0,
           "realized": 3.63,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10700,7 +10700,7 @@
           "pct_error": -12.54,
           "pred": 3.94,
           "realized": 3.49,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10709,7 +10709,7 @@
           "pct_error": -10.71,
           "pred": 3.79,
           "realized": 3.42,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10718,8 +10718,8 @@
           "pct_error": -15.13,
           "pred": 3.72,
           "realized": 3.21,
-          "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_68": 0.6,
+          "inside_95": 1.0
         },
         {
           "month": "2014-10",
@@ -10728,7 +10728,7 @@
           "pred": 3.52,
           "realized": 2.91,
           "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_95": 1.0
         },
         {
           "month": "2014-11",
@@ -10737,7 +10737,7 @@
           "pred": 3.33,
           "realized": 2.6,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2014-12",
@@ -10746,7 +10746,7 @@
           "pred": 2.91,
           "realized": 2.15,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2015-01",
@@ -10754,8 +10754,8 @@
           "pct_error": -19.15,
           "pred": 2.62,
           "realized": 2.22,
-          "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_68": 0.75,
+          "inside_95": 1.0
         },
         {
           "month": "2015-02",
@@ -10763,7 +10763,7 @@
           "pct_error": -11.04,
           "pred": 2.71,
           "realized": 2.47,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10772,7 +10772,7 @@
           "pct_error": -6.9,
           "pred": 2.64,
           "realized": 2.46,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10817,7 +10817,7 @@
           "pct_error": -5.6,
           "pred": 2.54,
           "realized": 2.39,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10826,7 +10826,7 @@
           "pct_error": -11.97,
           "pred": 2.57,
           "realized": 2.29,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10835,8 +10835,8 @@
           "pct_error": -18.23,
           "pred": 2.6,
           "realized": 2.18,
-          "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_68": 0.75,
+          "inside_95": 1.0
         },
         {
           "month": "2015-11",
@@ -10845,7 +10845,7 @@
           "pred": 2.52,
           "realized": 2.04,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2015-12",
@@ -10853,8 +10853,8 @@
           "pct_error": -20.22,
           "pred": 2.36,
           "realized": 1.95,
-          "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_68": 0.75,
+          "inside_95": 1.0
         },
         {
           "month": "2016-01",
@@ -10863,7 +10863,7 @@
           "pred": 2.26,
           "realized": 1.76,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2016-02",
@@ -10871,8 +10871,8 @@
           "pct_error": -17.24,
           "pred": 2.24,
           "realized": 1.93,
-          "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_68": 0.8,
+          "inside_95": 1.0
         },
         {
           "month": "2016-03",
@@ -10880,7 +10880,7 @@
           "pct_error": -15.32,
           "pred": 2.41,
           "realized": 2.11,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10889,7 +10889,7 @@
           "pct_error": -8.85,
           "pred": 2.44,
           "realized": 2.25,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10898,7 +10898,7 @@
           "pct_error": -10.76,
           "pred": 2.61,
           "realized": 2.36,
-          "inside_68": 0.6,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10907,7 +10907,7 @@
           "pct_error": -17.41,
           "pred": 2.65,
           "realized": 2.24,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10916,8 +10916,8 @@
           "pct_error": -18.52,
           "pred": 2.58,
           "realized": 2.16,
-          "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_68": 0.75,
+          "inside_95": 1.0
         },
         {
           "month": "2016-08",
@@ -10925,7 +10925,7 @@
           "pct_error": -15.28,
           "pred": 2.56,
           "realized": 2.22,
-          "inside_68": 0.2,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10934,7 +10934,7 @@
           "pct_error": -14.03,
           "pred": 2.57,
           "realized": 2.25,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10943,8 +10943,8 @@
           "pct_error": -21.08,
           "pred": 2.67,
           "realized": 2.19,
-          "inside_68": 0.0,
-          "inside_95": 0.4
+          "inside_68": 0.2,
+          "inside_95": 1.0
         },
         {
           "month": "2016-11",
@@ -10952,7 +10952,7 @@
           "pct_error": -15.03,
           "pred": 2.58,
           "realized": 2.25,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10961,7 +10961,7 @@
           "pct_error": -16.86,
           "pred": 2.74,
           "realized": 2.36,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10970,7 +10970,7 @@
           "pct_error": -19.0,
           "pred": 2.75,
           "realized": 2.3,
-          "inside_68": 0.0,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -10979,7 +10979,7 @@
           "pct_error": -19.07,
           "pred": 2.76,
           "realized": 2.33,
-          "inside_68": 0.0,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -10988,7 +10988,7 @@
           "pct_error": -10.86,
           "pred": 2.67,
           "realized": 2.42,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -10997,7 +10997,7 @@
           "pct_error": -13.56,
           "pred": 2.72,
           "realized": 2.39,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11006,7 +11006,7 @@
           "pct_error": -12.57,
           "pred": 2.66,
           "realized": 2.36,
-          "inside_68": 0.2,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11015,7 +11015,7 @@
           "pct_error": -12.12,
           "pred": 2.57,
           "realized": 2.29,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11024,7 +11024,7 @@
           "pct_error": -10.16,
           "pred": 2.61,
           "realized": 2.37,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11042,7 +11042,7 @@
           "pct_error": -6.11,
           "pred": 2.67,
           "realized": 2.51,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11060,7 +11060,7 @@
           "pct_error": -14.69,
           "pred": 2.85,
           "realized": 2.48,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11069,7 +11069,7 @@
           "pct_error": -13.25,
           "pred": 2.87,
           "realized": 2.54,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11078,7 +11078,7 @@
           "pct_error": -15.84,
           "pred": 3.0,
           "realized": 2.59,
-          "inside_68": 0.0,
+          "inside_68": 0.8,
           "inside_95": 1.0
         },
         {
@@ -11087,7 +11087,7 @@
           "pct_error": -14.88,
           "pred": 2.98,
           "realized": 2.59,
-          "inside_68": 0.0,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -11096,7 +11096,7 @@
           "pct_error": -9.91,
           "pred": 2.99,
           "realized": 2.73,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11114,7 +11114,7 @@
           "pct_error": -9.68,
           "pred": 3.17,
           "realized": 2.89,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11123,7 +11123,7 @@
           "pct_error": -7.66,
           "pred": 3.07,
           "realized": 2.85,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11132,7 +11132,7 @@
           "pct_error": -11.99,
           "pred": 3.18,
           "realized": 2.84,
-          "inside_68": 0.2,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11141,7 +11141,7 @@
           "pct_error": -9.69,
           "pred": 3.11,
           "realized": 2.84,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11150,7 +11150,7 @@
           "pct_error": -9.83,
           "pred": 3.15,
           "realized": 2.87,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11160,7 +11160,7 @@
           "pred": 3.2,
           "realized": 2.68,
           "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_95": 1.0
         },
         {
           "month": "2018-11",
@@ -11168,8 +11168,8 @@
           "pct_error": -18.14,
           "pred": 2.87,
           "realized": 2.39,
-          "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_68": 0.25,
+          "inside_95": 1.0
         },
         {
           "month": "2018-12",
@@ -11177,8 +11177,8 @@
           "pct_error": -16.58,
           "pred": 2.65,
           "realized": 2.25,
-          "inside_68": 0.0,
-          "inside_95": 0.6
+          "inside_68": 0.6,
+          "inside_95": 1.0
         },
         {
           "month": "2019-01",
@@ -11186,7 +11186,7 @@
           "pct_error": -17.98,
           "pred": 2.71,
           "realized": 2.31,
-          "inside_68": 0.0,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -11195,7 +11195,7 @@
           "pct_error": -12.02,
           "pred": 2.79,
           "realized": 2.52,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11222,7 +11222,7 @@
           "pct_error": -8.3,
           "pred": 2.95,
           "realized": 2.72,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11240,7 +11240,7 @@
           "pct_error": -8.48,
           "pred": 2.87,
           "realized": 2.64,
-          "inside_68": 0.6,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11249,7 +11249,7 @@
           "pct_error": -8.41,
           "pred": 2.8,
           "realized": 2.58,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11258,7 +11258,7 @@
           "pct_error": -9.21,
           "pred": 2.87,
           "realized": 2.63,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11276,7 +11276,7 @@
           "pct_error": -11.76,
           "pred": 2.86,
           "realized": 2.55,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11285,7 +11285,7 @@
           "pct_error": -14.02,
           "pred": 2.91,
           "realized": 2.55,
-          "inside_68": 0.2,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11294,8 +11294,8 @@
           "pct_error": -17.21,
           "pred": 2.88,
           "realized": 2.44,
-          "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_68": 0.25,
+          "inside_95": 1.0
         },
         {
           "month": "2020-02",
@@ -11303,8 +11303,8 @@
           "pct_error": -16.86,
           "pred": 2.7,
           "realized": 2.29,
-          "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_68": 0.5,
+          "inside_95": 1.0
         },
         {
           "month": "2020-03",
@@ -11312,8 +11312,8 @@
           "pct_error": -14.72,
           "pred": 2.21,
           "realized": 1.87,
-          "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_68": 0.8,
+          "inside_95": 1.0
         },
         {
           "month": "2020-04",
@@ -11321,7 +11321,7 @@
           "pct_error": 13.31,
           "pred": 1.63,
           "realized": 1.87,
-          "inside_68": 0.5,
+          "inside_68": 0.75,
           "inside_95": 0.75
         },
         {
@@ -11339,7 +11339,7 @@
           "pct_error": -10.62,
           "pred": 2.4,
           "realized": 2.18,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11348,7 +11348,7 @@
           "pct_error": -13.41,
           "pred": 2.47,
           "realized": 2.17,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11357,7 +11357,7 @@
           "pct_error": -14.14,
           "pred": 2.5,
           "realized": 2.19,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11366,7 +11366,7 @@
           "pct_error": -12.39,
           "pred": 2.43,
           "realized": 2.16,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11375,7 +11375,7 @@
           "pct_error": -15.28,
           "pred": 2.43,
           "realized": 2.11,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11384,7 +11384,7 @@
           "pct_error": -14.18,
           "pred": 2.48,
           "realized": 2.18,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11393,7 +11393,7 @@
           "pct_error": -12.77,
           "pred": 2.61,
           "realized": 2.33,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11402,7 +11402,7 @@
           "pct_error": -9.18,
           "pred": 2.71,
           "realized": 2.5,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11519,7 +11519,7 @@
           "pct_error": 14.33,
           "pred": 3.72,
           "realized": 4.22,
-          "inside_68": 0.0,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -11537,7 +11537,7 @@
           "pct_error": 12.13,
           "pred": 3.9,
           "realized": 4.4,
-          "inside_68": 0.25,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -11547,7 +11547,7 @@
           "pred": 4.1,
           "realized": 4.87,
           "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_95": 1.0
         },
         {
           "month": "2022-06",
@@ -11555,7 +11555,7 @@
           "pct_error": 6.81,
           "pred": 4.22,
           "realized": 4.56,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11582,7 +11582,7 @@
           "pct_error": 9.0,
           "pred": 3.5,
           "realized": 3.83,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11636,7 +11636,7 @@
           "pct_error": 10.17,
           "pred": 3.25,
           "realized": 3.6,
-          "inside_68": 0.5,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -11654,7 +11654,7 @@
           "pct_error": 9.59,
           "pred": 3.23,
           "realized": 3.57,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11663,7 +11663,7 @@
           "pct_error": 11.02,
           "pred": 3.16,
           "realized": 3.56,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11672,7 +11672,7 @@
           "pct_error": 14.84,
           "pred": 3.29,
           "realized": 3.82,
-          "inside_68": 0.0,
+          "inside_68": 0.4,
           "inside_95": 1.0
         },
         {
@@ -11681,7 +11681,7 @@
           "pct_error": 10.56,
           "pred": 3.43,
           "realized": 3.84,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11941,12 +11941,12 @@
       "hit_rate": 0.6,
       "within_10pct": 0.42,
       "within_20pct": 0.77,
-      "coverage_68": 0.59,
-      "coverage_95": 0.9,
-      "pct_above_upper1": 0.02,
-      "pct_below_lower1": 0.4,
+      "coverage_68": 0.75,
+      "coverage_95": 0.98,
+      "pct_above_upper1": 0.01,
+      "pct_below_lower1": 0.24,
       "pct_above_upper2": 0.0,
-      "pct_below_lower2": 0.1,
+      "pct_below_lower2": 0.02,
       "monthly": [
         {
           "month": "2004-01",
@@ -11955,7 +11955,7 @@
           "pred": 2.3,
           "realized": 1.73,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2004-02",
@@ -11972,7 +11972,7 @@
           "pct_error": -24.1,
           "pred": 2.35,
           "realized": 1.94,
-          "inside_68": 0.2,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -11981,7 +11981,7 @@
           "pct_error": -19.57,
           "pred": 2.35,
           "realized": 2.0,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -11990,7 +11990,7 @@
           "pct_error": -26.69,
           "pred": 2.44,
           "realized": 1.91,
-          "inside_68": 0.0,
+          "inside_68": 0.2,
           "inside_95": 1.0
         },
         {
@@ -12009,7 +12009,7 @@
           "pred": 2.45,
           "realized": 1.86,
           "inside_68": 0.0,
-          "inside_95": 0.25
+          "inside_95": 1.0
         },
         {
           "month": "2004-08",
@@ -12017,8 +12017,8 @@
           "pct_error": -30.03,
           "pred": 2.55,
           "realized": 1.98,
-          "inside_68": 0.0,
-          "inside_95": 0.6
+          "inside_68": 0.2,
+          "inside_95": 1.0
         },
         {
           "month": "2004-09",
@@ -12027,7 +12027,7 @@
           "pred": 2.58,
           "realized": 1.99,
           "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_95": 1.0
         },
         {
           "month": "2004-10",
@@ -12036,7 +12036,7 @@
           "pred": 2.74,
           "realized": 1.88,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2004-11",
@@ -12045,7 +12045,7 @@
           "pred": 2.66,
           "realized": 1.81,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2004-12",
@@ -12054,7 +12054,7 @@
           "pred": 2.52,
           "realized": 1.91,
           "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_95": 1.0
         },
         {
           "month": "2005-01",
@@ -12062,7 +12062,7 @@
           "pct_error": -30.58,
           "pred": 2.61,
           "realized": 2.05,
-          "inside_68": 0.0,
+          "inside_68": 0.2,
           "inside_95": 1.0
         },
         {
@@ -12071,7 +12071,7 @@
           "pct_error": -21.68,
           "pred": 2.66,
           "realized": 2.24,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12081,7 +12081,7 @@
           "pred": 2.82,
           "realized": 2.18,
           "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_95": 1.0
         },
         {
           "month": "2005-04",
@@ -12090,7 +12090,7 @@
           "pred": 2.81,
           "realized": 2.13,
           "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_95": 1.0
         },
         {
           "month": "2005-05",
@@ -12098,7 +12098,7 @@
           "pct_error": -20.82,
           "pred": 2.73,
           "realized": 2.27,
-          "inside_68": 0.0,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -12107,7 +12107,7 @@
           "pct_error": -20.02,
           "pred": 2.89,
           "realized": 2.46,
-          "inside_68": 0.25,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -12125,7 +12125,7 @@
           "pct_error": -10.86,
           "pred": 3.06,
           "realized": 2.78,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12135,7 +12135,7 @@
           "pred": 3.08,
           "realized": 2.34,
           "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_95": 1.0
         },
         {
           "month": "2005-10",
@@ -12144,7 +12144,7 @@
           "pred": 2.98,
           "realized": 2.18,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2005-11",
@@ -12153,7 +12153,7 @@
           "pred": 2.9,
           "realized": 2.31,
           "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_95": 1.0
         },
         {
           "month": "2005-12",
@@ -12171,7 +12171,7 @@
           "pred": 3.06,
           "realized": 2.39,
           "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_95": 1.0
         },
         {
           "month": "2006-02",
@@ -12179,7 +12179,7 @@
           "pct_error": -10.97,
           "pred": 2.99,
           "realized": 2.74,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12206,7 +12206,7 @@
           "pct_error": -8.62,
           "pred": 3.2,
           "realized": 2.95,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12224,8 +12224,8 @@
           "pct_error": -22.82,
           "pred": 3.29,
           "realized": 2.61,
-          "inside_68": 0.0,
-          "inside_95": 0.6
+          "inside_68": 0.4,
+          "inside_95": 1.0
         },
         {
           "month": "2006-08",
@@ -12234,7 +12234,7 @@
           "pred": 3.27,
           "realized": 2.25,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2006-09",
@@ -12243,7 +12243,7 @@
           "pred": 3.06,
           "realized": 2.22,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2006-10",
@@ -12252,7 +12252,7 @@
           "pred": 2.95,
           "realized": 2.3,
           "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_95": 1.0
         },
         {
           "month": "2006-11",
@@ -12261,7 +12261,7 @@
           "pred": 2.95,
           "realized": 2.26,
           "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_95": 1.0
         },
         {
           "month": "2006-12",
@@ -12270,7 +12270,7 @@
           "pred": 3.0,
           "realized": 2.22,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2007-01",
@@ -12332,7 +12332,7 @@
           "pct_error": -15.56,
           "pred": 3.25,
           "realized": 2.79,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12341,7 +12341,7 @@
           "pct_error": -14.67,
           "pred": 3.19,
           "realized": 2.79,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12359,7 +12359,7 @@
           "pct_error": -16.85,
           "pred": 3.5,
           "realized": 3.03,
-          "inside_68": 0.4,
+          "inside_68": 0.8,
           "inside_95": 1.0
         },
         {
@@ -12386,7 +12386,7 @@
           "pct_error": -15.11,
           "pred": 3.69,
           "realized": 3.23,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12431,8 +12431,8 @@
           "pct_error": -22.12,
           "pred": 4.71,
           "realized": 3.81,
-          "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_68": 0.2,
+          "inside_95": 1.0
         },
         {
           "month": "2008-07",
@@ -12441,7 +12441,7 @@
           "pred": 4.74,
           "realized": 3.72,
           "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_95": 1.0
         },
         {
           "month": "2008-08",
@@ -12450,7 +12450,7 @@
           "pred": 4.26,
           "realized": 3.3,
           "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_95": 0.75
         },
         {
           "month": "2008-09",
@@ -12477,7 +12477,7 @@
           "pred": 2.92,
           "realized": 1.73,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 0.25
         },
         {
           "month": "2008-12",
@@ -12486,7 +12486,7 @@
           "pred": 2.59,
           "realized": 1.91,
           "inside_68": 0.0,
-          "inside_95": 0.2
+          "inside_95": 1.0
         },
         {
           "month": "2009-01",
@@ -12495,7 +12495,7 @@
           "pred": 2.61,
           "realized": 1.94,
           "inside_68": 0.0,
-          "inside_95": 0.25
+          "inside_95": 1.0
         },
         {
           "month": "2009-02",
@@ -12503,7 +12503,7 @@
           "pct_error": -24.75,
           "pred": 2.52,
           "realized": 2.05,
-          "inside_68": 0.0,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -12512,7 +12512,7 @@
           "pct_error": -22.37,
           "pred": 2.66,
           "realized": 2.22,
-          "inside_68": 0.2,
+          "inside_68": 0.8,
           "inside_95": 1.0
         },
         {
@@ -12530,7 +12530,7 @@
           "pct_error": -15.07,
           "pred": 2.91,
           "realized": 2.56,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12539,7 +12539,7 @@
           "pct_error": -21.52,
           "pred": 3.16,
           "realized": 2.59,
-          "inside_68": 0.0,
+          "inside_68": 0.4,
           "inside_95": 1.0
         },
         {
@@ -12548,7 +12548,7 @@
           "pct_error": -18.42,
           "pred": 3.05,
           "realized": 2.58,
-          "inside_68": 0.25,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -12557,7 +12557,7 @@
           "pct_error": -25.59,
           "pred": 3.21,
           "realized": 2.54,
-          "inside_68": 0.0,
+          "inside_68": 0.2,
           "inside_95": 1.0
         },
         {
@@ -12566,7 +12566,7 @@
           "pct_error": -18.57,
           "pred": 3.13,
           "realized": 2.66,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12602,7 +12602,7 @@
           "pct_error": -23.19,
           "pred": 3.39,
           "realized": 2.76,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -12611,7 +12611,7 @@
           "pct_error": -17.25,
           "pred": 3.29,
           "realized": 2.84,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12620,7 +12620,7 @@
           "pct_error": -20.4,
           "pred": 3.43,
           "realized": 2.86,
-          "inside_68": 0.0,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -12638,8 +12638,8 @@
           "pct_error": -21.63,
           "pred": 3.35,
           "realized": 2.73,
-          "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_68": 0.6,
+          "inside_95": 1.0
         },
         {
           "month": "2010-06",
@@ -12647,7 +12647,7 @@
           "pct_error": -21.12,
           "pred": 3.32,
           "realized": 2.74,
-          "inside_68": 0.0,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -12656,7 +12656,7 @@
           "pct_error": -22.12,
           "pred": 3.31,
           "realized": 2.7,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -12665,7 +12665,7 @@
           "pct_error": -20.74,
           "pred": 3.35,
           "realized": 2.78,
-          "inside_68": 0.0,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -12674,7 +12674,7 @@
           "pct_error": -17.23,
           "pred": 3.33,
           "realized": 2.86,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12683,7 +12683,7 @@
           "pct_error": -18.87,
           "pred": 3.47,
           "realized": 2.94,
-          "inside_68": 0.0,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -12692,7 +12692,7 @@
           "pct_error": -15.2,
           "pred": 3.52,
           "realized": 3.08,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12701,7 +12701,7 @@
           "pct_error": -16.6,
           "pred": 3.64,
           "realized": 3.14,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12737,7 +12737,7 @@
           "pct_error": -9.93,
           "pred": 4.11,
           "realized": 3.74,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12746,7 +12746,7 @@
           "pct_error": -7.85,
           "pred": 3.94,
           "realized": 3.64,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12845,7 +12845,7 @@
           "pct_error": -10.53,
           "pred": 3.97,
           "realized": 3.56,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -12989,7 +12989,7 @@
           "pct_error": -17.9,
           "pred": 4.02,
           "realized": 3.38,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -13007,7 +13007,7 @@
           "pct_error": -18.99,
           "pred": 3.9,
           "realized": 3.26,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -13025,7 +13025,7 @@
           "pct_error": -14.44,
           "pred": 3.82,
           "realized": 3.34,
-          "inside_68": 0.6,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13079,7 +13079,7 @@
           "pct_error": -13.06,
           "pred": 3.98,
           "realized": 3.5,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13088,7 +13088,7 @@
           "pct_error": -13.74,
           "pred": 3.92,
           "realized": 3.42,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13097,7 +13097,7 @@
           "pct_error": -14.87,
           "pred": 3.76,
           "realized": 3.25,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13107,7 +13107,7 @@
           "pred": 3.7,
           "realized": 2.94,
           "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_95": 1.0
         },
         {
           "month": "2014-10",
@@ -13116,7 +13116,7 @@
           "pred": 3.5,
           "realized": 2.6,
           "inside_68": 0.0,
-          "inside_95": 0.25
+          "inside_95": 1.0
         },
         {
           "month": "2014-11",
@@ -13125,7 +13125,7 @@
           "pred": 3.33,
           "realized": 2.18,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 0.25
         },
         {
           "month": "2014-12",
@@ -13133,8 +13133,8 @@
           "pct_error": -28.31,
           "pred": 2.91,
           "realized": 2.18,
-          "inside_68": 0.0,
-          "inside_95": 0.6
+          "inside_68": 0.2,
+          "inside_95": 0.8
         },
         {
           "month": "2015-01",
@@ -13151,7 +13151,7 @@
           "pct_error": -13.49,
           "pred": 2.74,
           "realized": 2.44,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13205,7 +13205,7 @@
           "pct_error": -9.86,
           "pred": 2.55,
           "realized": 2.3,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13214,7 +13214,7 @@
           "pct_error": -16.95,
           "pred": 2.58,
           "realized": 2.18,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13224,7 +13224,7 @@
           "pred": 2.61,
           "realized": 2.04,
           "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_95": 1.0
         },
         {
           "month": "2015-11",
@@ -13233,7 +13233,7 @@
           "pred": 2.55,
           "realized": 1.97,
           "inside_68": 0.0,
-          "inside_95": 0.6
+          "inside_95": 1.0
         },
         {
           "month": "2015-12",
@@ -13242,7 +13242,7 @@
           "pred": 2.39,
           "realized": 1.76,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2016-01",
@@ -13250,8 +13250,8 @@
           "pct_error": -19.58,
           "pred": 2.28,
           "realized": 1.9,
-          "inside_68": 0.5,
-          "inside_95": 0.75
+          "inside_68": 0.75,
+          "inside_95": 1.0
         },
         {
           "month": "2016-02",
@@ -13286,7 +13286,7 @@
           "pct_error": -15.9,
           "pred": 2.62,
           "realized": 2.26,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13295,7 +13295,7 @@
           "pct_error": -21.21,
           "pred": 2.66,
           "realized": 2.16,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -13304,7 +13304,7 @@
           "pct_error": -16.66,
           "pred": 2.6,
           "realized": 2.22,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13313,7 +13313,7 @@
           "pct_error": -14.79,
           "pred": 2.57,
           "realized": 2.25,
-          "inside_68": 0.6,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13322,7 +13322,7 @@
           "pct_error": -17.06,
           "pred": 2.58,
           "realized": 2.2,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13331,7 +13331,7 @@
           "pct_error": -19.76,
           "pred": 2.68,
           "realized": 2.23,
-          "inside_68": 0.2,
+          "inside_68": 0.8,
           "inside_95": 1.0
         },
         {
@@ -13349,7 +13349,7 @@
           "pct_error": -20.67,
           "pred": 2.77,
           "realized": 2.3,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13358,7 +13358,7 @@
           "pct_error": -18.94,
           "pred": 2.77,
           "realized": 2.32,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13367,7 +13367,7 @@
           "pct_error": -15.55,
           "pred": 2.78,
           "realized": 2.42,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13376,7 +13376,7 @@
           "pct_error": -12.73,
           "pred": 2.68,
           "realized": 2.39,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13385,7 +13385,7 @@
           "pct_error": -14.45,
           "pred": 2.73,
           "realized": 2.38,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13394,7 +13394,7 @@
           "pct_error": -15.9,
           "pred": 2.67,
           "realized": 2.29,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13466,7 +13466,7 @@
           "pct_error": -16.18,
           "pred": 3.0,
           "realized": 2.58,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13538,7 +13538,7 @@
           "pct_error": -15.12,
           "pred": 3.14,
           "realized": 2.72,
-          "inside_68": 0.5,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -13548,7 +13548,7 @@
           "pred": 3.2,
           "realized": 2.42,
           "inside_68": 0.0,
-          "inside_95": 0.2
+          "inside_95": 1.0
         },
         {
           "month": "2018-11",
@@ -13556,8 +13556,8 @@
           "pct_error": -23.58,
           "pred": 2.88,
           "realized": 2.25,
-          "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_68": 0.25,
+          "inside_95": 1.0
         },
         {
           "month": "2018-12",
@@ -13565,7 +13565,7 @@
           "pct_error": -14.79,
           "pred": 2.65,
           "realized": 2.3,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13673,7 +13673,7 @@
           "pct_error": -17.73,
           "pred": 2.91,
           "realized": 2.45,
-          "inside_68": 0.2,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13682,7 +13682,7 @@
           "pct_error": -23.14,
           "pred": 2.88,
           "realized": 2.29,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -13692,7 +13692,7 @@
           "pred": 2.71,
           "realized": 1.9,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2020-03",
@@ -13700,8 +13700,8 @@
           "pct_error": -16.9,
           "pred": 2.24,
           "realized": 1.85,
-          "inside_68": 0.4,
-          "inside_95": 0.8
+          "inside_68": 0.8,
+          "inside_95": 1.0
         },
         {
           "month": "2020-04",
@@ -13736,7 +13736,7 @@
           "pct_error": -12.51,
           "pred": 2.47,
           "realized": 2.2,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13745,7 +13745,7 @@
           "pct_error": -15.84,
           "pred": 2.51,
           "realized": 2.16,
-          "inside_68": 0.2,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13754,7 +13754,7 @@
           "pct_error": -15.13,
           "pred": 2.44,
           "realized": 2.11,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13763,7 +13763,7 @@
           "pct_error": -12.84,
           "pred": 2.44,
           "realized": 2.16,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13907,7 +13907,7 @@
           "pct_error": 12.25,
           "pred": 3.68,
           "realized": 4.11,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -13916,7 +13916,7 @@
           "pct_error": 8.03,
           "pred": 4.06,
           "realized": 4.4,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14051,7 +14051,7 @@
           "pct_error": 18.44,
           "pred": 3.17,
           "realized": 3.83,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -14060,7 +14060,7 @@
           "pct_error": 15.17,
           "pred": 3.29,
           "realized": 3.83,
-          "inside_68": 0.2,
+          "inside_68": 0.8,
           "inside_95": 1.0
         },
         {
@@ -14087,7 +14087,7 @@
           "pct_error": -9.84,
           "pred": 3.51,
           "realized": 3.15,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14320,12 +14320,12 @@
       "hit_rate": 0.61,
       "within_10pct": 0.42,
       "within_20pct": 0.75,
-      "coverage_68": 0.67,
-      "coverage_95": 0.93,
+      "coverage_68": 0.79,
+      "coverage_95": 0.98,
       "pct_above_upper1": 0.02,
-      "pct_below_lower1": 0.31,
+      "pct_below_lower1": 0.19,
       "pct_above_upper2": 0.0,
-      "pct_below_lower2": 0.07,
+      "pct_below_lower2": 0.02,
       "monthly": [
         {
           "month": "2004-01",
@@ -14333,7 +14333,7 @@
           "pct_error": -31.26,
           "pred": 2.29,
           "realized": 1.8,
-          "inside_68": 0.0,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -14342,7 +14342,7 @@
           "pct_error": -18.61,
           "pred": 2.27,
           "realized": 1.97,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14351,7 +14351,7 @@
           "pct_error": -20.1,
           "pred": 2.33,
           "realized": 1.99,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14360,7 +14360,7 @@
           "pct_error": -24.07,
           "pred": 2.34,
           "realized": 1.91,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14369,7 +14369,7 @@
           "pct_error": -27.87,
           "pred": 2.43,
           "realized": 1.88,
-          "inside_68": 0.0,
+          "inside_68": 0.2,
           "inside_95": 1.0
         },
         {
@@ -14378,7 +14378,7 @@
           "pct_error": -26.37,
           "pred": 2.39,
           "realized": 1.87,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -14387,7 +14387,7 @@
           "pct_error": -23.06,
           "pred": 2.44,
           "realized": 2.0,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14396,7 +14396,7 @@
           "pct_error": -29.68,
           "pred": 2.54,
           "realized": 1.98,
-          "inside_68": 0.0,
+          "inside_68": 0.2,
           "inside_95": 1.0
         },
         {
@@ -14406,7 +14406,7 @@
           "pred": 2.57,
           "realized": 1.84,
           "inside_68": 0.0,
-          "inside_95": 0.5
+          "inside_95": 1.0
         },
         {
           "month": "2004-10",
@@ -14415,7 +14415,7 @@
           "pred": 2.73,
           "realized": 1.81,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2004-11",
@@ -14424,7 +14424,7 @@
           "pred": 2.66,
           "realized": 1.91,
           "inside_68": 0.0,
-          "inside_95": 0.4
+          "inside_95": 1.0
         },
         {
           "month": "2004-12",
@@ -14432,7 +14432,7 @@
           "pct_error": -24.03,
           "pred": 2.52,
           "realized": 2.08,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14441,7 +14441,7 @@
           "pct_error": -19.8,
           "pred": 2.6,
           "realized": 2.24,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14450,7 +14450,7 @@
           "pct_error": -27.24,
           "pred": 2.66,
           "realized": 2.14,
-          "inside_68": 0.0,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -14468,7 +14468,7 @@
           "pct_error": -23.85,
           "pred": 2.82,
           "realized": 2.29,
-          "inside_68": 0.0,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -14477,7 +14477,7 @@
           "pct_error": -11.58,
           "pred": 2.74,
           "realized": 2.49,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14504,8 +14504,8 @@
           "pct_error": -30.67,
           "pred": 3.07,
           "realized": 2.3,
-          "inside_68": 0.0,
-          "inside_95": 0.6
+          "inside_68": 0.2,
+          "inside_95": 1.0
         },
         {
           "month": "2005-09",
@@ -14514,7 +14514,7 @@
           "pred": 3.09,
           "realized": 2.19,
           "inside_68": 0.0,
-          "inside_95": 0.25
+          "inside_95": 1.0
         },
         {
           "month": "2005-10",
@@ -14594,7 +14594,7 @@
           "pct_error": -23.0,
           "pred": 3.22,
           "realized": 2.55,
-          "inside_68": 0.0,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -14604,7 +14604,7 @@
           "pred": 3.31,
           "realized": 2.24,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2006-08",
@@ -14613,7 +14613,7 @@
           "pred": 3.29,
           "realized": 2.23,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2006-09",
@@ -14648,7 +14648,7 @@
           "pct_error": -19.81,
           "pred": 3.02,
           "realized": 2.56,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14747,7 +14747,7 @@
           "pct_error": -22.36,
           "pred": 3.72,
           "realized": 3.03,
-          "inside_68": 0.0,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -14801,7 +14801,7 @@
           "pct_error": -18.46,
           "pred": 4.48,
           "realized": 3.78,
-          "inside_68": 0.5,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -14820,7 +14820,7 @@
           "pred": 4.75,
           "realized": 3.05,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 0.25
         },
         {
           "month": "2008-08",
@@ -14856,7 +14856,7 @@
           "pred": 2.94,
           "realized": 1.92,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 0.75
         },
         {
           "month": "2008-12",
@@ -14864,8 +14864,8 @@
           "pct_error": -40.15,
           "pred": 2.64,
           "realized": 1.96,
-          "inside_68": 0.0,
-          "inside_95": 0.6
+          "inside_68": 0.2,
+          "inside_95": 1.0
         },
         {
           "month": "2009-01",
@@ -14882,7 +14882,7 @@
           "pct_error": -16.47,
           "pred": 2.58,
           "realized": 2.27,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14918,7 +14918,7 @@
           "pct_error": -23.27,
           "pred": 3.18,
           "realized": 2.57,
-          "inside_68": 0.0,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -14927,7 +14927,7 @@
           "pct_error": -20.76,
           "pred": 3.08,
           "realized": 2.55,
-          "inside_68": 0.0,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -14936,7 +14936,7 @@
           "pct_error": -22.33,
           "pred": 3.24,
           "realized": 2.65,
-          "inside_68": 0.0,
+          "inside_68": 0.8,
           "inside_95": 1.0
         },
         {
@@ -14945,7 +14945,7 @@
           "pct_error": -20.97,
           "pred": 3.14,
           "realized": 2.61,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14954,7 +14954,7 @@
           "pct_error": -23.41,
           "pred": 3.31,
           "realized": 2.71,
-          "inside_68": 0.0,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -14972,7 +14972,7 @@
           "pct_error": -20.13,
           "pred": 3.31,
           "realized": 2.79,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14981,7 +14981,7 @@
           "pct_error": -20.61,
           "pred": 3.41,
           "realized": 2.85,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -14990,7 +14990,7 @@
           "pct_error": -16.66,
           "pred": 3.3,
           "realized": 2.86,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15017,7 +15017,7 @@
           "pct_error": -23.0,
           "pred": 3.38,
           "realized": 2.73,
-          "inside_68": 0.0,
+          "inside_68": 0.4,
           "inside_95": 1.0
         },
         {
@@ -15026,7 +15026,7 @@
           "pct_error": -23.21,
           "pred": 3.34,
           "realized": 2.71,
-          "inside_68": 0.0,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -15035,7 +15035,7 @@
           "pct_error": -18.89,
           "pred": 3.32,
           "realized": 2.8,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15044,7 +15044,7 @@
           "pct_error": -18.5,
           "pred": 3.36,
           "realized": 2.86,
-          "inside_68": 0.6,
+          "inside_68": 0.8,
           "inside_95": 1.0
         },
         {
@@ -15215,7 +15215,7 @@
           "pct_error": -13.66,
           "pred": 4.07,
           "realized": 3.54,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15224,7 +15224,7 @@
           "pct_error": -13.99,
           "pred": 3.99,
           "realized": 3.44,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15359,7 +15359,7 @@
           "pct_error": -15.85,
           "pred": 3.93,
           "realized": 3.36,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15368,7 +15368,7 @@
           "pct_error": -20.87,
           "pred": 3.99,
           "realized": 3.24,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -15377,7 +15377,7 @@
           "pct_error": -19.63,
           "pred": 3.97,
           "realized": 3.28,
-          "inside_68": 0.2,
+          "inside_68": 0.4,
           "inside_95": 1.0
         },
         {
@@ -15386,7 +15386,7 @@
           "pct_error": -17.35,
           "pred": 3.89,
           "realized": 3.31,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15458,7 +15458,7 @@
           "pct_error": -14.9,
           "pred": 3.96,
           "realized": 3.41,
-          "inside_68": 0.6,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15467,7 +15467,7 @@
           "pct_error": -20.1,
           "pred": 3.9,
           "realized": 3.17,
-          "inside_68": 0.0,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -15486,7 +15486,7 @@
           "pred": 3.69,
           "realized": 2.54,
           "inside_68": 0.0,
-          "inside_95": 0.4
+          "inside_95": 0.8
         },
         {
           "month": "2014-10",
@@ -15504,7 +15504,7 @@
           "pred": 3.33,
           "realized": 2.22,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 0.75
         },
         {
           "month": "2014-12",
@@ -15512,7 +15512,7 @@
           "pct_error": -17.82,
           "pred": 2.92,
           "realized": 2.46,
-          "inside_68": 0.6,
+          "inside_68": 0.8,
           "inside_95": 1.0
         },
         {
@@ -15566,7 +15566,7 @@
           "pct_error": -18.8,
           "pred": 2.92,
           "realized": 2.39,
-          "inside_68": 0.2,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -15575,7 +15575,7 @@
           "pct_error": -15.33,
           "pred": 2.72,
           "realized": 2.29,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15593,7 +15593,7 @@
           "pct_error": -23.6,
           "pred": 2.6,
           "realized": 2.04,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -15603,7 +15603,7 @@
           "pred": 2.63,
           "realized": 1.95,
           "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_95": 1.0
         },
         {
           "month": "2015-11",
@@ -15612,7 +15612,7 @@
           "pred": 2.57,
           "realized": 1.76,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2015-12",
@@ -15620,7 +15620,7 @@
           "pct_error": -21.92,
           "pred": 2.42,
           "realized": 1.97,
-          "inside_68": 0.25,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -15665,7 +15665,7 @@
           "pct_error": -19.9,
           "pred": 2.63,
           "realized": 2.18,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15674,7 +15674,7 @@
           "pct_error": -19.37,
           "pred": 2.68,
           "realized": 2.22,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15683,7 +15683,7 @@
           "pct_error": -15.91,
           "pred": 2.61,
           "realized": 2.25,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15692,7 +15692,7 @@
           "pct_error": -18.15,
           "pred": 2.59,
           "realized": 2.19,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15728,7 +15728,7 @@
           "pct_error": -20.41,
           "pred": 2.79,
           "realized": 2.33,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15737,7 +15737,7 @@
           "pct_error": -15.7,
           "pred": 2.78,
           "realized": 2.42,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15764,7 +15764,7 @@
           "pct_error": -18.5,
           "pred": 2.73,
           "realized": 2.29,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15908,7 +15908,7 @@
           "pct_error": -15.4,
           "pred": 3.08,
           "realized": 2.65,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -15927,7 +15927,7 @@
           "pred": 3.2,
           "realized": 2.25,
           "inside_68": 0.0,
-          "inside_95": 0.2
+          "inside_95": 1.0
         },
         {
           "month": "2018-11",
@@ -15935,7 +15935,7 @@
           "pct_error": -21.42,
           "pred": 2.88,
           "realized": 2.31,
-          "inside_68": 0.25,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -16043,7 +16043,7 @@
           "pct_error": -15.8,
           "pred": 2.85,
           "realized": 2.44,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16052,8 +16052,8 @@
           "pct_error": -26.11,
           "pred": 2.9,
           "realized": 2.23,
-          "inside_68": 0.2,
-          "inside_95": 0.8
+          "inside_68": 0.4,
+          "inside_95": 1.0
         },
         {
           "month": "2020-01",
@@ -16062,7 +16062,7 @@
           "pred": 2.88,
           "realized": 1.84,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2020-02",
@@ -16071,7 +16071,7 @@
           "pred": 2.71,
           "realized": 1.87,
           "inside_68": 0.0,
-          "inside_95": 0.25
+          "inside_95": 1.0
         },
         {
           "month": "2020-03",
@@ -16124,7 +16124,7 @@
           "pct_error": -18.59,
           "pred": 2.51,
           "realized": 2.11,
-          "inside_68": 0.2,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16277,7 +16277,7 @@
           "pct_error": 21.63,
           "pred": 3.41,
           "realized": 4.12,
-          "inside_68": 0.2,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -16286,7 +16286,7 @@
           "pct_error": 24.85,
           "pred": 3.63,
           "realized": 4.51,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -16421,7 +16421,7 @@
           "pct_error": 16.85,
           "pred": 3.22,
           "realized": 3.82,
-          "inside_68": 0.2,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16430,7 +16430,7 @@
           "pct_error": 18.77,
           "pred": 3.17,
           "realized": 3.84,
-          "inside_68": 0.0,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -16439,7 +16439,7 @@
           "pct_error": 9.33,
           "pred": 3.28,
           "realized": 3.61,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16457,7 +16457,7 @@
           "pct_error": -10.89,
           "pred": 3.55,
           "realized": 3.13,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16690,12 +16690,12 @@
       "hit_rate": 0.63,
       "within_10pct": 0.43,
       "within_20pct": 0.75,
-      "coverage_68": 0.74,
-      "coverage_95": 0.95,
+      "coverage_68": 0.83,
+      "coverage_95": 0.98,
       "pct_above_upper1": 0.02,
-      "pct_below_lower1": 0.24,
+      "pct_below_lower1": 0.16,
       "pct_above_upper2": 0.0,
-      "pct_below_lower2": 0.05,
+      "pct_below_lower2": 0.02,
       "monthly": [
         {
           "month": "2004-01",
@@ -16703,7 +16703,7 @@
           "pct_error": -19.76,
           "pred": 2.27,
           "realized": 1.97,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16721,7 +16721,7 @@
           "pct_error": -23.41,
           "pred": 2.32,
           "realized": 1.91,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16730,7 +16730,7 @@
           "pct_error": -25.1,
           "pred": 2.33,
           "realized": 1.88,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16739,7 +16739,7 @@
           "pct_error": -27.64,
           "pred": 2.42,
           "realized": 1.87,
-          "inside_68": 0.0,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -16748,7 +16748,7 @@
           "pct_error": -19.47,
           "pred": 2.38,
           "realized": 2.0,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16757,7 +16757,7 @@
           "pct_error": -23.16,
           "pred": 2.43,
           "realized": 1.99,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16766,7 +16766,7 @@
           "pct_error": -35.29,
           "pred": 2.52,
           "realized": 1.86,
-          "inside_68": 0.0,
+          "inside_68": 0.2,
           "inside_95": 1.0
         },
         {
@@ -16793,7 +16793,7 @@
           "pct_error": -30.26,
           "pred": 2.65,
           "realized": 2.05,
-          "inside_68": 0.0,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -16811,7 +16811,7 @@
           "pct_error": -23.73,
           "pred": 2.6,
           "realized": 2.16,
-          "inside_68": 0.4,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16820,7 +16820,7 @@
           "pct_error": -26.54,
           "pred": 2.66,
           "realized": 2.16,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16829,7 +16829,7 @@
           "pct_error": -25.88,
           "pred": 2.83,
           "realized": 2.29,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16838,7 +16838,7 @@
           "pct_error": -16.78,
           "pred": 2.83,
           "realized": 2.46,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16865,7 +16865,7 @@
           "pct_error": -26.08,
           "pred": 2.94,
           "realized": 2.34,
-          "inside_68": 0.25,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -16901,7 +16901,7 @@
           "pct_error": -21.52,
           "pred": 2.91,
           "realized": 2.42,
-          "inside_68": 0.5,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -16955,7 +16955,7 @@
           "pct_error": -21.52,
           "pred": 3.24,
           "realized": 2.61,
-          "inside_68": 0.4,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -16965,7 +16965,7 @@
           "pred": 3.23,
           "realized": 2.25,
           "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_95": 1.0
         },
         {
           "month": "2006-07",
@@ -16974,7 +16974,7 @@
           "pred": 3.32,
           "realized": 2.23,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 1.0
         },
         {
           "month": "2006-08",
@@ -16983,7 +16983,7 @@
           "pred": 3.31,
           "realized": 2.31,
           "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_95": 1.0
         },
         {
           "month": "2006-09",
@@ -17000,7 +17000,7 @@
           "pct_error": -33.21,
           "pred": 3.0,
           "realized": 2.26,
-          "inside_68": 0.0,
+          "inside_68": 0.2,
           "inside_95": 1.0
         },
         {
@@ -17171,7 +17171,7 @@
           "pct_error": -19.9,
           "pred": 4.47,
           "realized": 3.72,
-          "inside_68": 0.5,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -17181,7 +17181,7 @@
           "pred": 4.72,
           "realized": 3.17,
           "inside_68": 0.0,
-          "inside_95": 0.4
+          "inside_95": 0.6
         },
         {
           "month": "2008-07",
@@ -17217,7 +17217,7 @@
           "pred": 3.33,
           "realized": 1.92,
           "inside_68": 0.0,
-          "inside_95": 0.0
+          "inside_95": 0.25
         },
         {
           "month": "2008-11",
@@ -17226,7 +17226,7 @@
           "pred": 2.96,
           "realized": 1.94,
           "inside_68": 0.0,
-          "inside_95": 0.25
+          "inside_95": 1.0
         },
         {
           "month": "2008-12",
@@ -17234,7 +17234,7 @@
           "pct_error": -36.99,
           "pred": 2.67,
           "realized": 2.05,
-          "inside_68": 0.0,
+          "inside_68": 0.4,
           "inside_95": 1.0
         },
         {
@@ -17288,7 +17288,7 @@
           "pct_error": -24.88,
           "pred": 3.19,
           "realized": 2.54,
-          "inside_68": 0.0,
+          "inside_68": 0.4,
           "inside_95": 1.0
         },
         {
@@ -17297,7 +17297,7 @@
           "pct_error": -17.6,
           "pred": 3.1,
           "realized": 2.66,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -17306,7 +17306,7 @@
           "pct_error": -24.59,
           "pred": 3.25,
           "realized": 2.61,
-          "inside_68": 0.0,
+          "inside_68": 0.8,
           "inside_95": 1.0
         },
         {
@@ -17324,7 +17324,7 @@
           "pct_error": -26.65,
           "pred": 3.33,
           "realized": 2.64,
-          "inside_68": 0.25,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -17333,7 +17333,7 @@
           "pct_error": -24.23,
           "pred": 3.41,
           "realized": 2.77,
-          "inside_68": 0.2,
+          "inside_68": 0.8,
           "inside_95": 1.0
         },
         {
@@ -17360,7 +17360,7 @@
           "pct_error": -22.39,
           "pred": 3.32,
           "realized": 2.72,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -17369,7 +17369,7 @@
           "pct_error": -25.62,
           "pred": 3.44,
           "realized": 2.73,
-          "inside_68": 0.0,
+          "inside_68": 0.2,
           "inside_95": 1.0
         },
         {
@@ -17387,7 +17387,7 @@
           "pct_error": -24.76,
           "pred": 3.4,
           "realized": 2.7,
-          "inside_68": 0.2,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -17414,7 +17414,7 @@
           "pct_error": -15.18,
           "pred": 3.38,
           "realized": 2.97,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -17585,7 +17585,7 @@
           "pct_error": -16.95,
           "pred": 4.07,
           "realized": 3.42,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -17729,7 +17729,7 @@
           "pct_error": -17.97,
           "pred": 3.9,
           "realized": 3.25,
-          "inside_68": 0.6,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -17738,7 +17738,7 @@
           "pct_error": -19.4,
           "pred": 3.96,
           "realized": 3.26,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -17828,7 +17828,7 @@
           "pct_error": -19.62,
           "pred": 3.93,
           "realized": 3.21,
-          "inside_68": 0.4,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -17847,7 +17847,7 @@
           "pred": 3.74,
           "realized": 2.6,
           "inside_68": 0.0,
-          "inside_95": 0.75
+          "inside_95": 1.0
         },
         {
           "month": "2014-09",
@@ -17865,7 +17865,7 @@
           "pred": 3.48,
           "realized": 2.22,
           "inside_68": 0.0,
-          "inside_95": 0.25
+          "inside_95": 0.75
         },
         {
           "month": "2014-11",
@@ -17882,7 +17882,7 @@
           "pct_error": -17.97,
           "pred": 2.93,
           "realized": 2.46,
-          "inside_68": 0.6,
+          "inside_68": 0.8,
           "inside_95": 1.0
         },
         {
@@ -17927,7 +17927,7 @@
           "pct_error": -19.66,
           "pred": 2.95,
           "realized": 2.41,
-          "inside_68": 0.25,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -17936,7 +17936,7 @@
           "pct_error": -22.51,
           "pred": 2.93,
           "realized": 2.3,
-          "inside_68": 0.0,
+          "inside_68": 0.6,
           "inside_95": 1.0
         },
         {
@@ -17945,7 +17945,7 @@
           "pct_error": -19.66,
           "pred": 2.73,
           "realized": 2.18,
-          "inside_68": 0.0,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -17954,7 +17954,7 @@
           "pct_error": -20.97,
           "pred": 2.59,
           "realized": 2.04,
-          "inside_68": 0.0,
+          "inside_68": 0.8,
           "inside_95": 1.0
         },
         {
@@ -17973,7 +17973,7 @@
           "pred": 2.65,
           "realized": 1.76,
           "inside_68": 0.0,
-          "inside_95": 0.25
+          "inside_95": 1.0
         },
         {
           "month": "2015-11",
@@ -17981,8 +17981,8 @@
           "pct_error": -30.33,
           "pred": 2.59,
           "realized": 1.93,
-          "inside_68": 0.0,
-          "inside_95": 0.8
+          "inside_68": 0.4,
+          "inside_95": 1.0
         },
         {
           "month": "2015-12",
@@ -18035,7 +18035,7 @@
           "pct_error": -18.27,
           "pred": 2.64,
           "realized": 2.22,
-          "inside_68": 0.6,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -18053,7 +18053,7 @@
           "pct_error": -19.04,
           "pred": 2.63,
           "realized": 2.2,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -18116,7 +18116,7 @@
           "pct_error": -19.35,
           "pred": 2.79,
           "realized": 2.35,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -18125,7 +18125,7 @@
           "pct_error": -17.85,
           "pred": 2.7,
           "realized": 2.29,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -18269,7 +18269,7 @@
           "pct_error": -14.73,
           "pred": 3.1,
           "realized": 2.68,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -18278,7 +18278,7 @@
           "pct_error": -24.19,
           "pred": 3.08,
           "realized": 2.39,
-          "inside_68": 0.0,
+          "inside_68": 0.5,
           "inside_95": 1.0
         },
         {
@@ -18305,7 +18305,7 @@
           "pct_error": -13.71,
           "pred": 2.88,
           "realized": 2.52,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -18413,7 +18413,7 @@
           "pct_error": -21.32,
           "pred": 2.84,
           "realized": 2.29,
-          "inside_68": 0.5,
+          "inside_68": 0.75,
           "inside_95": 1.0
         },
         {
@@ -18423,7 +18423,7 @@
           "pred": 2.89,
           "realized": 1.87,
           "inside_68": 0.0,
-          "inside_95": 0.2
+          "inside_95": 1.0
         },
         {
           "month": "2020-01",
@@ -18432,7 +18432,7 @@
           "pred": 2.87,
           "realized": 1.87,
           "inside_68": 0.0,
-          "inside_95": 0.25
+          "inside_95": 1.0
         },
         {
           "month": "2020-02",
@@ -18440,7 +18440,7 @@
           "pct_error": -26.92,
           "pred": 2.72,
           "realized": 2.06,
-          "inside_68": 0.0,
+          "inside_68": 0.25,
           "inside_95": 1.0
         },
         {
@@ -18629,7 +18629,7 @@
           "pct_error": 23.66,
           "pred": 3.3,
           "realized": 4.1,
-          "inside_68": 0.2,
+          "inside_68": 0.4,
           "inside_95": 1.0
         },
         {
@@ -18665,7 +18665,7 @@
           "pct_error": 15.44,
           "pred": 3.91,
           "realized": 4.56,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
@@ -18791,7 +18791,7 @@
           "pct_error": 17.32,
           "pred": 3.22,
           "realized": 3.83,
-          "inside_68": 0.8,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
