@@ -302,6 +302,22 @@ class TestLagModelSchema:
         assert 0.0 < rmse < 0.5, \
             f"in-sample RMSE={rmse} outside plausible range"
 
+    def test_backtest_pump_passthrough_matches_lag_model(self, lag_model):
+        """backtest_oil.PUMP_PASSTHROUGH must stay in sync with lag-model.json.
+
+        If build_lag_model.py is re-run and produces a different total_passthrough,
+        backtest_oil._load_pump_passthrough() should pick it up automatically.
+        This test catches any regression where the loading mechanism breaks.
+        """
+        import sys
+        sys.path.insert(0, str(ROOT / ".github" / "scripts"))
+        from backtest_oil import PUMP_PASSTHROUGH
+        expected = lag_model["total_passthrough"]
+        assert abs(PUMP_PASSTHROUGH - expected) < 1e-4, (
+            f"backtest_oil.PUMP_PASSTHROUGH={PUMP_PASSTHROUGH:.6f} diverged from "
+            f"lag-model.json total_passthrough={expected:.6f}"
+        )
+
     def test_pump_price_sanity_at_current_brent(self, futures, lag_model):
         """Compute pump for the front Brent contract and check it's in a sane range."""
         if lag_model["alpha"] is None or lag_model["betas"] is None:

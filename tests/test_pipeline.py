@@ -29,6 +29,9 @@ from build_lag_model import (
 from backtest_oil import (
     crude_to_pump_simple,
     compute_bands,
+    compute_pump_bands,
+    PUMP_PASSTHROUGH,
+    PUMP_RESIDUAL_GAL,
     rmse, mae, bias, r_squared,
     hit_rate, within_pct,
 )
@@ -224,6 +227,53 @@ class TestComputeBands:
         b100 = compute_bands(100.0, 1.0)
         assert b100["upper1"] == pytest.approx(2 * b50["upper1"], rel=1e-9)
         assert b100["lower1"] == pytest.approx(2 * b50["lower1"], rel=1e-9)
+
+
+# ---------------------------------------------------------------------------
+# backtest_oil: compute_pump_bands
+# ---------------------------------------------------------------------------
+
+class TestComputePumpBands:
+    """Regression tests for pump band computation (must match oil.html pumpBandEndpoint)."""
+
+    def test_residual_is_minimum_band_width(self):
+        """Bands must be at least PUMP_RESIDUAL_GAL wide (residual adds in quadrature)."""
+        bands = compute_pump_bands(80.0, 3.0, 1.0 / 12)
+        assert bands["upper1"] - 3.0 >= PUMP_RESIDUAL_GAL * 0.999
+        assert 3.0 - bands["lower1"] >= PUMP_RESIDUAL_GAL * 0.999
+
+    def test_2sigma_wider_than_1sigma(self):
+        bands = compute_pump_bands(80.0, 3.0, 1.0)
+        assert bands["upper2"] > bands["upper1"]
+        assert bands["lower2"] < bands["lower1"]
+
+    def test_crude_price_drives_bands_not_pump_price(self):
+        """Band width (delta from pump_price) must depend on crude_bbl, not pump_price."""
+        crude_bbl, T = 80.0, 1.0 / 12
+        # Same crude, different pump prices → same crude delta, nearly same total delta
+        b_lo = compute_pump_bands(crude_bbl, 2.5, T)
+        b_hi = compute_pump_bands(crude_bbl, 5.0, T)
+        delta_lo = b_lo["upper1"] - 2.5
+        delta_hi = b_hi["upper1"] - 5.0
+        # The crude component is identical; both totals differ by < 1e-9
+        assert abs(delta_lo - delta_hi) < 1e-9
+
+    def test_passthrough_and_residual_formula(self):
+        """upper1 = pump + sqrt((crude_delta/42 * tp)^2 + residual^2) exactly."""
+        crude_bbl, pump_price, T = 80.0, 3.0, 1.0
+        crude_b = compute_bands(crude_bbl, T)
+        expected_crude_delta = (crude_b["upper1"] - crude_bbl) / 42.0 * PUMP_PASSTHROUGH
+        expected_upper1 = pump_price + math.sqrt(
+            expected_crude_delta ** 2 + PUMP_RESIDUAL_GAL ** 2
+        )
+        bands = compute_pump_bands(crude_bbl, pump_price, T)
+        assert bands["upper1"] == pytest.approx(expected_upper1, rel=1e-9)
+
+    def test_zero_horizon_collapses_to_pump_price(self):
+        """At T=0 crude delta is zero; mirrors JS Math.sign(0)=0 → zero-width bands."""
+        bands = compute_pump_bands(80.0, 3.0, 0.0)
+        assert bands["upper1"] == pytest.approx(3.0, abs=1e-9)
+        assert bands["lower1"] == pytest.approx(3.0, abs=1e-9)
 
 
 # ---------------------------------------------------------------------------
