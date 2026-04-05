@@ -876,13 +876,14 @@ function updateHistorySlider(val) {
 
 // ---- War cost calculator ----
 
-function getPreWarBaseline() {
+function getPreWarBaseline(deliveryMonth) {
   // December 2025: before the strike. Pull from historical data if available.
   const histWti = oilData?.historical_wti || [];
   const dec2025 = histWti.find(h => h.month === '2025-12');
   const brentBbl = dec2025 ? dec2025.price + WTI_TO_BRENT_ADJ : 62.0;
-  // December has no seasonal premium; use average crack spread as baseline
-  return crudeToGallon(brentBbl, true, pumpRegion, PUMP_FIXED.refining, 12);
+  // Apply each delivery month's own seasonal adjustment so summer blend costs
+  // don't get misattributed to the war (seasonal swing exists war or no war).
+  return crudeToGallon(brentBbl, true, pumpRegion, PUMP_FIXED.refining, deliveryMonth);
 }
 
 function renderCostCalc() {
@@ -893,8 +894,7 @@ function renderCostCalc() {
 
   const contracts = oilData['brent'] || [];
   if (!contracts.length) return;
-  const bands    = computeBands(contracts);
-  const baseline = getPreWarBaseline();
+  const bands = computeBands(contracts);
 
   const MTHS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const today = new Date();
@@ -907,8 +907,9 @@ function renderCostCalc() {
   const rows = [];
   contracts.forEach((c, i) => {
     if (c.expiry < todayYM || c.expiry > cutoffYM) return;
+    const deliveryMonth = parseInt(c.expiry.slice(5, 7), 10);
     const pump    = pumpForContract(contracts, bands, i);
-    const extra   = pump - baseline;            // can be negative if market somehow dipped
+    const extra   = pump - getPreWarBaseline(deliveryMonth);  // seasonal-adjusted baseline
     const monthly = extra * galPerMonth;
     const [y, m]  = c.expiry.split('-');
     rows.push({ label: MTHS[parseInt(m, 10) - 1] + ' ' + y, pump, extra, monthly });
