@@ -34,7 +34,10 @@ from pathlib import Path
 OUT_FILE = Path(__file__).parents[2] / "data" / "lag-model.json"
 HEADERS  = {"User-Agent": "oil-lag-model/1.0 (academic/personal use)"}
 N_LAGS   = 8          # weeks: captures ~85-90% of pass-through per literature
-PDL_THRESH = 0.95     # max off-diagonal correlation before switching to PDL
+PDL_THRESH = 0.80     # max off-diagonal correlation before switching to PDL
+                      # 0.80 catches collinearity that produces physically impossible
+                      # negative betas (e.g. β4=-0.21 under OLS) while staying well
+                      # below the 0.95 threshold where OLS standard errors explode.
 PDL_DEGREE = 2        # Almon polynomial degree
 
 
