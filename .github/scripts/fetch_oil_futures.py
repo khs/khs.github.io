@@ -85,6 +85,57 @@ def fetch_curve(base: str, exchange: str) -> list[dict]:
     return contracts
 
 
+def fetch_historical_pump_prices(years_back: int = 3) -> list[dict]:
+    """
+    Fetch EIA US national average retail gasoline price (weekly, $/gal)
+    and average to monthly.
+    Returns [{month: "YYYY-MM", price: float}, ...] sorted oldest-first.
+    Used by the chart historical line so it shows actual pump prices, not
+    a crude-derived estimate.
+    """
+    import requests
+    import pandas as pd
+    from io import BytesIO
+    from datetime import date
+
+    cutoff  = pd.Timestamp(date.today()) - pd.DateOffset(years=years_back)
+    headers = {"User-Agent": "oil-futures-fetch/1.0 (personal use)"}
+
+    try:
+        r = requests.get(
+            "https://www.eia.gov/dnav/pet/hist_xls/EMM_EPMR_PTE_NUS_DPGw.xls",
+            headers=headers, timeout=60,
+        )
+        r.raise_for_status()
+        for sheet in ("Data 1", 0):
+            try:
+                df = pd.read_excel(BytesIO(r.content), sheet_name=sheet,
+                                   skiprows=2, header=0)
+                df.columns = ["date", "price"] + list(df.columns[2:])
+                df = df[["date", "price"]].dropna()
+                df["date"] = pd.to_datetime(df["date"])
+                df = df[df["date"] >= cutoff]
+                df["month"] = df["date"].dt.to_period("M").astype(str)
+                monthly = (
+                    df.groupby("month")["price"]
+                    .mean()
+                    .round(3)
+                    .reset_index()
+                )
+                result = [
+                    {"month": row["month"], "price": float(row["price"])}
+                    for _, row in monthly.iterrows()
+                ]
+                print(f"  Historical pump: {len(result)} monthly averages, "
+                      f"{result[0]['month']} – {result[-1]['month']}")
+                return result
+            except Exception:
+                continue
+    except Exception as e:
+        print(f"  WARNING: could not fetch historical pump prices: {e}")
+    return []
+
+
 def fetch_historical_monthly(years_back: int = 3) -> list[dict]:
     """
     Fetch monthly average WTI spot prices from EIA RWTC daily XLS.
@@ -262,6 +313,9 @@ def main():
     print("Fetching historical WTI monthly prices (CL=F, 3 years)...")
     historical_wti = fetch_historical_monthly(years_back=3)
 
+    print("Fetching historical retail gasoline monthly prices (EIA, 3 years)...")
+    historical_pump = fetch_historical_pump_prices(years_back=3)
+
     # Crack spreads: RBOB gasoline futures vs WTI (use WTI as the refinery input)
     print("Fetching RBOB gasoline futures (RB, NYM) for crack spreads...")
     crack_spreads = fetch_crack_spreads(wti)
@@ -289,8 +343,9 @@ def main():
         "wti":            wti,
         "brent":          brent,
         "crack_spreads":  crack_spreads,
-        "historical_wti": historical_wti,
-        "snapshots":      snapshots,
+        "historical_wti":  historical_wti,
+        "historical_pump": historical_pump,
+        "snapshots":       snapshots,
     }
 
     with open(DATA_FILE, 'w') as f:

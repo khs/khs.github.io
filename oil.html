@@ -793,12 +793,13 @@ function buildHistoricalSegment() {
 
   const isBrent = benchmark === 'brent';
 
-  // Primary source: historical_wti monthly closes stored in the JSON.
-  // These are WTI prices; add the Brent adjustment when benchmark is Brent.
-  const histWti = oilData?.historical_wti || [];
+  // When showing crude: use historical_wti (WTI or Brent-adjusted).
+  // When showing pump: prefer actual EIA retail gasoline (historical_pump)
+  // which is far more accurate than a crude-derived estimate.
+  const histWti  = oilData?.historical_wti  || [];
+  const histPump = oilData?.historical_pump  || [];
 
-  // Secondary source: weekly snapshots (front-month price).
-  // Used to fill in months more recent than historical_wti covers.
+  // Snapshot front-month crude — fills gaps not covered by EIA series.
   const snapshotByMonth = {};
   (oilData?.snapshots || []).forEach(s => {
     const ym = s.date.slice(0, 7);
@@ -806,40 +807,53 @@ function buildHistoricalSegment() {
     if (contracts.length) snapshotByMonth[ym] = contracts[0].price;
   });
 
-  // Merge: historical_wti wins for older months; snapshots fill recent gaps
+  // byMonth stores ready-to-use $/bbl (crude) or $/gal (pump).
   const byMonth = {};
 
-  histWti.forEach(h => {
-    if (h.month >= cutoffYM) {
-      // historical_wti is always WTI; convert to Brent if needed
-      const crudeBbl = isBrent ? h.price + WTI_TO_BRENT_ADJ : h.price;
-      byMonth[h.month] = crudeBbl;
-    }
-  });
-
-  Object.entries(snapshotByMonth).forEach(([ym, crudeBbl]) => {
-    if (ym >= cutoffYM && !(ym in byMonth)) {
-      byMonth[ym] = crudeBbl; // snapshots already in the correct benchmark
-    }
-  });
+  if (showPump) {
+    // Lowest priority: snapshot crude → estimated pump
+    Object.entries(snapshotByMonth).forEach(([ym, crudeBbl]) => {
+      if (ym >= cutoffYM) {
+        const month = parseInt(ym.slice(5, 7), 10);
+        byMonth[ym] = crudeToGallon(crudeBbl, isBrent, pumpRegion, PUMP_FIXED.refining, month);
+      }
+    });
+    // Medium priority: historical WTI → estimated pump
+    histWti.forEach(h => {
+      if (h.month >= cutoffYM) {
+        const crudeBbl = isBrent ? h.price + WTI_TO_BRENT_ADJ : h.price;
+        const month    = parseInt(h.month.slice(5, 7), 10);
+        byMonth[h.month] = crudeToGallon(crudeBbl, isBrent, pumpRegion, PUMP_FIXED.refining, month);
+      }
+    });
+    // Highest priority: actual EIA retail gasoline + regional offset
+    const regional = PUMP_REGIONS[pumpRegion].offset;
+    histPump.forEach(h => {
+      if (h.month >= cutoffYM) byMonth[h.month] = +(h.price + regional).toFixed(3);
+    });
+  } else {
+    // Crude view: historical_wti wins; snapshots fill recent gaps
+    histWti.forEach(h => {
+      if (h.month >= cutoffYM) {
+        byMonth[h.month] = isBrent ? h.price + WTI_TO_BRENT_ADJ : h.price;
+      }
+    });
+    Object.entries(snapshotByMonth).forEach(([ym, crudeBbl]) => {
+      if (ym >= cutoffYM && !(ym in byMonth)) byMonth[ym] = crudeBbl;
+    });
+  }
 
   if (!Object.keys(byMonth).length) return { labels: [], prices: [] };
 
   const MTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const sorted = Object.keys(byMonth).sort();
+  const sorted    = Object.keys(byMonth).sort();
   const currentYM = new Date().toISOString().slice(0, 7);
-  const labels = sorted.map(ym => {
+  const labels    = sorted.map(ym => {
     const [y, m] = ym.split('-');
-    const base = MTHS[parseInt(m, 10) - 1] + ' \'' + y.slice(2);
+    const base   = MTHS[parseInt(m, 10) - 1] + ' \'' + y.slice(2);
     return ym === currentYM ? base + ' (to date)' : base;
   });
-  const prices = sorted.map(ym => {
-    const crudeBbl = byMonth[ym];
-    const month    = parseInt(ym.slice(5, 7), 10);
-    return showPump
-      ? crudeToGallon(crudeBbl, isBrent, pumpRegion, PUMP_FIXED.refining, month)
-      : +crudeBbl.toFixed(2);
-  });
+  const prices = sorted.map(ym => +byMonth[ym].toFixed(showPump ? 3 : 2));
   return { labels, prices };
 }
 
