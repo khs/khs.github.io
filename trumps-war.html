@@ -369,7 +369,7 @@ function pumpForContract(contracts, bands, idx) {
     let weightedCrudeGal = 0;
     for (let k = 0; k < K; k++) {
       const crudeBbl = interpolateCrude(contracts, deliveryWeeks - k);
-      weightedCrudeGal += betas[k] * ((crudeBbl + WTI_TO_BRENT_ADJ) / 42);
+      weightedCrudeGal += betas[k] * (crudeBbl / 42); // contracts are already Brent
     }
     const crackNow = crackSpreadFor(expiry);
     const crackAvg = oilData?.crack_spreads?.average ?? PUMP_FIXED.refining;
@@ -546,7 +546,6 @@ function renderCurve() {
   const nullF = new Array(nFut).fill(null);
 
   const allLabels = [...hist.labels, ...bands.map(b => b.label)];
-  const fwdIdx    = (nHist > 0 ? 1 : 0) + 4; // after hist + 4 band datasets
 
   const datasets = [];
 
