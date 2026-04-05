@@ -409,17 +409,18 @@ class TestMaxOffDiagonalCorr:
         assert corr < 0.01
 
     def test_single_column(self):
-        # A single column has no off-diagonal entries — should return 0.0
-        # (currently crashes: np.fill_diagonal on a 1×1 matrix is a known edge case)
+        # A single column has no off-diagonal entries — should return 0.0.
+        # Regression guard: if the guard "if X.shape[1] < 2: return 0.0" is
+        # ever removed, np.fill_diagonal on a 1×1 matrix raises ValueError.
         X = np.arange(10.0).reshape(-1, 1)
         try:
             result = max_off_diagonal_corr(X)
             assert result == pytest.approx(0.0)
         except ValueError:
             pytest.fail(
-                "max_off_diagonal_corr crashes on a single-column input — "
-                "np.fill_diagonal requires at least 2D with >1 column. "
-                "Fix: guard with 'if X.shape[1] < 2: return 0.0'"
+                "max_off_diagonal_corr raised ValueError on single-column input; "
+                "the guard 'if X_raw.shape[1] < 2: return 0.0' in build_lag_model.py "
+                "is missing or broken."
             )
 
 
