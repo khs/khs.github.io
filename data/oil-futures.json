@@ -113,10 +113,10 @@
   ],
   "brent": [
     {
-      "ticker": "(interpolated)",
+      "ticker": "(from snapshot)",
       "expiry": "2026-05",
       "label": "May 2026",
-      "price": 109.05,
+      "price": 118.45,
       "interpolated": true
     },
     {

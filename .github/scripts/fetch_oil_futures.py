@@ -73,25 +73,17 @@ def fetch_curve(base: str, exchange: str) -> list[dict]:
                 "price": price,
             })
 
-    # Use BZ=F / CL=F to anchor the near-term curve when specific contract
-    # tickers are unavailable for the next 1-2 months (Brent rolls early; the
-    # nearby NYMEX contract often returns no price once it's the prompt month).
-    # Insert the front-month price at "next calendar month" so fill_gaps can
-    # interpolate any gap between it and the first fetched specific contract.
-    if front_price:
-        nm = today.month % 12 + 1
-        ny = today.year + (1 if today.month == 12 else 0)
-        front_expiry = f"{ny}-{nm:02d}"
-        front_label  = f"{calendar.month_abbr[nm]} {ny}"
-        if not contracts or contracts[0]["expiry"] > front_expiry:
-            contracts.insert(0, {
-                "ticker": front_ticker,
-                "expiry": front_expiry,
-                "label":  front_label,
-                "price":  round(float(front_price), 2),
-            })
+    # Prepend front-month only as a last resort when no specific contracts loaded.
+    # Proper near-term backfill (using snapshot history) is done in main().
+    if not contracts and front_price:
+        contracts.insert(0, {
+            "ticker": front_ticker,
+            "expiry": today.strftime("%Y-%m"),
+            "label":  "Front Month",
+            "price":  round(float(front_price), 2),
+        })
 
-    return contracts
+    return contracts, front_price
 
 
 def fetch_historical_pump_prices(years_back: int = 3) -> list[dict]:
@@ -302,6 +294,67 @@ def fetch_crack_spreads(wti_contracts: list[dict]) -> dict:
     }
 
 
+def backfill_near_term(
+    contracts: list[dict],
+    snapshots: list[dict],
+    key: str,
+    front_price: float | None,
+) -> list[dict]:
+    """Prepend any months missing between next month and the first fetched contract.
+
+    Priority order for each missing month:
+      1. Most recent snapshot price for that specific expiry (best: actual
+         market quote from a day or two ago).
+      2. Rolling front-month price (BZ=F / CL=F) — reasonable proxy but may
+         lag the specific contract if the curve is in steep backwardation.
+      3. Nothing — skip the month and let fill_gaps interpolate if possible.
+    """
+    if not contracts:
+        return contracts
+
+    today = date.today()
+    first_expiry = contracts[0]["expiry"]
+
+    # Build expiry -> most recent snapshot price (latest snapshot wins)
+    snap_prices: dict[str, float] = {}
+    for snap in sorted(snapshots, key=lambda s: s["date"]):
+        for c in snap.get(key, []):
+            snap_prices[c["expiry"]] = c["price"]
+
+    to_prepend = []
+    y, m = today.year, today.month + 1
+    if m > 12:
+        m, y = 1, y + 1
+
+    while f"{y}-{m:02d}" < first_expiry:
+        expiry = f"{y}-{m:02d}"
+        if expiry in snap_prices:
+            price  = snap_prices[expiry]
+            ticker = "(from snapshot)"
+        elif front_price is not None:
+            price  = round(float(front_price), 2)
+            ticker = "(from front-month)"
+        else:
+            m += 1
+            if m > 12:
+                m, y = 1, y + 1
+            continue
+
+        to_prepend.append({
+            "ticker":       ticker,
+            "expiry":       expiry,
+            "label":        f"{calendar.month_abbr[m]} {y}",
+            "price":        price,
+            "interpolated": True,
+        })
+        print(f"  Near-term backfill {expiry}: ${price} ({ticker})")
+        m += 1
+        if m > 12:
+            m, y = 1, y + 1
+
+    return to_prepend + contracts
+
+
 def main():
     # Load existing data
     if DATA_FILE.exists():
@@ -310,13 +363,19 @@ def main():
     else:
         data = {"snapshots": []}
 
-    # Fetch fresh curves
+    # Load existing snapshots before fetching so backfill_near_term can use them
+    existing_snapshots = data.get("snapshots", [])
+
+    # Fetch fresh curves; backfill any missing near-term months from snapshots
+    # before running fill_gaps (which only interpolates within the fetched range).
     print("Fetching WTI futures (CL, NYM)...")
-    wti = fill_gaps(fetch_curve("CL", "NYM"))
+    wti_raw, wti_front = fetch_curve("CL", "NYM")
+    wti = fill_gaps(backfill_near_term(wti_raw, existing_snapshots, "wti", wti_front))
     print(f"  Got {len(wti)} contracts")
 
     print("Fetching Brent futures (BZ, NYM)...")
-    brent = fill_gaps(fetch_curve("BZ", "NYM"))
+    brent_raw, brent_front = fetch_curve("BZ", "NYM")
+    brent = fill_gaps(backfill_near_term(brent_raw, existing_snapshots, "brent", brent_front))
     print(f"  Got {len(brent)} contracts")
 
     print("Fetching historical WTI monthly prices (CL=F, 3 years)...")
