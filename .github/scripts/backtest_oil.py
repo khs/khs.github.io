@@ -303,7 +303,10 @@ def run_backtest(spot: pd.Series, futures_map: dict[str, pd.Series]) -> dict:
 
         avg_price = float(np.median(spot_real))
 
-        # Band coverage: apply asymmetric lognormal bands to each historical prediction
+        # Band coverage: apply asymmetric lognormal bands to each historical prediction.
+        # Spot series is daily (EIA RWTC), so biz_days rows ≈ biz_days trading days;
+        # divide by 252 trading-days/year for the horizon in years.
+        # (Contrast: pump backtest uses weeks_ahead/52 because gasoline data is weekly.)
         T_years = biz_days / 252.0
         band_arr = np.array([list(compute_bands(p, T_years).values()) for p in fut_pred])
         upper1, lower1, upper2, lower2 = (

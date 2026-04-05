@@ -325,19 +325,15 @@ def rockets_feathers_test(X_raw: np.ndarray, y: np.ndarray,
     t_stat = asym_coeff / se if se > 0 else 0.0
 
     # Rough two-tailed p-value from t-distribution approximation
-    from math import lgamma, exp, log
     def t_cdf_approx(t, df):
         # Approximation good enough for our purpose
-        x = df / (df + t * t)
-        # Incomplete beta approximation
         if df < 1:
             return 0.5
         # Simple normal approximation for large df
         if df > 30:
-            import math
             return math.erfc(abs(t) / math.sqrt(2))
         # For small df, use rough approximation
-        return min(1.0, 2 * exp(-0.717 * abs(t) - 0.416 * t * t))
+        return min(1.0, 2 * math.exp(-0.717 * abs(t) - 0.416 * t * t))
 
     p_approx = float(t_cdf_approx(abs(t_stat), n - p))
     significant = p_approx < 0.05 and asym_coeff > 0
