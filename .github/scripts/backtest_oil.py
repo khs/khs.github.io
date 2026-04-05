@@ -64,8 +64,17 @@ WTI_TO_BRENT_ADJ  = 4.0    # $/bbl premium Brent over WTI
 PUMP_FIXED_TOTAL   = 1.399  # $/gal: federal+state tax + refining + distribution + retail
 # Lag-model total passthrough (sum of betas).  Used to convert crude $/bbl
 # band width to pump $/gal band width — must match the lag model value in
-# lag-model.json that the JS front-end uses.
-PUMP_PASSTHROUGH   = 0.954
+# lag-model.json that the JS front-end uses.  Loaded dynamically so the
+# backtest stays in sync after a model refit without requiring a manual edit.
+def _load_pump_passthrough(fallback: float = 0.954) -> float:
+    try:
+        _lm = Path(__file__).parents[2] / "data" / "lag-model.json"
+        with open(_lm) as _f:
+            return float(json.load(_f)["total_passthrough"])
+    except Exception:
+        return fallback
+
+PUMP_PASSTHROUGH   = _load_pump_passthrough()
 # Non-crude pump price residual — calibrated so 1m pump band achieves ~68% coverage.
 # Represents crack-spread, tax, and distribution variance not captured by crude alone.
 # Must match PUMP_RESIDUAL_GAL in oil.html.
@@ -196,9 +205,12 @@ def compute_pump_bands(crude_bbl: float, pump_price: float, T_years: float) -> d
     crude_bands = compute_bands(crude_bbl, T_years)
     def combine(crude_band_bbl: float, n: int) -> float:
         crude_delta_gal = (crude_band_bbl - crude_bbl) / 42.0 * PUMP_PASSTHROUGH
-        return pump_price + math.copysign(
-            math.sqrt(crude_delta_gal ** 2 + (n * PUMP_RESIDUAL_GAL) ** 2), crude_delta_gal
-        )
+        # Mirror JS Math.sign behaviour: zero crude delta → zero total delta
+        # (matches oil.html pumpBandEndpoint: totalDelta = Math.sign(crudeDelta) * sqrt(...))
+        if crude_delta_gal == 0.0:
+            return pump_price
+        sign = math.copysign(1.0, crude_delta_gal)
+        return pump_price + sign * math.sqrt(crude_delta_gal ** 2 + (n * PUMP_RESIDUAL_GAL) ** 2)
     return {
         "upper1": combine(crude_bands["upper1"], 1),
         "lower1": combine(crude_bands["lower1"], 1),
