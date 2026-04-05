@@ -180,6 +180,153 @@
       font-style: italic;
     }
 
+    /* ---- Cost calculator ---- */
+    .cost-section {
+      margin: 2.8em 0 2em;
+      border-top: 3px solid #c0392b;
+      padding-top: 1.4em;
+    }
+
+    .cost-section h2 {
+      font-size: 1.6em;
+      font-weight: bold;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.4em;
+    }
+
+    .cost-intro {
+      max-width: 680px;
+      font-size: 1.0em;
+      line-height: 1.7;
+      color: #333;
+      margin-bottom: 1.2em;
+    }
+
+    .cost-inputs {
+      display: flex;
+      gap: 2.4em;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 1.4em;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .cost-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35em;
+    }
+
+    .cost-input-group label {
+      font-size: 0.72em;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #888;
+    }
+
+    .cost-input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      font-size: 0.9em;
+      color: #555;
+    }
+
+    .cost-input-row input[type=number] {
+      width: 72px;
+      font-family: Georgia, serif;
+      font-size: 1.15em;
+      padding: 5px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: right;
+      color: #1a1a1a;
+    }
+
+    .cost-total-block {
+      margin: 0.4em 0 1.6em;
+    }
+
+    .cost-big-number {
+      font-size: 3.2em;
+      font-weight: bold;
+      color: #c0392b;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .cost-big-label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.88em;
+      color: #666;
+      margin-top: 0.25em;
+      line-height: 1.4;
+    }
+
+    .cost-table {
+      width: 100%;
+      max-width: 560px;
+      border-collapse: collapse;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.84em;
+    }
+
+    .cost-table th {
+      text-align: right;
+      padding: 4px 10px 6px 0;
+      font-weight: 600;
+      font-size: 0.74em;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #999;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .cost-table th:first-child { text-align: left; }
+
+    .cost-table td {
+      padding: 6px 10px 6px 0;
+      border-bottom: 1px solid #f3f3f3;
+      color: #333;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cost-table td:first-child { text-align: left; color: #555; }
+    .cost-table td.war-cost { color: #c0392b; font-weight: 500; }
+
+    .cost-table .bar-cell { width: 110px; padding-right: 0; }
+    .cost-bar-track {
+      background: #f0f0f0;
+      border-radius: 3px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .cost-bar-fill {
+      height: 8px;
+      background: rgba(192,57,43,0.45);
+      border-radius: 3px;
+      transition: width 0.2s;
+    }
+
+    .cost-table tfoot td {
+      font-weight: 700;
+      border-top: 2px solid #1a1a1a;
+      border-bottom: none;
+      padding-top: 10px;
+      color: #1a1a1a;
+    }
+    .cost-table tfoot td.war-cost { color: #c0392b; }
+
+    .cost-footnote {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.75em;
+      color: #aaa;
+      margin-top: 0.7em;
+      line-height: 1.5;
+    }
+
     /* ---- Footer ---- */
     site-footer {
       display: flex;
@@ -275,6 +422,58 @@
     <p>The shaded bands reflect honest uncertainty: oil markets are volatile and genuinely hard to predict. A deep global recession, a negotiated settlement, or a sudden surge in non-OPEC supply could push prices lower. But even the optimistic tail of the 95% band — the lower edge of the light shading — shows only modest relief from current levels over the next year. The market is not pricing in a peace dividend.</p>
 
     <p>What the market <em>is</em> pricing in is the new normal: a Middle East where the risk premium on oil is structurally higher, refinery margins are elevated, and the era of $2.50 gas belongs to a world that existed before the first missile flew.</p>
+  </div>
+
+  <!-- COST CALCULATOR -->
+  <div class="cost-section">
+    <h2>What It Costs You</h2>
+    <p class="cost-intro">Enter your tank size and how often you fill up. The calculator uses the futures market's month-by-month price forecast to estimate your personal tab for Trump's War over the next year — compared to what you would have paid last December.</p>
+
+    <div class="cost-inputs">
+      <div class="cost-input-group">
+        <label>Tank size</label>
+        <div class="cost-input-row">
+          <input type="number" id="tank-size" value="14" min="5" max="40" step="1"
+                 oninput="renderCostCalc()">
+          <span>gallons</span>
+        </div>
+        <span style="font-size:0.72em;color:#bbb;font-family:sans-serif;margin-top:2px">US avg: ~14 gal (sedan)</span>
+      </div>
+      <div class="cost-input-group">
+        <label>Fill-ups per month</label>
+        <div class="cost-input-row">
+          <input type="number" id="fills-per-month" value="3" min="0.5" max="20" step="0.5"
+                 oninput="renderCostCalc()">
+          <span>times</span>
+        </div>
+        <span style="font-size:0.72em;color:#bbb;font-family:sans-serif;margin-top:2px">US avg: ~3× (~500 gal/yr)</span>
+      </div>
+    </div>
+
+    <div class="cost-total-block">
+      <div class="cost-big-number" id="cost-total-number">$—</div>
+      <div class="cost-big-label">estimated extra cost over the next 12 months<br>
+        <span style="color:#bbb">vs. December 2025 pre-war prices</span>
+      </div>
+    </div>
+
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Pump price</th>
+          <th>Extra/gal vs. pre-war</th>
+          <th>Monthly extra</th>
+          <th class="bar-cell"></th>
+        </tr>
+      </thead>
+      <tbody id="cost-table-body"></tbody>
+      <tfoot id="cost-table-foot"></tfoot>
+    </table>
+    <p class="cost-footnote">
+      Pump prices are futures-market expectations — not guarantees. Pre-war baseline: December 2025 national average, adjusted by region.
+      Average US driver: <a href="https://www.eia.gov/tools/faqs/faq.php?id=23&t=10" target="_blank" rel="noopener" style="color:#aaa">EIA</a>.
+    </p>
   </div>
 
 </div><!-- /.content -->
@@ -463,11 +662,13 @@ function init() {
   }
   updateSliderRange();
   renderCurve();
+  renderCostCalc();
 }
 
 function setPumpRegion(r) {
   pumpRegion = r;
   renderCurve();
+  renderCostCalc();
 }
 
 function computeBands(contracts) {
@@ -671,6 +872,78 @@ function updateHistorySlider(val) {
   historyMonths = val;
   document.getElementById('slider-label').textContent = val === 1 ? '1 month' : `${val} months`;
   renderCurve();
+}
+
+// ---- War cost calculator ----
+
+function getPreWarBaseline() {
+  // December 2025: before the strike. Pull from historical data if available.
+  const histWti = oilData?.historical_wti || [];
+  const dec2025 = histWti.find(h => h.month === '2025-12');
+  const brentBbl = dec2025 ? dec2025.price + WTI_TO_BRENT_ADJ : 62.0;
+  // December has no seasonal premium; use average crack spread as baseline
+  return crudeToGallon(brentBbl, true, pumpRegion, PUMP_FIXED.refining, 12);
+}
+
+function renderCostCalc() {
+  if (!oilData) return;
+  const tankGal     = Math.max(1, parseFloat(document.getElementById('tank-size').value) || 14);
+  const fillsPerMon = Math.max(0.5, parseFloat(document.getElementById('fills-per-month').value) || 3);
+  const galPerMonth = tankGal * fillsPerMon;
+
+  const contracts = oilData['brent'] || [];
+  if (!contracts.length) return;
+  const bands    = computeBands(contracts);
+  const baseline = getPreWarBaseline();
+
+  const MTHS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const today = new Date();
+  const todayYM = today.toISOString().slice(0, 7);
+  // 12-month window starting from the nearest future contract
+  const cutoff = new Date(today);
+  cutoff.setMonth(cutoff.getMonth() + 12);
+  const cutoffYM = cutoff.toISOString().slice(0, 7);
+
+  const rows = [];
+  contracts.forEach((c, i) => {
+    if (c.expiry < todayYM || c.expiry > cutoffYM) return;
+    const pump    = pumpForContract(contracts, bands, i);
+    const extra   = pump - baseline;            // can be negative if market somehow dipped
+    const monthly = extra * galPerMonth;
+    const [y, m]  = c.expiry.split('-');
+    rows.push({ label: MTHS[parseInt(m, 10) - 1] + ' ' + y, pump, extra, monthly });
+  });
+
+  const totalExtra = rows.reduce((s, r) => s + r.monthly, 0);
+  const maxMonthly = Math.max(...rows.map(r => Math.abs(r.monthly)), 1);
+
+  const tbodyHTML = rows.map(r => {
+    const barPct  = Math.round((Math.abs(r.monthly) / maxMonthly) * 100);
+    const sign    = r.extra >= 0 ? '+' : '';
+    const mSign   = r.monthly >= 0 ? '+' : '';
+    const warClass = r.extra >= 0 ? 'war-cost' : '';
+    return `<tr>
+      <td>${r.label}</td>
+      <td>$${r.pump.toFixed(2)}</td>
+      <td class="${warClass}">${sign}$${r.extra.toFixed(2)}</td>
+      <td class="${warClass}">${mSign}$${Math.round(Math.abs(r.monthly)).toLocaleString()}</td>
+      <td class="bar-cell"><div class="cost-bar-track"><div class="cost-bar-fill" style="width:${barPct}%"></div></div></td>
+    </tr>`;
+  }).join('');
+
+  const tSign = totalExtra >= 0 ? '+' : '−';
+  const tfootHTML = `<tr>
+    <td colspan="3">Total over next 12 months</td>
+    <td class="war-cost">${tSign}$${Math.round(Math.abs(totalExtra)).toLocaleString()}</td>
+    <td></td>
+  </tr>`;
+
+  document.getElementById('cost-table-body').innerHTML = tbodyHTML;
+  document.getElementById('cost-table-foot').innerHTML = tfootHTML;
+
+  const totalEl = document.getElementById('cost-total-number');
+  totalEl.textContent = `${tSign}$${Math.round(Math.abs(totalExtra)).toLocaleString()}`;
+  totalEl.style.color = totalExtra >= 0 ? '#c0392b' : '#27ae60';
 }
 </script>
 
