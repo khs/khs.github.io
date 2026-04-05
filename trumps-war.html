@@ -327,6 +327,60 @@
       line-height: 1.5;
     }
 
+    /* ---- Section headers (How I got the numbers, FAQ) ---- */
+    .section-header {
+      font-size: 1.6em;
+      font-weight: bold;
+      letter-spacing: -0.02em;
+      margin: 2.8em 0 0.5em;
+      padding-top: 1.2em;
+      border-top: 1px solid #e5e5e5;
+      color: #1a1a1a;
+    }
+
+    /* ---- FAQ ---- */
+    .faq { max-width: 680px; margin: 1em 0 2em; }
+
+    .faq details {
+      border-bottom: 1px solid #eee;
+      padding: 0;
+    }
+
+    .faq summary {
+      font-family: Georgia, serif;
+      font-size: 1.0em;
+      font-weight: bold;
+      color: #1a1a1a;
+      padding: 0.85em 1.6em 0.85em 0;
+      cursor: pointer;
+      list-style: none;
+      position: relative;
+      line-height: 1.4;
+    }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after {
+      content: '+';
+      position: absolute;
+      right: 0;
+      top: 0.8em;
+      font-size: 1.2em;
+      color: #999;
+      font-weight: 300;
+    }
+    .faq details[open] summary::after { content: '−'; }
+
+    .faq details[open] summary { color: #c0392b; }
+
+    .faq .faq-body {
+      font-size: 0.97em;
+      line-height: 1.72;
+      color: #333;
+      padding: 0 0 1.1em;
+      max-width: 620px;
+    }
+    .faq .faq-body p { margin: 0 0 0.7em; }
+    .faq .faq-body p:last-child { margin-bottom: 0; }
+
     /* ---- Footer ---- */
     site-footer {
       display: flex;
@@ -369,65 +423,13 @@
   It made you pay $1.47 more per gallon. The market isn't expecting a refund.</p>
 
   <div class="prose">
-    <p class="drop-cap">Through most of 2025, Americans caught a break at the pump. Oil supply was ample, demand from China had softened, and crude had spent the year drifting downward. By December, WTI crude touched $58 a barrel, its lowest in years, and the national average for a gallon of regular gasoline fell below $3. For a country that runs on driving, that was real money back in real pockets.</p>
-
-    <p>Then came the war. The Trump administration's strikes on Iran sent crude markets into shock. Oil surged by more than $60 a barrel in weeks. Brent crude, which drives U.S. pump prices, crossed $118. The summer driving season (which adds roughly 12 cents a gallon in blending costs) arrived on top of an already elevated base.</p>
-  </div>
-
-  <blockquote class="pullquote">
-    At the national average, Americans are paying about $735 more per year to fill their tanks than they were last December.
-  </blockquote>
-
-  <div class="prose">
-    <p>Today the national average is around $4.34 a gallon. For the average American household (which burns through roughly 500 gallons a year) that's about $735 more annually compared to December. Households in the West and California are paying considerably more.</p>
-  </div>
-
-  <!-- CHART -->
-  <div class="chart-section">
-    <div class="chart-controls">
-      <span class="chart-label">Pump price outlook: history and futures market forecast</span>
-      <select id="pump-region" class="region-select" onchange="setPumpRegion(this.value)">
-        <option value="national">US National Avg</option>
-        <option value="gulf">Gulf Coast</option>
-        <option value="midwest">Midwest</option>
-        <option value="east">East Coast</option>
-        <option value="west">West Coast</option>
-        <option value="california">California</option>
-      </select>
-      <span class="meta" id="last-updated"></span>
-    </div>
-
-    <div class="chart-container">
-      <canvas id="curveChart"></canvas>
-    </div>
-
-    <div class="slider-row" id="history-slider-row" style="display:none">
-      <span>History shown:</span>
-      <input type="range" id="time-slider" min="0" max="36" value="12"
-             oninput="updateHistorySlider(+this.value)">
-      <span class="slider-label" id="slider-label">12 months</span>
-    </div>
-
-    <p class="chart-note">
-      Grey line: historical US average pump price (EIA retail gasoline).
-      Blue line: futures-market-implied pump price (Brent forward curve).
-      Dark band: 68% probability range &nbsp;|&nbsp; Light band: 95% range.
-      <span id="pump-note"></span>
-    </p>
-  </div>
-
-  <div class="prose">
-    <p>The chart above shows where prices have been, where they are today, and where the futures market (where professional traders put real money behind their views) expects them to go. The market is not expecting a quick return to pre-war levels. Brent crude contracts through 2027 remain priced above $100 a barrel, which implies pump prices well above $3.75 nationally for the foreseeable future.</p>
-
-    <p>The shaded bands reflect honest uncertainty: oil markets are volatile and genuinely hard to predict. A deep global recession, a negotiated settlement, or a sudden surge in non-OPEC supply could push prices lower. But even the optimistic tail of the 95% band (the lower edge of the light shading) shows only modest relief from current levels over the next year. The market is not pricing in a peace dividend.</p>
-
-    <p>What the market <em>is</em> pricing in is the new normal: a Middle East where the risk premium on oil is structurally higher, refinery margins are elevated, and the era of $2.50 gas belongs to a world that existed before the first missile flew.</p>
+    <p>In early 2026, the Trump administration launched airstrikes on Iranian nuclear facilities. Iran responded within days: mines went into the Strait of Hormuz, proxy militias attacked Gulf tanker traffic, and insurance rates on Middle East shipping spiked. The Strait carries roughly 20 percent of the world's oil. Brent crude crossed $118 a barrel. You're paying the difference every time you fill up.</p>
   </div>
 
   <!-- COST CALCULATOR -->
   <div class="cost-section">
     <h2>What It Costs You</h2>
-    <p class="cost-intro">Enter your tank size and how often you fill up. The calculator uses the futures market's month-by-month price forecast to estimate your personal tab for Trump's War over the next year — compared to what you would have paid in each month without the war. The baseline is December 2025 (the last pre-war month), adjusted for each month's typical seasonal swing: summer months naturally cost a little more regardless of the war, so only the excess above that normal seasonal pattern counts as war cost.</p>
+    <p class="cost-intro">Enter your tank size and how often you fill up. The calculator uses the futures market's month-by-month price forecast to estimate your extra cost over the next year. The baseline is December 2025, the last pre-war month, adjusted for each month's typical seasonal swing so that normal summer price variation isn't counted as war cost.</p>
 
     <div class="cost-inputs">
       <div class="cost-input-group">
@@ -474,6 +476,108 @@
       Pump prices are futures-market expectations, not guarantees. Pre-war baseline: December 2025 national average, with typical seasonal adjustments added for each month (summer blend, demand patterns) so that normal seasonal variation is not counted as war cost.
       Average US driver: <a href="https://www.eia.gov/tools/faqs/faq.php?id=23&t=10" target="_blank" rel="noopener" style="color:#aaa">EIA</a>.
     </p>
+  </div>
+
+  <!-- HOW I GOT THE NUMBERS -->
+  <h2 class="section-header">How I got the numbers</h2>
+
+  <div class="prose">
+    <p>The pump price forecasts come from Brent crude futures traded on the NYMEX. These are contracts where traders actually put money on what oil will cost in future months. I convert the futures price to a pump price using a statistical model trained on ten years of EIA data, which accounts for the typical lag between crude prices and what shows up at the station, plus seasonal blending costs.</p>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-section">
+    <div class="chart-controls">
+      <span class="chart-label">Pump price outlook: history and futures market forecast</span>
+      <select id="pump-region" class="region-select" onchange="setPumpRegion(this.value)">
+        <option value="national">US National Avg</option>
+        <option value="gulf">Gulf Coast</option>
+        <option value="midwest">Midwest</option>
+        <option value="east">East Coast</option>
+        <option value="west">West Coast</option>
+        <option value="california">California</option>
+      </select>
+      <span class="meta" id="last-updated"></span>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="curveChart"></canvas>
+    </div>
+
+    <div class="slider-row" id="history-slider-row" style="display:none">
+      <span>History shown:</span>
+      <input type="range" id="time-slider" min="0" max="36" value="12"
+             oninput="updateHistorySlider(+this.value)">
+      <span class="slider-label" id="slider-label">12 months</span>
+    </div>
+
+    <p class="chart-note">
+      Grey line: historical US average pump price (EIA retail gasoline).
+      Blue line: futures-market-implied pump price (Brent forward curve).
+      Dark band: 68% probability range &nbsp;|&nbsp; Light band: 95% range.
+      <span id="pump-note"></span>
+    </p>
+  </div>
+
+  <div class="prose">
+    <p>The shaded bands show uncertainty. Oil markets are volatile and genuinely hard to predict. The dark band is where prices fell two-thirds of the time in historical backtests; the light band covers 95 percent. A peace deal, a deep recession, or a sudden OPEC production surge could push prices toward the lower edge. A wider conflict or a shipping insurance collapse could push them higher. The market is not pricing in a quick resolution.</p>
+
+    <p>The grey historical line is actual EIA retail data. Where it ends, estimation begins. The widening bands make that transition visible.</p>
+  </div>
+
+  <!-- FAQ -->
+  <h2 class="section-header">Questions</h2>
+
+  <div class="faq">
+
+    <details>
+      <summary>If the U.S. exports oil, why do Americans pay more?</summary>
+      <div class="faq-body">
+        <p>Because crude oil is a global commodity with a global price. When an American refiner buys crude to turn into gasoline, it pays the world market price, whether that crude came from Texas, Saudi Arabia, or Norway. U.S. producers don't offer a domestic discount; they sell to whoever pays the most, which is how commodity markets work.</p>
+        <p>When the Strait of Hormuz is disrupted, roughly 20 percent of global supply is threatened. That tightens the global market, which raises the global price, which raises what your refiner pays, which raises what you pay at the pump. Being an oil exporter means the U.S. economy benefits when prices are high (producers make more money), but it does not insulate American consumers from high prices.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Why can't we just drill more to bring prices down?</summary>
+      <div class="faq-body">
+        <p>Drilling takes time, capital, and confidence that prices will stay high long enough to justify the investment. A new well takes 6 to 18 months to complete after a company commits to it. Companies also know that a peace deal or a recession could collapse prices before that well pays off, so they wait for a clearer signal.</p>
+        <p>There's also a supply-demand arithmetic problem. U.S. oil production is already near record highs. Even a significant increase in output over a year or two would represent a few percent of global supply, not enough to offset a 20 percent disruption in Hormuz transit. OPEC spare capacity could fill the gap faster, but OPEC members are also benefiting from high prices and have little incentive to rescue American consumers.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>What about releasing oil from the Strategic Petroleum Reserve?</summary>
+      <div class="faq-body">
+        <p>The SPR holds roughly 700 million barrels, about 35 days of total U.S. petroleum consumption. The Biden administration released about 180 million barrels in 2022 during the Ukraine price spike and got roughly 15 to 25 cents of per-gallon relief that lasted a few months before prices recovered. It's a pressure valve for short-term supply shocks, not a mechanism for holding prices down against a sustained geopolitical premium.</p>
+        <p>The SPR also cannot replace the Strait of Hormuz. The Strait handles about 21 million barrels a day. The entire SPR is 700 million barrels. You can do the math.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Could a ceasefire or peace deal bring prices back down quickly?</summary>
+      <div class="faq-body">
+        <p>Yes, and fast. Oil markets are forward-looking. If the Strait reopened and tanker insurance normalized, Brent crude could fall $30 to $50 a barrel within days, and pump prices would follow within a few weeks given the lag in the refining and distribution chain. The uncertainty bands on the chart reflect this: the lower edge of the 95 percent band represents a scenario where conditions improve substantially.</p>
+        <p>What the market is saying, though, is that the base case is elevated prices through at least 2026. Traders price in the probability of relief; right now they're not assigning much to it.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Why are prices so much higher in California than the Gulf Coast?</summary>
+      <div class="faq-body">
+        <p>Two things: taxes and refinery geography. California requires a special reformulated gasoline blend with tighter emissions specifications than federal standards. Only a handful of refineries on the West Coast can produce it. When one of those refineries goes offline for maintenance or an accident, there's no easy way to import replacement supply from the Gulf Coast or overseas. Prices spike hard and stay high.</p>
+        <p>California also has the highest state gas tax in the country, around 68 cents per gallon, plus additional low-carbon fuel surcharges. The Gulf Coast has lower taxes and sits next door to the largest refining complex in the country, which keeps prices structurally lower.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>How accurate are these forecasts?</summary>
+      <div class="faq-body">
+        <p>Futures markets are the best available public forecast of future commodity prices, but they're not precise. In 20 years of backtests on WTI crude, 1-month futures missed the realized price by an average of $8 to $10 a barrel, and realized prices fell outside the 68 percent band roughly 32 percent of the time (close to the theoretical 32 percent, which is reassuring). At 4-month horizons the error roughly doubles.</p>
+        <p>The pump price forecast adds an additional source of error on top of the crude error: the relationship between crude prices and retail gasoline prices is stable over time but not perfectly predictable month to month. Crack spreads, refinery outages, and regional supply bottlenecks all introduce noise. The bands shown here are calibrated to the historical distribution of those errors, so they represent honest uncertainty, not false precision.</p>
+      </div>
+    </details>
+
   </div>
 
 </div><!-- /.content -->
