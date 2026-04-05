@@ -647,7 +647,12 @@ fetch('data/oil-futures.json')
 
 fetch('data/lag-model.json')
   .then(r => r.json())
-  .then(data => { if (data.alpha != null && data.betas != null) lagModel = data; })
+  .then(data => {
+    if (data.alpha != null && data.betas != null) {
+      lagModel = data;
+      if (oilData) { renderCurve(); renderCostCalc(); } // re-render if oil data already loaded
+    }
+  })
   .catch(() => {});
 
 function init() {

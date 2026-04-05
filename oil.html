@@ -694,6 +694,7 @@ fetch('data/lag-model.json')
   .then(data => {
     if (data.alpha != null && data.betas != null) {
       lagModel = data;
+      if (oilData) renderCurve(); // re-render if oil data already loaded
     }
   })
   .catch(() => { /* lag model not yet generated — falls back to 1-month lag */ });
