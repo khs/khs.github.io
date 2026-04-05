@@ -869,7 +869,10 @@ function buildHistoricalSegment() {
 
 function renderCurve() {
   if (!oilData) return;
-  const contracts = oilData['brent'] || [];
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() + 12);
+  const cutoffYM = cutoff.toISOString().slice(0, 7);
+  const contracts = (oilData['brent'] || []).filter(c => c.expiry <= cutoffYM);
   if (!contracts.length) return;
 
   const bands       = computeBands(contracts);
