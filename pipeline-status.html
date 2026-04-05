@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pipeline Status</title>
+  <style>
+    body {
+      font-family: Georgia, serif;
+      margin: 40px 80px;
+      background: #fff;
+      color: #222;
+      max-width: 1100px;
+    }
+    h1 { font-size: 1.7em; margin-bottom: 0.15em; }
+    .subtitle { color: #666; font-size: 0.9em; margin-bottom: 2em; }
+    h2 {
+      font-size: 1.15em;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.3em;
+      margin: 2em 0 0.8em;
+      color: #333;
+    }
+
+    /* Status badges */
+    .ok   { color: #276749; background: #f0fff4; border: 1px solid #9ae6b4; }
+    .warn { color: #744210; background: #fffaf0; border: 1px solid #f6ad55; }
+    .err  { color: #742a2a; background: #fff5f5; border: 1px solid #fc8181; }
+    .na   { color: #4a5568; background: #f7fafc; border: 1px solid #cbd5e0; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 0.82em;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+
+    /* Key-value rows */
+    .kv-grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      row-gap: 4px;
+      column-gap: 16px;
+      font-size: 0.9em;
+      margin-bottom: 0.5em;
+    }
+    .kv-grid .key { color: #555; }
+    .kv-grid .val { font-family: monospace; }
+
+    /* Tables */
+    table {
+      border-collapse: collapse;
+      font-size: 0.88em;
+      width: 100%;
+      margin-bottom: 1em;
+    }
+    th {
+      background: #f7f7f7;
+      text-align: left;
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      font-weight: normal;
+      color: #444;
+    }
+    td {
+      padding: 5px 10px;
+      border: 1px solid #eee;
+      font-family: monospace;
+    }
+    tr:hover td { background: #fafafa; }
+    .num { text-align: right; }
+    .cov-good { color: #276749; }
+    .cov-warn { color: #744210; }
+    .cov-bad  { color: #742a2a; }
+
+    /* Section cards */
+    .card {
+      background: #fafafa;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 14px 18px;
+      margin-bottom: 1em;
+    }
+    .card-title {
+      font-size: 0.95em;
+      font-weight: bold;
+      color: #2d3748;
+      margin-bottom: 10px;
+    }
+
+    .missing { color: #999; font-style: italic; font-family: Georgia, serif; }
+    .error-box {
+      background: #fff5f5;
+      border: 1px solid #fc8181;
+      padding: 10px 14px;
+      border-radius: 4px;
+      font-size: 0.88em;
+      color: #742a2a;
+    }
+    @media (max-width: 700px) {
+      body { margin: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Pipeline Status</h1>
+<p class="subtitle">Live read of <code>data/</code> JSON files — reflects last GitHub Actions run.</p>
+
+<div id="root"><p style="color:#888">Loading…</p></div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function badge(cls, text) {
+  return `<span class="badge ${cls}">${text}</span>`;
+}
+function ok(t)   { return badge('ok',   t ?? 'ok'); }
+function warn(t) { return badge('warn', t ?? 'warn'); }
+function err(t)  { return badge('err',  t ?? 'error'); }
+function na(t)   { return badge('na',   t ?? 'n/a'); }
+
+function ageBadge(isoStr) {
+  if (!isoStr) return err('missing');
+  const ageH = (Date.now() - new Date(isoStr)) / 36e5;
+  const h = ageH.toFixed(1);
+  if (ageH < 30)  return ok(`${h}h ago`);
+  if (ageH < 168) return warn(`${h}h ago`);
+  return err(`${h}h ago`);
+}
+
+function covBadge(cov, target = 0.68, tol = 0.10) {
+  if (cov == null) return na('–');
+  const pct = (cov * 100).toFixed(0) + '%';
+  if (Math.abs(cov - target) <= tol) return `<span class="cov-good">${pct}</span>`;
+  if (Math.abs(cov - target) <= tol * 2) return `<span class="cov-warn">${pct}</span>`;
+  return `<span class="cov-bad">${pct}</span>`;
+}
+
+function r2Badge(r2) {
+  if (r2 == null) return na('–');
+  const pct = (r2 * 100).toFixed(1) + '%';
+  if (r2 >= 0.85) return `<span class="cov-good">${pct}</span>`;
+  if (r2 >= 0.70) return `<span class="cov-warn">${pct}</span>`;
+  return `<span class="cov-bad">${pct}</span>`;
+}
+
+function fmt(v, digits = 3) {
+  if (v == null) return '<span class="missing">–</span>';
+  return (+v).toFixed(digits);
+}
+function fmtPct(v, digits = 1) {
+  if (v == null) return '<span class="missing">–</span>';
+  return (v * 100).toFixed(digits) + '%';
+}
+
+function kv(rows) {
+  return `<div class="kv-grid">${rows.map(([k, v]) =>
+    `<span class="key">${k}</span><span class="val">${v}</span>`
+  ).join('')}</div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Sections
+// ---------------------------------------------------------------------------
+
+function renderFutures(f) {
+  const wtiN    = f.wti?.length ?? 0;
+  const brentN  = f.brent?.length ?? 0;
+  const wtiR    = f.wti?.length  ? `${f.wti[0].expiry} – ${f.wti.at(-1).expiry}` : '–';
+  const brentR  = f.brent?.length ? `${f.brent[0].expiry} – ${f.brent.at(-1).expiry}` : '–';
+  const histW   = f.historical_wti?.length;
+  const histP   = f.historical_pump?.length;
+  const histWR  = histW ? `${f.historical_wti[0].month} – ${f.historical_wti.at(-1).month}` : null;
+  const histPR  = histP ? `${f.historical_pump[0].month} – ${f.historical_pump.at(-1).month}` : null;
+  const snapN   = f.snapshots?.length ?? 0;
+  const snapR   = snapN ? `${f.snapshots[0].date} – ${f.snapshots.at(-1).date}` : '–';
+  const crackN  = f.crack_spreads?.by_month?.length ?? 0;
+  const crackAvg = f.crack_spreads?.average;
+
+  return `
+    <h2>Oil Futures Data <small style="font-weight:normal;color:#888">(oil-futures.json)</small></h2>
+    <div class="card">
+      <div class="card-title">Freshness</div>
+      ${kv([
+        ['last_updated',    ageBadge(f.last_updated) + ' &nbsp;<span style="color:#888;font-size:.85em">' + (f.last_updated ?? '') + '</span>'],
+        ['data_available',  f.data_available ? ok('true') : err('false')],
+      ])}
+    </div>
+    <div class="card">
+      <div class="card-title">Forward curves</div>
+      ${kv([
+        ['WTI contracts',   `${wtiN >= 6 ? ok(wtiN) : warn(wtiN)} contracts &nbsp; <span style="color:#888">${wtiR}</span>`],
+        ['Brent contracts', `${brentN >= 6 ? ok(brentN) : warn(brentN)} contracts &nbsp; <span style="color:#888">${brentR}</span>`],
+        ['Crack spreads',   `${crackN > 0 ? ok(crackN) : warn(0)} months &nbsp; avg $${crackAvg?.toFixed(3) ?? '–'}/gal`],
+        ['Snapshots',       `${snapN > 0 ? ok(snapN) : warn(0)} stored &nbsp; <span style="color:#888">${snapR}</span>`],
+      ])}
+    </div>
+    <div class="card">
+      <div class="card-title">Historical series</div>
+      ${kv([
+        ['historical_wti',  histW ? ok(histW + ' months') + ` &nbsp;<span style="color:#888">${histWR}</span>` : err('missing')],
+        ['historical_pump', histP ? ok(histP + ' months') + ` &nbsp;<span style="color:#888">${histPR}</span>` : warn('missing — run workflow to populate')],
+      ])}
+    </div>`;
+}
+
+function renderLagModel(lm) {
+  const hasNardl = lm.betas_pos != null;
+  const hasWald  = lm.wald_test != null;
+  const wt = lm.wald_test ?? lm.asymmetry_test;
+  const asymSig  = wt?.significant;
+  const pApprox  = wt?.p_approx;
+
+  return `
+    <h2>Lag Model <small style="font-weight:normal;color:#888">(lag-model.json)</small></h2>
+    <div class="card">
+      <div class="card-title">Build info</div>
+      ${kv([
+        ['generated',     ageBadge(lm.generated) + ' &nbsp;<span style="color:#888;font-size:.85em">' + (lm.generated ?? '') + '</span>'],
+        ['method',        `<span style="font-family:monospace">${lm.method ?? '–'}</span>`],
+        ['data range',    `${lm.data_start ?? '–'} – ${lm.data_end ?? '–'}`],
+        ['n_obs',         lm.n_obs >= 100 ? ok(lm.n_obs) : warn(lm.n_obs)],
+        ['n_lags',        lm.n_lags ?? '–'],
+      ])}
+    </div>
+    <div class="card">
+      <div class="card-title">Symmetric model fit</div>
+      ${kv([
+        ['R²',                r2Badge(lm.r2) + ` &nbsp;<span style="color:#888">in-sample</span>`],
+        ['RMSE',              `$${fmt(lm.rmse, 4)}/gal`],
+        ['alpha',             `$${fmt(lm.alpha, 4)}/gal`],
+        ['total_passthrough', fmt(lm.total_passthrough, 4)],
+        ['seasonal_premium',  `$${fmt(lm.seasonal_premium, 4)}/gal (Apr–Sep)`],
+        ['asymmetry p-value', asymSig != null
+          ? (asymSig ? warn('p=' + pApprox?.toFixed(4) + ' — asymmetric ✓') : ok('p=' + pApprox?.toFixed(4) + ' — symmetric'))
+          : na('not tested')],
+      ])}
+    </div>
+    ${hasNardl ? `
+    <div class="card">
+      <div class="card-title">NARDL model fit</div>
+      ${kv([
+        ['data range',           `${lm.nardl_data_start ?? '–'} – ${lm.nardl_data_end ?? '–'}`],
+        ['n_obs',                lm.nardl_n_obs ?? '–'],
+        ['R²',                   r2Badge(lm.nardl_r2) + ` &nbsp;<span style="color:#888">in-sample</span>`],
+        ['RMSE',                 `$${fmt(lm.nardl_rmse, 4)}/gal`],
+        ['total_passthrough_pos', fmt(lm.total_passthrough_pos, 4) + ' &nbsp;<span style="color:#888">(rising crude)</span>'],
+        ['total_passthrough_neg', fmt(lm.total_passthrough_neg, 4) + ' &nbsp;<span style="color:#888">(falling crude)</span>'],
+        ['band_passthrough',      ok(fmt(lm.band_passthrough, 4)) + ' &nbsp;<span style="color:#888">max(|pos|,|neg|)</span>'],
+        ['seasonal_premium_nardl',`$${fmt(lm.seasonal_premium_nardl, 4)}/gal`],
+        ['Wald asymmetry',        hasWald
+          ? (lm.wald_test.significant
+              ? warn('W=' + lm.wald_test.W_stat?.toFixed(2) + ' p=' + lm.wald_test.p_approx?.toFixed(4) + ' — significant')
+              : ok('W='   + lm.wald_test.W_stat?.toFixed(2) + ' p=' + lm.wald_test.p_approx?.toFixed(4) + ' — not sig.'))
+          : na('–')],
+      ])}
+    </div>` : `
+    <div class="card">
+      ${warn('NARDL fields not yet present')} — workflow must be re-run after the latest build_lag_model.py changes.
+    </div>`}`;
+}
+
+function backtestTable(results, horizons = ['1m','2m','3m','4m']) {
+  const rows = horizons.map(h => {
+    const s = results[h];
+    if (!s) return `<tr><td>${h}</td><td colspan="9" class="missing">missing</td></tr>`;
+    return `<tr>
+      <td>${h}</td>
+      <td class="num">${s.n}</td>
+      <td class="num">${s.date_start} – ${s.date_end}</td>
+      <td class="num">${fmt(s.bias, 3)}</td>
+      <td class="num">${fmt(s.mae, 3)}</td>
+      <td class="num">${fmt(s.rmse, 3)}</td>
+      <td class="num">${fmt(s.naive_rmse, 3)}</td>
+      <td class="num">${s.r2 != null ? r2Badge(s.r2) : na('–')}</td>
+      <td class="num">${covBadge(s.coverage_68, 0.68)}</td>
+      <td class="num">${covBadge(s.coverage_95, 0.95)}</td>
+    </tr>`;
+  });
+  return `<table>
+    <tr>
+      <th>Horizon</th><th>n</th><th>Date range</th>
+      <th class="num">Bias</th><th class="num">MAE</th>
+      <th class="num">RMSE</th><th class="num">Naive RMSE</th>
+      <th class="num">R²</th>
+      <th class="num">68% cov</th><th class="num">95% cov</th>
+    </tr>
+    ${rows.join('')}
+  </table>`;
+}
+
+function regimeTable(regimes) {
+  if (!regimes?.length) return `<p class="missing">No regime data.</p>`;
+  return `<table>
+    <tr>
+      <th>Regime</th><th>Period</th><th>n</th>
+      <th class="num">Bias</th><th class="num">MAE</th><th class="num">RMSE</th>
+    </tr>
+    ${regimes.map(r => `<tr>
+      <td>${r.name}</td>
+      <td>${r.start} – ${r.end}</td>
+      <td class="num">${r.n}</td>
+      <td class="num">${fmt(r.bias, 2)}</td>
+      <td class="num">${fmt(r.mae, 2)}</td>
+      <td class="num">${fmt(r.rmse, 2)}</td>
+    </tr>`).join('')}
+  </table>`;
+}
+
+function renderBacktest(bt) {
+  const res   = bt.results ?? {};
+  const pump  = bt.pump_results ?? {};
+
+  // Coverage calibration summary
+  const cov68_1m  = res['1m']?.coverage_68;
+  const pcov68_1m = pump['1m']?.coverage_68;
+  const calOk = v => v != null && Math.abs(v - 0.68) <= 0.10;
+
+  return `
+    <h2>Crude Backtest <small style="font-weight:normal;color:#888">(oil-backtest.json)</small></h2>
+    <div class="card">
+      <div class="card-title">Freshness</div>
+      ${kv([
+        ['generated', ageBadge(bt.generated) + ' &nbsp;<span style="color:#888;font-size:.85em">' + (bt.generated ?? '') + '</span>'],
+      ])}
+    </div>
+    <div class="card">
+      <div class="card-title">WTI futures vs realized spot</div>
+      <p style="font-size:.85em;color:#666;margin:.4em 0 .8em">
+        Prediction: RCLC1–4 nth-nearby futures. Realized: WTI Cushing daily spot.
+        68% target = 68%; 95% target = 95%.
+      </p>
+      ${backtestTable(res)}
+    </div>
+    <div class="card">
+      <div class="card-title">Market regime breakdown (1m)</div>
+      ${regimeTable(res.regimes)}
+    </div>
+    ${Object.keys(pump).length ? `
+    <div class="card">
+      <div class="card-title">Pump price backtest (lag-model steady state vs EIA retail gasoline)</div>
+      <p style="font-size:.85em;color:#666;margin:.4em 0 .8em">
+        Units: $/gal. Coverage calibration uses crude bands + PUMP_RESIDUAL_GAL in quadrature.
+        ${pcov68_1m != null
+          ? (calOk(pcov68_1m) ? '<span style="color:#276749">1m pump 68% coverage on target.</span>'
+                              : '<span style="color:#744210">1m pump 68% coverage off target — may need PUMP_RESIDUAL_GAL recalibration.</span>')
+          : ''}
+      </p>
+      ${backtestTable(pump)}
+    </div>` : `
+    <div class="card">${warn('pump_results missing')} — backtest may have failed for pump prices.</div>`}`;
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+async function load() {
+  const root = document.getElementById('root');
+  const errors = [];
+
+  let futures = null, lagModel = null, backtest = null;
+
+  async function fetchJSON(path) {
+    const r = await fetch(path);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  }
+
+  await Promise.allSettled([
+    fetchJSON('data/oil-futures.json').then(d  => futures  = d).catch(e => errors.push(['oil-futures.json', e.message])),
+    fetchJSON('data/lag-model.json').then(d    => lagModel = d).catch(e => errors.push(['lag-model.json',   e.message])),
+    fetchJSON('data/oil-backtest.json').then(d => backtest = d).catch(e => errors.push(['oil-backtest.json', e.message])),
+  ]);
+
+  let html = '';
+
+  if (errors.length) {
+    html += errors.map(([f, msg]) =>
+      `<div class="error-box">Failed to load <strong>${f}</strong>: ${msg}</div>`
+    ).join('');
+  }
+
+  if (futures)  html += renderFutures(futures);
+  if (lagModel) html += renderLagModel(lagModel);
+  if (backtest) html += renderBacktest(backtest);
+
+  if (!futures && !lagModel && !backtest) {
+    html += `<p class="missing">No data files could be loaded.</p>`;
+  }
+
+  html += `<p style="color:#aaa;font-size:.8em;margin-top:2em">
+    Loaded at ${new Date().toISOString()}. Refresh to re-read.
+  </p>`;
+
+  root.innerHTML = html;
+}
+
+load();
+</script>
+</body>
+</html>
