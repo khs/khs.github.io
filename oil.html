@@ -551,18 +551,30 @@ function pumpForContract(contracts, bands, idx, isBrent) {
   const regional = PUMP_REGIONS[pumpRegion].offset;
 
   if (lagModel) {
-    const { alpha, betas, seasonal_premium, total_passthrough } = lagModel;
-    const K = betas.length;
+    const { alpha, betas, betas_pos, betas_neg, seasonal_premium, seasonal_premium_nardl } = lagModel;
 
     // Delivery date in weeks from now
     const deliveryWeeks = (new Date(expiry + '-15') - Date.now()) / (7 * 86400000);
 
     // Weighted crude input: Σ β_k × crude(delivery - k weeks)/42
+    // NARDL branch: choose β_k⁺ or β_k⁻ based on whether the forward curve is rising.
     let weightedCrudeGal = 0;
-    for (let k = 0; k < K; k++) {
-      const crudeBbl = interpolateCrude(contracts, deliveryWeeks - k);
-      const brentBbl = isBrent ? crudeBbl : crudeBbl + WTI_TO_BRENT_ADJ;
-      weightedCrudeGal += betas[k] * (brentBbl / 42);
+    if (betas_pos && betas_neg) {
+      const K = betas_pos.length;
+      for (let k = 0; k < K; k++) {
+        const crudeBbl  = interpolateCrude(contracts, deliveryWeeks - k);
+        const crudePrev = interpolateCrude(contracts, deliveryWeeks - k - 1);
+        const brentBbl  = isBrent ? crudeBbl : crudeBbl + WTI_TO_BRENT_ADJ;
+        const beta_k    = (crudeBbl >= crudePrev) ? betas_pos[k] : betas_neg[k];
+        weightedCrudeGal += beta_k * (brentBbl / 42);
+      }
+    } else {
+      const K = betas.length;
+      for (let k = 0; k < K; k++) {
+        const crudeBbl = interpolateCrude(contracts, deliveryWeeks - k);
+        const brentBbl = isBrent ? crudeBbl : crudeBbl + WTI_TO_BRENT_ADJ;
+        weightedCrudeGal += betas[k] * (brentBbl / 42);
+      }
     }
 
     // Crack spread deviation: how different is this contract's crack from training avg?
@@ -574,7 +586,10 @@ function pumpForContract(contracts, bands, idx, isBrent) {
     // Seasonal premium based on the DELIVERY month, not today.
     const deliveryMonth = parseInt(expiry.slice(5, 7), 10);
     const isSummer  = deliveryMonth >= 4 && deliveryMonth <= 9;
-    const seasonal  = isSummer ? (seasonal_premium ?? 0.12) : 0;
+    // Prefer NARDL seasonal premium when NARDL betas are in use
+    const sp        = (betas_pos && betas_neg) ? (seasonal_premium_nardl ?? seasonal_premium ?? 0.12)
+                                                : (seasonal_premium ?? 0.12);
+    const seasonal  = isSummer ? sp : 0;
 
     return +(alpha + weightedCrudeGal + crackDev + regional + seasonal).toFixed(3);
 
@@ -606,7 +621,7 @@ function pumpBandEndpoint(contracts, bands, idx, isBrent, crudeBandBbl, nSigma =
     const deliveryMon = parseInt(contracts[idx].expiry.slice(5, 7), 10);
     return crudeToGallon(crudeBandBbl, isBrent, pumpRegion, crack, deliveryMon);
   }
-  const tp = lagModel.total_passthrough ?? 0.75;
+  const tp = lagModel.band_passthrough ?? lagModel.total_passthrough ?? 0.75;
   const brentAdj = isBrent ? 0 : WTI_TO_BRENT_ADJ;
   const crudeDelta = ((crudeBandBbl + brentAdj) - (central + brentAdj)) / 42 * tp;
   // Combine crude-derived uncertainty with non-crude residual in quadrature.

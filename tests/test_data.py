@@ -305,18 +305,70 @@ class TestLagModelSchema:
     def test_backtest_pump_passthrough_matches_lag_model(self, lag_model):
         """backtest_oil.PUMP_PASSTHROUGH must stay in sync with lag-model.json.
 
-        If build_lag_model.py is re-run and produces a different total_passthrough,
-        backtest_oil._load_pump_passthrough() should pick it up automatically.
-        This test catches any regression where the loading mechanism breaks.
+        PUMP_PASSTHROUGH uses band_passthrough (worst-case NARDL amplification)
+        when available, falling back to total_passthrough for pre-NARDL models.
+        backtest_oil._load_pump_passthrough() implements this automatically.
         """
         import sys
         sys.path.insert(0, str(ROOT / ".github" / "scripts"))
         from backtest_oil import PUMP_PASSTHROUGH
-        expected = lag_model["total_passthrough"]
+        # Use band_passthrough if present (NARDL model), else total_passthrough
+        expected = lag_model.get("band_passthrough", lag_model["total_passthrough"])
         assert abs(PUMP_PASSTHROUGH - expected) < 1e-4, (
             f"backtest_oil.PUMP_PASSTHROUGH={PUMP_PASSTHROUGH:.6f} diverged from "
-            f"lag-model.json total_passthrough={expected:.6f}"
+            f"lag-model.json band_passthrough/total_passthrough={expected:.6f}"
         )
+
+    def test_nardl_fields_consistent(self, lag_model):
+        """When NARDL fields are present they must be internally consistent."""
+        if "betas_pos" not in lag_model:
+            pytest.skip("NARDL not yet run — symmetric model only")
+        betas_pos = lag_model["betas_pos"]
+        betas_neg = lag_model["betas_neg"]
+        assert len(betas_pos) == len(betas_neg), \
+            "betas_pos and betas_neg must have the same length"
+        n_lags = lag_model.get("n_lags", 8)
+        assert len(betas_pos) == n_lags + 1, \
+            f"Expected {n_lags + 1} NARDL betas, got {len(betas_pos)}"
+
+    def test_nardl_passthrough_values_plausible(self, lag_model):
+        if "total_passthrough_pos" not in lag_model:
+            pytest.skip("NARDL not yet run")
+        tp_pos = lag_model["total_passthrough_pos"]
+        tp_neg = lag_model["total_passthrough_neg"]
+        # Literature: 46% upward, 22% downward at 5 days; long-run ≈ 50-130%
+        assert 0.1 <= tp_pos <= 2.0, f"total_passthrough_pos={tp_pos} implausible"
+        assert 0.0 <= abs(tp_neg) <= 2.0, f"total_passthrough_neg={tp_neg} implausible"
+
+    def test_band_passthrough_is_max(self, lag_model):
+        """band_passthrough must equal max(|pos|, |neg|) for worst-case band width."""
+        if "band_passthrough" not in lag_model:
+            pytest.skip("NARDL not yet run")
+        expected = max(
+            abs(lag_model.get("total_passthrough_pos", 0)),
+            abs(lag_model.get("total_passthrough_neg", 0)),
+        )
+        stored = lag_model["band_passthrough"]
+        assert abs(stored - expected) < 0.001, \
+            f"band_passthrough={stored} != max(|pos|,|neg|)={expected:.4f}"
+
+    def test_wald_test_fields(self, lag_model):
+        if "wald_test" not in lag_model:
+            pytest.skip("NARDL not yet run")
+        wt = lag_model["wald_test"]
+        for field in ("sum_pos", "sum_neg", "W_stat", "p_approx", "significant"):
+            assert field in wt, f"wald_test missing field: {field}"
+        assert wt["W_stat"] >= 0, "Wald statistic must be non-negative"
+        assert 0.0 <= wt["p_approx"] <= 1.0, "p_approx must be in [0, 1]"
+        assert isinstance(wt["significant"], bool)
+
+    def test_nardl_r2_better_or_equal(self, lag_model):
+        """NARDL R² should be >= symmetric R² (more parameters, same data)."""
+        if "nardl_r2" not in lag_model or lag_model.get("r2") is None:
+            pytest.skip("NARDL or symmetric R² not present")
+        # Allow a tiny tolerance for floating-point rounding
+        assert lag_model["nardl_r2"] >= lag_model["r2"] - 0.01, \
+            f"NARDL R²={lag_model['nardl_r2']} worse than symmetric R²={lag_model['r2']}"
 
     def test_pump_price_sanity_at_current_brent(self, futures, lag_model):
         """Compute pump for the front Brent contract and check it's in a sane range."""
