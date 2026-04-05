@@ -259,12 +259,18 @@ class TestComputePumpBands:
         assert abs(delta_lo - delta_hi) < 1e-9
 
     def test_passthrough_and_residual_formula(self):
-        """upper1 = pump + sqrt((crude_delta/42 * tp)^2 + residual^2) exactly."""
+        """upper1 = pump + sqrt((crude_delta/42 * tp)^2 + residual_scaled^2) exactly.
+
+        residual_scaled = PUMP_RESIDUAL_GAL * sqrt(T / T_1m) where T_1m = 1/12 yr.
+        """
+        import math as _math
         crude_bbl, pump_price, T = 80.0, 3.0, 1.0
+        T_1m = 1.0 / 12.0
+        residual_scale = _math.sqrt(T / T_1m)
         crude_b = compute_bands(crude_bbl, T)
         expected_crude_delta = (crude_b["upper1"] - crude_bbl) / 42.0 * PUMP_PASSTHROUGH
-        expected_upper1 = pump_price + math.sqrt(
-            expected_crude_delta ** 2 + PUMP_RESIDUAL_GAL ** 2
+        expected_upper1 = pump_price + _math.sqrt(
+            expected_crude_delta ** 2 + (PUMP_RESIDUAL_GAL * residual_scale) ** 2
         )
         bands = compute_pump_bands(crude_bbl, pump_price, T)
         assert bands["upper1"] == pytest.approx(expected_upper1, rel=1e-9)

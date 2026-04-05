@@ -624,8 +624,12 @@ function pumpBandEndpoint(contracts, bands, idx, isBrent, crudeBandBbl, nSigma =
   const tp = lagModel.band_passthrough ?? lagModel.total_passthrough ?? 0.75;
   const brentAdj = isBrent ? 0 : WTI_TO_BRENT_ADJ;
   const crudeDelta = ((crudeBandBbl + brentAdj) - (central + brentAdj)) / 42 * tp;
-  // Combine crude-derived uncertainty with non-crude residual in quadrature.
-  const residual = nSigma * PUMP_RESIDUAL_GAL;
+  // Scale residual by sqrt(T/T_1m): crack-spread and blend-cost uncertainty
+  // accumulates over time just like crude vol does. T_1m = 1 month (calibration point).
+  const expiry  = new Date(contracts[idx].expiry + '-15');
+  const T       = Math.max(1 / 52, (expiry - Date.now()) / (365.25 * 86400e3));
+  const T_1m    = 1 / 12;
+  const residual = nSigma * PUMP_RESIDUAL_GAL * Math.sqrt(T / T_1m);
   const totalDelta = Math.sign(crudeDelta) * Math.sqrt(crudeDelta ** 2 + residual ** 2);
   return +(pumpCentral + totalDelta).toFixed(3);
 }
@@ -892,14 +896,14 @@ function renderCurve() {
 
   const yLabel    = showPump ? '$/gallon at pump' : '$/barrel';
   const lineLabel = showPump
-    ? `Est. pump price — ${PUMP_REGIONS[pumpRegion].label}`
+    ? `Est. pump price: ${PUMP_REGIONS[pumpRegion].label}`
     : `${benchmark.toUpperCase()} Forward Curve ($/bbl)`;
 
   const datasets = [];
 
   if (nHist > 0) {
     datasets.push({
-      label: showPump ? 'Historical (approx.)' : `${benchmark.toUpperCase()} (historical)`,
+      label: showPump ? 'Historical (EIA)' : `${benchmark.toUpperCase()} (historical)`,
       data: [...hist.prices, ...nullF],
       borderColor: 'rgba(120,120,120,0.75)',
       backgroundColor: 'rgba(120,120,120,0.75)',
@@ -935,11 +939,17 @@ function renderCurve() {
     });
   }
 
+  // Bridge: start the forecast line at the last historical value so the two
+  // segments connect visually. The today-line plugin marks the transition.
+  const bridgeData = nHist > 0
+    ? [...new Array(nHist - 1).fill(null), hist.prices.at(-1), ...futurePrices]
+    : [...nullH, ...futurePrices];
+
   // Index of the forward-curve line dataset (used for tooltip filtering)
   const fwdDatasetIdx = datasets.length;
   datasets.push({
     label: lineLabel,
-    data: [...nullH, ...futurePrices],
+    data: bridgeData,
     borderColor: '#2c5282', backgroundColor: '#2c5282',
     borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6,
     fill: false, order: 1, tension: 0.2,

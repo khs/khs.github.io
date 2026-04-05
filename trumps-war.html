@@ -366,12 +366,12 @@
   <h1>Trump's War</h1>
 
   <p class="deck">The U.S. strike on Iran didn't just make the news.
-  It made you pay $1.47 more per gallon — and the market isn't expecting a refund.</p>
+  It made you pay $1.47 more per gallon. The market isn't expecting a refund.</p>
 
   <div class="prose">
-    <p class="drop-cap">Through most of 2025, Americans caught a break at the pump. Oil supply was ample, demand from China had softened, and crude had spent the year drifting downward. By December, WTI crude touched $58 a barrel — its lowest in years — and the national average for a gallon of regular gasoline fell below $3. For a country that runs on driving, that was real money back in real pockets.</p>
+    <p class="drop-cap">Through most of 2025, Americans caught a break at the pump. Oil supply was ample, demand from China had softened, and crude had spent the year drifting downward. By December, WTI crude touched $58 a barrel, its lowest in years, and the national average for a gallon of regular gasoline fell below $3. For a country that runs on driving, that was real money back in real pockets.</p>
 
-    <p>Then came the war. The Trump administration's strikes on Iran sent crude markets into shock. Oil surged by more than $60 a barrel in weeks. Brent crude, which drives U.S. pump prices, crossed $118. The summer driving season — which adds roughly 12 cents a gallon in blending costs — arrived on top of an already elevated base.</p>
+    <p>Then came the war. The Trump administration's strikes on Iran sent crude markets into shock. Oil surged by more than $60 a barrel in weeks. Brent crude, which drives U.S. pump prices, crossed $118. The summer driving season (which adds roughly 12 cents a gallon in blending costs) arrived on top of an already elevated base.</p>
   </div>
 
   <blockquote class="pullquote">
@@ -379,13 +379,13 @@
   </blockquote>
 
   <div class="prose">
-    <p>Today the national average is around $4.34 a gallon. For the average American household — which burns through roughly 500 gallons a year — that's about $735 more annually compared to December. Households in the West and California are paying considerably more.</p>
+    <p>Today the national average is around $4.34 a gallon. For the average American household (which burns through roughly 500 gallons a year) that's about $735 more annually compared to December. Households in the West and California are paying considerably more.</p>
   </div>
 
   <!-- CHART -->
   <div class="chart-section">
     <div class="chart-controls">
-      <span class="chart-label">Pump price outlook — history &amp; futures market forecast</span>
+      <span class="chart-label">Pump price outlook: history and futures market forecast</span>
       <select id="pump-region" class="region-select" onchange="setPumpRegion(this.value)">
         <option value="national">US National Avg</option>
         <option value="gulf">Gulf Coast</option>
@@ -417,9 +417,9 @@
   </div>
 
   <div class="prose">
-    <p>The chart above shows where prices have been, where they are today, and where the futures market — where professional traders put real money behind their views — expects them to go. The market is not expecting a quick return to pre-war levels. Brent crude contracts through 2027 remain priced above $100 a barrel, which implies pump prices well above $3.75 nationally for the foreseeable future.</p>
+    <p>The chart above shows where prices have been, where they are today, and where the futures market (where professional traders put real money behind their views) expects them to go. The market is not expecting a quick return to pre-war levels. Brent crude contracts through 2027 remain priced above $100 a barrel, which implies pump prices well above $3.75 nationally for the foreseeable future.</p>
 
-    <p>The shaded bands reflect honest uncertainty: oil markets are volatile and genuinely hard to predict. A deep global recession, a negotiated settlement, or a sudden surge in non-OPEC supply could push prices lower. But even the optimistic tail of the 95% band — the lower edge of the light shading — shows only modest relief from current levels over the next year. The market is not pricing in a peace dividend.</p>
+    <p>The shaded bands reflect honest uncertainty: oil markets are volatile and genuinely hard to predict. A deep global recession, a negotiated settlement, or a sudden surge in non-OPEC supply could push prices lower. But even the optimistic tail of the 95% band (the lower edge of the light shading) shows only modest relief from current levels over the next year. The market is not pricing in a peace dividend.</p>
 
     <p>What the market <em>is</em> pricing in is the new normal: a Middle East where the risk premium on oil is structurally higher, refinery margins are elevated, and the era of $2.50 gas belongs to a world that existed before the first missile flew.</p>
   </div>
@@ -451,7 +451,7 @@
     </div>
 
     <div class="cost-total-block">
-      <div class="cost-big-number" id="cost-total-number">$—</div>
+      <div class="cost-big-number" id="cost-total-number">$–</div>
       <div class="cost-big-label">estimated extra cost over the next 12 months<br>
         <span style="color:#bbb">vs. pre-war baseline, seasonally adjusted by month</span>
       </div>
@@ -471,7 +471,7 @@
       <tfoot id="cost-table-foot"></tfoot>
     </table>
     <p class="cost-footnote">
-      Pump prices are futures-market expectations — not guarantees. Pre-war baseline: December 2025 national average, with typical seasonal adjustments added for each month (summer blend, demand patterns) so that normal seasonal variation is not counted as war cost.
+      Pump prices are futures-market expectations, not guarantees. Pre-war baseline: December 2025 national average, with typical seasonal adjustments added for each month (summer blend, demand patterns) so that normal seasonal variation is not counted as war cost.
       Average US driver: <a href="https://www.eia.gov/tools/faqs/faq.php?id=23&t=10" target="_blank" rel="noopener" style="color:#aaa">EIA</a>.
     </p>
   </div>
@@ -609,7 +609,12 @@ function pumpBandEndpoint(contracts, bands, idx, crudeBandBbl, nSigma = 1) {
   }
   const tp         = lagModel.band_passthrough ?? lagModel.total_passthrough ?? 0.75;
   const crudeDelta = (crudeBandBbl - central) / 42 * tp;
-  const residual   = nSigma * PUMP_RESIDUAL_GAL;
+  // Scale residual by sqrt(T/T_1m): crack-spread and blend-cost uncertainty
+  // accumulates over time just like crude vol does. T_1m = 1 month (calibration point).
+  const expiry  = new Date(contracts[idx].expiry + '-15');
+  const T       = Math.max(1 / 52, (expiry - Date.now()) / (365.25 * 86400e3));
+  const T_1m    = 1 / 12;
+  const residual = nSigma * PUMP_RESIDUAL_GAL * Math.sqrt(T / T_1m);
   const totalDelta = Math.sign(crudeDelta) * Math.sqrt(crudeDelta ** 2 + residual ** 2);
   return +(pumpCentral + totalDelta).toFixed(3);
 }
@@ -796,10 +801,16 @@ function renderCurve() {
   datasets.push({ label: '68% upper', data: [...nullH, ...upper1], borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.18)', fill: '+1', pointRadius: 0, order: 3 });
   datasets.push({ label: '68% lower', data: [...nullH, ...lower1], borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.18)', fill: false, pointRadius: 0, order: 3 });
 
+  // Bridge: start the forecast line at the last historical value so the two
+  // segments connect visually. The today-line plugin marks the transition.
+  const bridgeData = nHist > 0
+    ? [...new Array(nHist - 1).fill(null), hist.prices.at(-1), ...futurePrices]
+    : [...nullH, ...futurePrices];
+
   const fwdDatasetIdx = datasets.length;
   datasets.push({
-    label: `Est. pump price — ${PUMP_REGIONS[pumpRegion].label}`,
-    data: [...nullH, ...futurePrices],
+    label: `Est. pump price: ${PUMP_REGIONS[pumpRegion].label}`,
+    data: bridgeData,
     borderColor: '#2c5282', backgroundColor: '#2c5282',
     borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6,
     fill: false, order: 1, tension: 0.2,
@@ -826,7 +837,8 @@ function renderCurve() {
         tooltip: {
           filter: item => {
             const i = item.dataIndex;
-            if (i < nHist) return item.datasetIndex === 0;
+            if (i < nHist) return item.datasetIndex === 0; // historical only
+            if (i === nHist - 1) return item.datasetIndex === 0; // bridge point: show historical
             return item.datasetIndex === fwdDatasetIdx;
           },
           callbacks: {
@@ -835,7 +847,7 @@ function renderCurve() {
               const i = ctx.dataIndex;
               if (i < nHist) {
                 const v = hist.prices[i];
-                return v != null ? `Est. pump: $${v.toFixed(2)}/gal (approx.)` : '';
+                return v != null ? `Actual pump: $${v.toFixed(2)}/gal` : '';
               }
               const bi  = i - nHist;
               const mid = futurePrices[bi];

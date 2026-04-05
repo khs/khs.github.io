@@ -278,14 +278,18 @@ def compute_pump_bands(crude_bbl: float, pump_price: float, T_years: float) -> d
         T_years:    Forecast horizon in years.
     """
     crude_bands = compute_bands(crude_bbl, T_years)
+    # Scale residual by sqrt(T/T_1m): crack-spread and blend-cost uncertainty
+    # accumulates over time. T_1m = 1 month = calibration point for PUMP_RESIDUAL_GAL.
+    T_1m = 1.0 / 12.0
+    residual_scale = math.sqrt(max(T_years, 1.0 / 52) / T_1m)
+
     def combine(crude_band_bbl: float, n: int) -> float:
         crude_delta_gal = (crude_band_bbl - crude_bbl) / 42.0 * PUMP_PASSTHROUGH
-        # Mirror JS Math.sign behaviour: zero crude delta → zero total delta
-        # (matches oil.html pumpBandEndpoint: totalDelta = Math.sign(crudeDelta) * sqrt(...))
         if crude_delta_gal == 0.0:
             return pump_price
         sign = math.copysign(1.0, crude_delta_gal)
-        return pump_price + sign * math.sqrt(crude_delta_gal ** 2 + (n * PUMP_RESIDUAL_GAL) ** 2)
+        residual = n * PUMP_RESIDUAL_GAL * residual_scale
+        return pump_price + sign * math.sqrt(crude_delta_gal ** 2 + residual ** 2)
     return {
         "upper1": combine(crude_bands["upper1"], 1),
         "lower1": combine(crude_bands["lower1"], 1),
