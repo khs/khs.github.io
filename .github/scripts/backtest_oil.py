@@ -477,7 +477,9 @@ def run_pump_backtest(gasoline: pd.Series, futures_map: dict[str, pd.Series]) ->
 
         avg_price = float(np.median(gas_real))
 
-        T_years  = biz_days / 252.0
+        # Use weeks_ahead (the actual shift applied) not biz_days, since gasoline
+        # data is weekly and the realized horizon is weeks_ahead weeks exactly.
+        T_years  = weeks_ahead / 52.0
         band_arr = np.array([
             list(compute_pump_bands(c, p, T_years).values())
             for c, p in zip(crude_pred, pump_pred)
