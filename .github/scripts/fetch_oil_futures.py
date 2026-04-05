@@ -73,14 +73,23 @@ def fetch_curve(base: str, exchange: str) -> list[dict]:
                 "price": price,
             })
 
-    # Prepend front-month if we got it and have no near-term contracts
-    if not contracts and front_price:
-        contracts.insert(0, {
-            "ticker": front_ticker,
-            "expiry": today.strftime("%Y-%m"),
-            "label": "Front Month",
-            "price": round(float(front_price), 2),
-        })
+    # Use BZ=F / CL=F to anchor the near-term curve when specific contract
+    # tickers are unavailable for the next 1-2 months (Brent rolls early; the
+    # nearby NYMEX contract often returns no price once it's the prompt month).
+    # Insert the front-month price at "next calendar month" so fill_gaps can
+    # interpolate any gap between it and the first fetched specific contract.
+    if front_price:
+        nm = today.month % 12 + 1
+        ny = today.year + (1 if today.month == 12 else 0)
+        front_expiry = f"{ny}-{nm:02d}"
+        front_label  = f"{calendar.month_abbr[nm]} {ny}"
+        if not contracts or contracts[0]["expiry"] > front_expiry:
+            contracts.insert(0, {
+                "ticker": front_ticker,
+                "expiry": front_expiry,
+                "label":  front_label,
+                "price":  round(float(front_price), 2),
+            })
 
     return contracts
 

@@ -113,6 +113,13 @@
   ],
   "brent": [
     {
+      "ticker": "(interpolated)",
+      "expiry": "2026-05",
+      "label": "May 2026",
+      "price": 109.05,
+      "interpolated": true
+    },
+    {
       "ticker": "BZM26.NYM",
       "expiry": "2026-06",
       "label": "Jun 2026",
