@@ -969,7 +969,10 @@ function renderPumpPredHistory() {
   const byDelivery = {};
   horizons.forEach(({ key, months }) => {
     const monthly = (btData.pump_results[key]?.monthly || [])
-      .filter(e => parseInt(e.month.slice(0, 4), 10) >= START_YEAR);
+      .filter(e => {
+        const [y, m] = e.month.split('-').map(Number);
+        return new Date(y, m - 1 + months, 1).getFullYear() >= START_YEAR;
+      });
     monthly.forEach(entry => {
       const [y, m] = entry.month.split('-').map(Number);
       const d = new Date(y, m - 1 + months, 1);
