@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gas Price Outlook — Trump's War</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Georgia, "Times New Roman", serif;
+      background: #fff;
+      color: #1a1a1a;
+      padding: 18px 20px 14px;
+    }
+
+    .chart-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.8em;
+      margin-bottom: 0.6em;
+      flex-wrap: wrap;
+    }
+
+    .chart-label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.74em;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #888;
+      flex: 1;
+    }
+
+    select.region-select {
+      font-family: Georgia, serif;
+      font-size: 0.85em;
+      padding: 4px 7px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fafafa;
+      color: #333;
+      cursor: pointer;
+    }
+
+    .meta {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.74em;
+      color: #aaa;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 380px;
+      width: 100%;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.8em;
+      margin-top: 0.5em;
+      font-size: 0.82em;
+      color: #666;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .slider-row input[type=range] {
+      flex: 1;
+      accent-color: #2c5282;
+      cursor: pointer;
+    }
+    .slider-row .slider-label {
+      min-width: 80px;
+      color: #444;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chart-note {
+      font-size: 0.73em;
+      color: #999;
+      margin-top: 0.45em;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    .credit {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.70em;
+      color: #bbb;
+      margin-top: 0.5em;
+      text-align: right;
+    }
+    .credit a { color: #bbb; }
+
+    .no-data {
+      display: none;
+      color: #aaa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.88em;
+      padding: 2em 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="chart-controls">
+  <span class="chart-label">Pump price — history &amp; futures market forecast</span>
+  <select id="pump-region" class="region-select" onchange="setPumpRegion(this.value)">
+    <option value="national">US National Avg</option>
+    <option value="gulf">Gulf Coast</option>
+    <option value="midwest">Midwest</option>
+    <option value="east">East Coast</option>
+    <option value="west">West Coast</option>
+    <option value="california">California</option>
+  </select>
+  <span class="meta" id="last-updated"></span>
+</div>
+
+<div class="chart-container">
+  <canvas id="curveChart"></canvas>
+</div>
+
+<div class="slider-row" id="history-slider-row" style="display:none">
+  <span>History:</span>
+  <input type="range" id="time-slider" min="0" max="36" value="12"
+         oninput="updateHistorySlider(+this.value)">
+  <span class="slider-label" id="slider-label">12 months</span>
+</div>
+
+<p class="chart-note">
+  Grey: historical est. pump price. Blue: futures-implied pump price.
+  Dark band: 68% range &nbsp;|&nbsp; Light: 95% range.
+  <span id="pump-note"></span>
+</p>
+
+<p class="credit">
+  <a href="https://khs.github.io/trumps-war.html" target="_blank" rel="noopener">
+    Trump's War — Keller Scholl
+  </a>
+  &nbsp;·&nbsp; Data: EIA, Yahoo Finance
+</p>
+
+<div class="no-data" id="no-data-msg">Chart data not yet available.</div>
+
+<script>
+const DATA_BASE = 'https://khs.github.io';
+
+const WTI_TO_BRENT_ADJ = 4.0;
+const PUMP_FIXED = {
+  federal_tax: 0.184, state_tax: 0.335,
+  refining: 0.430, distribution: 0.300, retail: 0.150,
+};
+const PUMP_REGIONS = {
+  national:   { label: 'US National Avg',  offset:  0.00 },
+  gulf:       { label: 'Gulf Coast',       offset: -0.65 },
+  midwest:    { label: 'Midwest',          offset: -0.20 },
+  east:       { label: 'East Coast',       offset: +0.05 },
+  west:       { label: 'West Coast',       offset: +1.15 },
+  california: { label: 'California',       offset: +1.40 },
+};
+
+function seasonalAdj(month1indexed) {
+  const m = month1indexed != null ? month1indexed - 1 : new Date().getMonth();
+  return (m >= 3 && m <= 8) ? 0.12 : 0.00;
+}
+function crudeToGallon(bbl, isBrent, region, crackSpread, deliveryMonth) {
+  const brentBbl = isBrent ? bbl : bbl + WTI_TO_BRENT_ADJ;
+  const crudePerGal = brentBbl / 42;
+  const fixed = PUMP_FIXED.federal_tax + PUMP_FIXED.state_tax
+              + PUMP_FIXED.distribution + PUMP_FIXED.retail;
+  return +(crudePerGal + crackSpread + fixed
+         + (PUMP_REGIONS[region]?.offset ?? 0)
+         + seasonalAdj(deliveryMonth)).toFixed(3);
+}
+function crackSpreadFor(expiry) {
+  if (!oilData?.crack_spreads) return PUMP_FIXED.refining;
+  const cs = oilData.crack_spreads;
+  const match = (cs.by_month || []).find(m => m.expiry === expiry);
+  return match ? match.crack_spread : (cs.average ?? PUMP_FIXED.refining);
+}
+function interpolateCrude(contracts, weeksFromNow) {
+  const today = Date.now();
+  if (weeksFromNow <= 0) return contracts[0].price;
+  const pts = contracts.map(c => ({
+    w: (new Date(c.expiry + '-15') - today) / (7 * 86400000),
+    p: c.price,
+  }));
+  if (weeksFromNow < pts[0].w) return pts[0].p;
+  for (let i = 0; i < pts.length - 1; i++) {
+    if (weeksFromNow >= pts[i].w && weeksFromNow <= pts[i + 1].w) {
+      const frac = (weeksFromNow - pts[i].w) / (pts[i + 1].w - pts[i].w);
+      return pts[i].p + frac * (pts[i + 1].p - pts[i].p);
+    }
+  }
+  return pts[pts.length - 1].p;
+}
+function pumpForContract(contracts, bands, idx) {
+  const contract = contracts[idx];
+  const expiry   = contract.expiry;
+  if (lagModel) {
+    const { alpha, betas, betas_pos, betas_neg, seasonal_premium, seasonal_premium_nardl } = lagModel;
+    const deliveryWeeks = (new Date(expiry + '-15') - Date.now()) / (7 * 86400000);
+    let weightedCrudeGal = 0;
+    if (betas_pos && betas_neg) {
+      const K = betas_pos.length;
+      for (let k = 0; k < K; k++) {
+        const crudeBbl  = interpolateCrude(contracts, deliveryWeeks - k);
+        const crudePrev = interpolateCrude(contracts, deliveryWeeks - k - 1);
+        const beta_k    = (crudeBbl >= crudePrev) ? betas_pos[k] : betas_neg[k];
+        weightedCrudeGal += beta_k * (crudeBbl / 42);
+      }
+    } else {
+      for (let k = 0; k < betas.length; k++) {
+        const crudeBbl = interpolateCrude(contracts, deliveryWeeks - k);
+        weightedCrudeGal += betas[k] * (crudeBbl / 42);
+      }
+    }
+    const crackNow = crackSpreadFor(expiry);
+    const crackAvg = oilData?.crack_spreads?.average ?? PUMP_FIXED.refining;
+    const crackDev = crackNow - crackAvg;
+    const deliveryMonth = parseInt(expiry.slice(5, 7), 10);
+    const isSummer = deliveryMonth >= 4 && deliveryMonth <= 9;
+    const sp = (betas_pos && betas_neg)
+      ? (seasonal_premium_nardl ?? seasonal_premium ?? 0.12)
+      : (seasonal_premium ?? 0.12);
+    return +(alpha + weightedCrudeGal + crackDev
+           + (PUMP_REGIONS[pumpRegion].offset)
+           + (isSummer ? sp : 0)).toFixed(3);
+  } else {
+    const lagBand = bands[Math.max(0, idx - 1)];
+    const crack   = crackSpreadFor(lagBand.expiry);
+    const deliveryMon = parseInt(expiry.slice(5, 7), 10);
+    return crudeToGallon(lagBand.price, true, pumpRegion, crack, deliveryMon);
+  }
+}
+
+const PUMP_RESIDUAL_GAL = 0.37;
+const VOL_UP   = 0.33;
+const VOL_DOWN = 0.33;
+const MR_CAP   = 2.5;
+
+function pumpBandEndpoint(contracts, bands, idx, crudeBandBbl, nSigma = 1) {
+  const central     = contracts[idx].price;
+  const pumpCentral = pumpForContract(contracts, bands, idx);
+  if (!lagModel) {
+    const lagBand = bands[Math.max(0, idx - 1)];
+    const crack   = crackSpreadFor(lagBand.expiry);
+    const deliveryMon = parseInt(contracts[idx].expiry.slice(5, 7), 10);
+    return crudeToGallon(crudeBandBbl, true, pumpRegion, crack, deliveryMon);
+  }
+  const tp = lagModel.band_passthrough ?? lagModel.total_passthrough ?? 0.75;
+  const crudeDelta = (crudeBandBbl - central) / 42 * tp;
+  const residual   = nSigma * PUMP_RESIDUAL_GAL;
+  const totalDelta = Math.sign(crudeDelta) * Math.sqrt(crudeDelta ** 2 + residual ** 2);
+  return +(pumpCentral + totalDelta).toFixed(3);
+}
+
+function computeBands(contracts) {
+  const today = new Date();
+  return contracts.map(c => {
+    const expiry = new Date(c.expiry + '-15');
+    const T = Math.max(0, (expiry - today) / (365.25 * 86400 * 1000));
+    const Teff = Math.min(T, MR_CAP);
+    const sigUp   = VOL_UP   * Math.sqrt(Teff);
+    const sigDown = VOL_DOWN * Math.sqrt(Teff);
+    return {
+      expiry: c.expiry, label: c.label, price: c.price,
+      upper1: +(c.price * Math.exp(    sigUp)).toFixed(2),
+      lower1: +(c.price * Math.exp(-   sigDown)).toFixed(2),
+      upper2: +(c.price * Math.exp(2 * sigUp)).toFixed(2),
+      lower2: +(c.price * Math.exp(-2 * sigDown)).toFixed(2),
+    };
+  });
+}
+
+function buildHistoricalSegment() {
+  if (historyMonths <= 0) return { labels: [], prices: [] };
+  const cutoffDate = new Date();
+  cutoffDate.setMonth(cutoffDate.getMonth() - historyMonths);
+  const cutoffYM = cutoffDate.toISOString().slice(0, 7);
+
+  const histBrent = oilData?.historical_brent || [];
+  const histWti   = histBrent.length ? [] : (oilData?.historical_wti || []);
+  const snapshotByMonth = {};
+  (oilData?.snapshots || []).forEach(s => {
+    const ym = s.date.slice(0, 7);
+    const cs = s['brent'] || [];
+    if (cs.length) snapshotByMonth[ym] = cs[0].price;
+  });
+  const byMonth = {};
+  histBrent.forEach(h => { if (h.month >= cutoffYM) byMonth[h.month] = h.price; });
+  histWti.forEach(h => { if (h.month >= cutoffYM) byMonth[h.month] = h.price + WTI_TO_BRENT_ADJ; });
+  Object.entries(snapshotByMonth).forEach(([ym, p]) => {
+    if (ym >= cutoffYM && !(ym in byMonth)) byMonth[ym] = p;
+  });
+  if (!Object.keys(byMonth).length) return { labels: [], prices: [] };
+  const MTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const sorted    = Object.keys(byMonth).sort();
+  const currentYM = new Date().toISOString().slice(0, 7);
+  const labels = sorted.map(ym => {
+    const [y, m] = ym.split('-');
+    const base = MTHS[parseInt(m, 10) - 1] + ' \'' + y.slice(2);
+    return ym === currentYM ? base + ' (to date)' : base;
+  });
+  const prices = sorted.map(ym => {
+    const month = parseInt(ym.slice(5, 7), 10);
+    return crudeToGallon(byMonth[ym], true, pumpRegion, PUMP_FIXED.refining, month);
+  });
+  return { labels, prices };
+}
+
+let oilData = null;
+let lagModel = null;
+let pumpRegion = 'national';
+let curveChart = null;
+let historyMonths = 12;
+
+const todayLinePlugin = {
+  id: 'todayLine',
+  afterDraw(chart) {
+    const opts = chart.options.plugins?.todayLine;
+    if (!opts?.show || opts.todayIndex == null || opts.todayIndex === 0) return;
+    const { ctx, scales: { x, y } } = chart;
+    const idx  = opts.todayIndex;
+    const xPos = (x.getPixelForValue(idx - 1) + x.getPixelForValue(idx)) / 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(xPos, y.top); ctx.lineTo(xPos, y.bottom);
+    ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(80,80,80,0.55)';
+    ctx.setLineDash([5, 3]); ctx.stroke(); ctx.restore();
+    ctx.save();
+    ctx.font = 'italic 11px Georgia, serif';
+    ctx.fillStyle = 'rgba(80,80,80,0.7)';
+    ctx.textAlign = 'center';
+    ctx.fillText('Today', xPos, y.top - 4);
+    ctx.restore();
+  },
+};
+Chart.register(todayLinePlugin);
+
+function init() {
+  if (!oilData.data_available) {
+    document.getElementById('no-data-msg').style.display = 'block'; return;
+  }
+  if (oilData.last_updated) {
+    const d = new Date(oilData.last_updated);
+    document.getElementById('last-updated').textContent =
+      'Updated ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  const histBrent = oilData?.historical_brent || oilData?.historical_wti || [];
+  const snaps = oilData?.snapshots || [];
+  if (histBrent.length || snaps.length) {
+    document.getElementById('history-slider-row').style.display = '';
+    const today = new Date();
+    const allMonths = [
+      ...histBrent.map(h => h.month),
+      ...snaps.map(s => s.date.slice(0, 7)),
+    ].filter(m => m <= today.toISOString().slice(0, 7));
+    if (allMonths.length) {
+      const oldest = allMonths.sort()[0];
+      const [oy, om] = oldest.split('-').map(Number);
+      const monthsBack = (today.getFullYear() - oy) * 12 + (today.getMonth() + 1 - om) + 1;
+      const maxMonths = Math.min(36, monthsBack);
+      document.getElementById('time-slider').max = maxMonths;
+      historyMonths = Math.min(historyMonths, maxMonths);
+      document.getElementById('time-slider').value = historyMonths;
+      document.getElementById('slider-label').textContent =
+        historyMonths === 1 ? '1 month' : `${historyMonths} months`;
+    }
+  }
+  renderCurve();
+}
+
+function setPumpRegion(r) { pumpRegion = r; renderCurve(); }
+
+function updateHistorySlider(val) {
+  historyMonths = val;
+  document.getElementById('slider-label').textContent = val === 1 ? '1 month' : `${val} months`;
+  renderCurve();
+}
+
+function renderCurve() {
+  if (!oilData) return;
+  const contracts = oilData['brent'] || [];
+  if (!contracts.length) return;
+  const bands = computeBands(contracts);
+  const futurePrices = bands.map((b, i) => pumpForContract(contracts, bands, i));
+  const upper1 = bands.map((b, i) => pumpBandEndpoint(contracts, bands, i, b.upper1, 1));
+  const lower1 = bands.map((b, i) => pumpBandEndpoint(contracts, bands, i, b.lower1, 1));
+  const upper2 = bands.map((b, i) => pumpBandEndpoint(contracts, bands, i, b.upper2, 2));
+  const lower2 = bands.map((b, i) => pumpBandEndpoint(contracts, bands, i, b.lower2, 2));
+  const hist  = buildHistoricalSegment();
+  const nHist = hist.labels.length;
+  const nFut  = bands.length;
+  const nullH = new Array(nHist).fill(null);
+  const nullF = new Array(nFut).fill(null);
+  const allLabels = [...hist.labels, ...bands.map(b => b.label)];
+  const datasets = [];
+  if (nHist > 0) {
+    datasets.push({
+      label: 'Historical (approx.)',
+      data: [...hist.prices, ...nullF],
+      borderColor: 'rgba(120,120,120,0.75)', backgroundColor: 'rgba(120,120,120,0.75)',
+      borderWidth: 2, pointRadius: 2.5, pointHoverRadius: 5,
+      fill: false, order: 2, tension: 0.2,
+    });
+  }
+  datasets.push({ label: '95% upper', data: [...nullH, ...upper2], borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.10)', fill: '+1', pointRadius: 0, order: 4 });
+  datasets.push({ label: '95% lower', data: [...nullH, ...lower2], borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.10)', fill: false, pointRadius: 0, order: 4 });
+  datasets.push({ label: '68% upper', data: [...nullH, ...upper1], borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.18)', fill: '+1', pointRadius: 0, order: 3 });
+  datasets.push({ label: '68% lower', data: [...nullH, ...lower1], borderColor: 'transparent', backgroundColor: 'rgba(44,82,130,0.18)', fill: false, pointRadius: 0, order: 3 });
+  const fwdDatasetIdx = datasets.length;
+  datasets.push({
+    label: `Est. pump — ${PUMP_REGIONS[pumpRegion].label}`,
+    data: [...nullH, ...futurePrices],
+    borderColor: '#2c5282', backgroundColor: '#2c5282',
+    borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6,
+    fill: false, order: 1, tension: 0.2,
+  });
+  if (curveChart) curveChart.destroy();
+  const ctx = document.getElementById('curveChart').getContext('2d');
+  curveChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: allLabels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        todayLine: { show: nHist > 0, todayIndex: nHist },
+        legend: {
+          display: true,
+          labels: {
+            filter: item => !['95% upper','95% lower','68% upper','68% lower'].includes(item.text),
+            font: { family: 'Georgia, serif', size: 11 },
+          },
+        },
+        tooltip: {
+          filter: item => {
+            const i = item.dataIndex;
+            return i < nHist ? item.datasetIndex === 0 : item.datasetIndex === fwdDatasetIdx;
+          },
+          callbacks: {
+            title: ctx => ctx[0].label,
+            label: ctx => {
+              const i = ctx.dataIndex;
+              if (i < nHist) {
+                const v = hist.prices[i];
+                return v != null ? `Est. pump: $${v.toFixed(2)}/gal` : '';
+              }
+              const bi = i - nHist;
+              const fmt = v => `$${v.toFixed(2)}/gal`;
+              return [
+                `97.5th pct: ${fmt(upper2[bi])}`,
+                `84th pct:   ${fmt(upper1[bi])}`,
+                `Expected:   ${fmt(futurePrices[bi])}`,
+                `16th pct:   ${fmt(lower1[bi])}`,
+                `2.5th pct:  ${fmt(lower2[bi])}`,
+              ];
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'Georgia, serif', size: 10 }, maxRotation: 45 },
+          grid: { color: '#f0f0f0' },
+        },
+        y: {
+          ticks: { font: { family: 'Georgia, serif', size: 10 }, callback: v => '$' + v.toFixed(2) },
+          grid: { color: '#f0f0f0' },
+          title: { display: true, text: '$/gallon', font: { family: 'Georgia, serif', size: 11 }, color: '#888' },
+        },
+      },
+    },
+  });
+  const pumpNote = document.getElementById('pump-note');
+  if (lagModel) {
+    const tp = (lagModel.total_passthrough * 100).toFixed(1);
+    const r2 = (lagModel.r2 * 100).toFixed(1);
+    pumpNote.textContent = `Model: ${lagModel.betas?.length ?? '?'}-week lag, R²=${r2}%, pass-through ${tp}%.`;
+  }
+}
+
+Promise.all([
+  fetch(DATA_BASE + '/data/oil-futures.json').then(r => r.json()),
+  fetch(DATA_BASE + '/data/lag-model.json').then(r => r.json()).catch(() => null),
+]).then(([futures, lag]) => {
+  oilData = futures;
+  if (lag?.alpha != null && (lag?.betas != null || lag?.betas_pos != null)) lagModel = lag;
+  init();
+}).catch(() => {
+  document.getElementById('no-data-msg').style.display = 'block';
+});
+</script>
+</body>
+</html>
