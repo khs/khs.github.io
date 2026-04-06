@@ -674,30 +674,19 @@ function pumpForContract(contracts, bands, idx) {
   const regional = PUMP_REGIONS[pumpRegion].offset;
 
   if (lagModel) {
-    const { alpha, betas, betas_pos, betas_neg, seasonal_premium, seasonal_premium_nardl } = lagModel;
+    const { alpha, betas, seasonal_premium } = lagModel;
     const deliveryWeeks = (new Date(expiry + '-15') - Date.now()) / (7 * 86400000);
     let weightedCrudeGal = 0;
-    if (betas_pos && betas_neg) {
-      const K = betas_pos.length;
-      for (let k = 0; k < K; k++) {
-        const crudeBbl  = interpolateCrude(contracts, deliveryWeeks - k);
-        const crudePrev = interpolateCrude(contracts, deliveryWeeks - k - 1);
-        const beta_k    = (crudeBbl >= crudePrev) ? betas_pos[k] : betas_neg[k];
-        weightedCrudeGal += beta_k * (crudeBbl / 42); // contracts are already Brent
-      }
-    } else {
-      for (let k = 0; k < betas.length; k++) {
-        const crudeBbl = interpolateCrude(contracts, deliveryWeeks - k);
-        weightedCrudeGal += betas[k] * (crudeBbl / 42);
-      }
+    for (let k = 0; k < betas.length; k++) {
+      const crudeBbl = interpolateCrude(contracts, deliveryWeeks - k);
+      weightedCrudeGal += betas[k] * (crudeBbl / 42); // contracts are already Brent
     }
     const crackNow = crackSpreadFor(expiry);
     const crackAvg = oilData?.crack_spreads?.average ?? PUMP_FIXED.refining;
     const crackDev = crackNow - crackAvg;
     const deliveryMonth = parseInt(expiry.slice(5, 7), 10);
     const isSummer  = deliveryMonth >= 4 && deliveryMonth <= 9;
-    const sp        = (betas_pos && betas_neg) ? (seasonal_premium_nardl ?? seasonal_premium ?? 0.12)
-                                                : (seasonal_premium ?? 0.12);
+    const sp        = seasonal_premium ?? 0.12;
     const seasonal  = isSummer ? sp : 0;
     return +(alpha + weightedCrudeGal + crackDev + regional + seasonal).toFixed(3);
   } else {
