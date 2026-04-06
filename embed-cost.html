@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>War Cost Calculator — Trump's War</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Georgia, "Times New Roman", serif;
+      background: #fff;
+      color: #1a1a1a;
+      padding: 18px 20px 14px;
+    }
+
+    .section-head {
+      font-size: 1.3em;
+      font-weight: bold;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.35em;
+      border-top: 3px solid #c0392b;
+      padding-top: 0.7em;
+    }
+
+    .cost-intro {
+      font-size: 0.88em;
+      line-height: 1.6;
+      color: #444;
+      margin-bottom: 1em;
+      max-width: 560px;
+    }
+
+    .cost-inputs {
+      display: flex;
+      gap: 2em;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 1.1em;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .cost-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3em;
+    }
+
+    .cost-input-group label {
+      font-size: 0.68em;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #888;
+    }
+
+    .cost-input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45em;
+      font-size: 0.87em;
+      color: #555;
+    }
+
+    .cost-input-row input[type=number] {
+      width: 68px;
+      font-family: Georgia, serif;
+      font-size: 1.1em;
+      padding: 4px 7px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: right;
+      color: #1a1a1a;
+    }
+
+    .hint {
+      font-size: 0.68em;
+      color: #ccc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin-top: 2px;
+    }
+
+    .region-row {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.78em;
+      color: #666;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      margin-bottom: 1em;
+      flex-wrap: wrap;
+    }
+    .region-row label {
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-size: 0.85em;
+      color: #888;
+    }
+    select.region-select {
+      font-family: Georgia, serif;
+      font-size: 0.9em;
+      padding: 3px 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fafafa;
+      color: #333;
+    }
+
+    .cost-total-block { margin: 0.3em 0 1.2em; }
+
+    .cost-big-number {
+      font-size: 2.8em;
+      font-weight: bold;
+      color: #c0392b;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .cost-big-label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.82em;
+      color: #666;
+      margin-top: 0.2em;
+      line-height: 1.4;
+    }
+
+    .cost-table {
+      width: 100%;
+      max-width: 540px;
+      border-collapse: collapse;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.81em;
+    }
+
+    .cost-table th {
+      text-align: right;
+      padding: 4px 8px 5px 0;
+      font-weight: 600;
+      font-size: 0.72em;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #999;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .cost-table th:first-child { text-align: left; }
+
+    .cost-table td {
+      padding: 5px 8px 5px 0;
+      border-bottom: 1px solid #f3f3f3;
+      color: #333;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .cost-table td:first-child { text-align: left; color: #555; }
+    .cost-table td.war-cost { color: #c0392b; font-weight: 500; }
+
+    .cost-table .bar-cell { width: 90px; padding-right: 0; }
+    .cost-bar-track {
+      background: #f0f0f0; border-radius: 3px;
+      height: 7px; overflow: hidden;
+    }
+    .cost-bar-fill {
+      height: 7px; background: rgba(192,57,43,0.45);
+      border-radius: 3px; transition: width 0.2s;
+    }
+
+    .cost-table tfoot td {
+      font-weight: 700;
+      border-top: 2px solid #1a1a1a;
+      border-bottom: none;
+      padding-top: 8px;
+      color: #1a1a1a;
+    }
+    .cost-table tfoot td.war-cost { color: #c0392b; }
+
+    .cost-footnote {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.71em;
+      color: #bbb;
+      margin-top: 0.6em;
+      line-height: 1.5;
+    }
+    .cost-footnote a { color: #bbb; }
+
+    .credit {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.70em;
+      color: #bbb;
+      margin-top: 0.5em;
+      text-align: right;
+    }
+    .credit a { color: #bbb; }
+
+    .loading {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.85em;
+      color: #bbb;
+      padding: 1.5em 0;
+    }
+  </style>
+</head>
+<body>
+
+<p class="section-head">What It Costs You</p>
+<p class="cost-intro">Enter your tank size and how often you fill up. The calculator uses the futures market's month-by-month price forecast to estimate your personal cost of Trump's War over the next year — compared to what you would have paid last December.</p>
+
+<div class="cost-inputs">
+  <div class="cost-input-group">
+    <label>Tank size</label>
+    <div class="cost-input-row">
+      <input type="number" id="tank-size" value="14" min="5" max="40" step="1" oninput="renderCostCalc()">
+      <span>gallons</span>
+    </div>
+    <span class="hint">US avg: ~14 gal (sedan)</span>
+  </div>
+  <div class="cost-input-group">
+    <label>Fill-ups per month</label>
+    <div class="cost-input-row">
+      <input type="number" id="fills-per-month" value="3" min="0.5" max="20" step="0.5" oninput="renderCostCalc()">
+      <span>times</span>
+    </div>
+    <span class="hint">US avg: ~3× (~500 gal/yr)</span>
+  </div>
+</div>
+
+<div class="region-row">
+  <label>Region</label>
+  <select id="pump-region" class="region-select" onchange="setPumpRegion(this.value)">
+    <option value="national">US National Avg</option>
+    <option value="gulf">Gulf Coast</option>
+    <option value="midwest">Midwest</option>
+    <option value="east">East Coast</option>
+    <option value="west">West Coast</option>
+    <option value="california">California</option>
+  </select>
+</div>
+
+<div class="cost-total-block">
+  <div class="cost-big-number" id="cost-total-number"><span class="loading">Loading…</span></div>
+  <div class="cost-big-label">estimated extra cost over the next 12 months<br>
+    <span style="color:#bbb">vs. December 2025 pre-war prices</span>
+  </div>
+</div>
+
+<table class="cost-table">
+  <thead>
+    <tr>
+      <th>Month</th>
+      <th>Pump price</th>
+      <th>Extra/gal vs. pre-war</th>
+      <th>Monthly extra</th>
+      <th class="bar-cell"></th>
+    </tr>
+  </thead>
+  <tbody id="cost-table-body"></tbody>
+  <tfoot id="cost-table-foot"></tfoot>
+</table>
+
+<p class="cost-footnote">
+  Pump prices are futures-market expectations — not guarantees. Pre-war baseline: December 2025 national average, adjusted by region. Average US driver: <a href="https://www.eia.gov/tools/faqs/faq.php?id=23&t=10" target="_blank" rel="noopener">EIA</a>.
+</p>
+<p class="credit">
+  <a href="https://khs.github.io/trumps-war.html" target="_blank" rel="noopener">Trump's War — Keller Scholl</a>
+  &nbsp;·&nbsp; Data: EIA, Yahoo Finance
+</p>
+
+<script>
+const DATA_BASE = 'https://khs.github.io';
+
+const WTI_TO_BRENT_ADJ = 4.0;
+const PUMP_FIXED = {
+  federal_tax: 0.184, state_tax: 0.335,
+  refining: 0.430, distribution: 0.300, retail: 0.150,
+};
+const PUMP_REGIONS = {
+  national:   { label: 'US National Avg',  offset:  0.00 },
+  gulf:       { label: 'Gulf Coast',       offset: -0.65 },
+  midwest:    { label: 'Midwest',          offset: -0.20 },
+  east:       { label: 'East Coast',       offset: +0.05 },
+  west:       { label: 'West Coast',       offset: +1.15 },
+  california: { label: 'California',       offset: +1.40 },
+};
+
+function seasonalAdj(month1indexed) {
+  const m = month1indexed != null ? month1indexed - 1 : new Date().getMonth();
+  return (m >= 3 && m <= 8) ? 0.12 : 0.00;
+}
+function crudeToGallon(bbl, isBrent, region, crackSpread, deliveryMonth) {
+  const brentBbl = isBrent ? bbl : bbl + WTI_TO_BRENT_ADJ;
+  const crudePerGal = brentBbl / 42;
+  const fixed = PUMP_FIXED.federal_tax + PUMP_FIXED.state_tax
+              + PUMP_FIXED.distribution + PUMP_FIXED.retail;
+  return +(crudePerGal + crackSpread + fixed
+         + (PUMP_REGIONS[region]?.offset ?? 0)
+         + seasonalAdj(deliveryMonth)).toFixed(3);
+}
+function crackSpreadFor(expiry) {
+  if (!oilData?.crack_spreads) return PUMP_FIXED.refining;
+  const cs = oilData.crack_spreads;
+  const match = (cs.by_month || []).find(m => m.expiry === expiry);
+  return match ? match.crack_spread : (cs.average ?? PUMP_FIXED.refining);
+}
+function interpolateCrude(contracts, weeksFromNow) {
+  const today = Date.now();
+  if (weeksFromNow <= 0) return contracts[0].price;
+  const pts = contracts.map(c => ({
+    w: (new Date(c.expiry + '-15') - today) / (7 * 86400000),
+    p: c.price,
+  }));
+  if (weeksFromNow < pts[0].w) return pts[0].p;
+  for (let i = 0; i < pts.length - 1; i++) {
+    if (weeksFromNow >= pts[i].w && weeksFromNow <= pts[i + 1].w) {
+      const frac = (weeksFromNow - pts[i].w) / (pts[i + 1].w - pts[i].w);
+      return pts[i].p + frac * (pts[i + 1].p - pts[i].p);
+    }
+  }
+  return pts[pts.length - 1].p;
+}
+
+const VOL_UP   = 0.33;
+const VOL_DOWN = 0.33;
+const MR_CAP   = 2.5;
+
+function computeBands(contracts) {
+  const today = new Date();
+  return contracts.map(c => {
+    const expiry = new Date(c.expiry + '-15');
+    const T = Math.max(0, (expiry - today) / (365.25 * 86400 * 1000));
+    const Teff = Math.min(T, MR_CAP);
+    const sigUp   = VOL_UP   * Math.sqrt(Teff);
+    const sigDown = VOL_DOWN * Math.sqrt(Teff);
+    return {
+      expiry: c.expiry, label: c.label, price: c.price,
+      upper1: +(c.price * Math.exp(    sigUp)).toFixed(2),
+      lower1: +(c.price * Math.exp(-   sigDown)).toFixed(2),
+      upper2: +(c.price * Math.exp(2 * sigUp)).toFixed(2),
+      lower2: +(c.price * Math.exp(-2 * sigDown)).toFixed(2),
+    };
+  });
+}
+
+function pumpForContract(contracts, bands, idx) {
+  const contract = contracts[idx];
+  const expiry   = contract.expiry;
+  if (lagModel) {
+    const { alpha, betas, betas_pos, betas_neg, seasonal_premium, seasonal_premium_nardl } = lagModel;
+    const deliveryWeeks = (new Date(expiry + '-15') - Date.now()) / (7 * 86400000);
+    let weightedCrudeGal = 0;
+    if (betas_pos && betas_neg) {
+      const K = betas_pos.length;
+      for (let k = 0; k < K; k++) {
+        const crudeBbl  = interpolateCrude(contracts, deliveryWeeks - k);
+        const crudePrev = interpolateCrude(contracts, deliveryWeeks - k - 1);
+        const beta_k    = (crudeBbl >= crudePrev) ? betas_pos[k] : betas_neg[k];
+        weightedCrudeGal += beta_k * (crudeBbl / 42);
+      }
+    } else {
+      for (let k = 0; k < betas.length; k++) {
+        const crudeBbl = interpolateCrude(contracts, deliveryWeeks - k);
+        weightedCrudeGal += betas[k] * (crudeBbl / 42);
+      }
+    }
+    const crackNow = crackSpreadFor(expiry);
+    const crackAvg = oilData?.crack_spreads?.average ?? PUMP_FIXED.refining;
+    const crackDev = crackNow - crackAvg;
+    const deliveryMonth = parseInt(expiry.slice(5, 7), 10);
+    const isSummer = deliveryMonth >= 4 && deliveryMonth <= 9;
+    const sp = (betas_pos && betas_neg)
+      ? (seasonal_premium_nardl ?? seasonal_premium ?? 0.12)
+      : (seasonal_premium ?? 0.12);
+    return +(alpha + weightedCrudeGal + crackDev
+           + PUMP_REGIONS[pumpRegion].offset
+           + (isSummer ? sp : 0)).toFixed(3);
+  } else {
+    const lagBand = bands[Math.max(0, idx - 1)];
+    const crack   = crackSpreadFor(lagBand.expiry);
+    const deliveryMon = parseInt(expiry.slice(5, 7), 10);
+    return crudeToGallon(lagBand.price, true, pumpRegion, crack, deliveryMon);
+  }
+}
+
+function getPreWarBaseline(deliveryMonth) {
+  const sp = lagModel?.seasonal_premium_nardl ?? lagModel?.seasonal_premium ?? 0.12;
+  const seasonalDelta = (deliveryMonth >= 4 && deliveryMonth <= 9) ? sp : 0;
+  const histPump = oilData?.historical_pump || [];
+  const pumpDec = histPump.find(h => h.month === '2025-12');
+  if (pumpDec) {
+    return +(pumpDec.price + PUMP_REGIONS[pumpRegion].offset + seasonalDelta).toFixed(3);
+  }
+  const histBrentFb = oilData?.historical_brent || [];
+  const histWtiFb   = oilData?.historical_wti   || [];
+  const dec2025b = histBrentFb.find(h => h.month === '2025-12');
+  const dec2025w = histWtiFb.find(h => h.month === '2025-12');
+  const brentBbl = dec2025b ? dec2025b.price
+                 : dec2025w ? dec2025w.price + WTI_TO_BRENT_ADJ
+                 : 62.0;
+  return +(crudeToGallon(brentBbl, true, pumpRegion, PUMP_FIXED.refining, 12) + seasonalDelta).toFixed(3);
+}
+
+let oilData = null;
+let lagModel = null;
+let pumpRegion = 'national';
+
+function setPumpRegion(r) { pumpRegion = r; renderCostCalc(); }
+
+function renderCostCalc() {
+  if (!oilData) return;
+  const tankGal     = Math.max(1, parseFloat(document.getElementById('tank-size').value) || 14);
+  const fillsPerMon = Math.max(0.5, parseFloat(document.getElementById('fills-per-month').value) || 3);
+  const galPerMonth = tankGal * fillsPerMon;
+
+  const contracts = oilData['brent'] || [];
+  if (!contracts.length) return;
+  const bands = computeBands(contracts);
+
+  const MTHS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const today = new Date();
+  const todayYM = today.toISOString().slice(0, 7);
+  const cutoff = new Date(today);
+  cutoff.setMonth(cutoff.getMonth() + 12);
+  const cutoffYM = cutoff.toISOString().slice(0, 7);
+
+  const rows = [];
+  contracts.forEach((c, i) => {
+    if (c.expiry < todayYM || c.expiry > cutoffYM) return;
+    const deliveryMonth = parseInt(c.expiry.slice(5, 7), 10);
+    const pump  = pumpForContract(contracts, bands, i);
+    const extra = pump - getPreWarBaseline(deliveryMonth);
+    const monthly = extra * galPerMonth;
+    const [y, m] = c.expiry.split('-');
+    rows.push({ label: MTHS[parseInt(m, 10) - 1] + ' ' + y, pump, extra, monthly });
+  });
+
+  const totalExtra = rows.reduce((s, r) => s + r.monthly, 0);
+  const maxMonthly = Math.max(...rows.map(r => Math.abs(r.monthly)), 1);
+
+  const tbodyHTML = rows.map(r => {
+    const barPct  = Math.round((Math.abs(r.monthly) / maxMonthly) * 100);
+    const sign    = r.extra >= 0 ? '+' : '';
+    const mSign   = r.monthly >= 0 ? '+' : '';
+    const warClass = r.extra >= 0 ? 'war-cost' : '';
+    return `<tr>
+      <td>${r.label}</td>
+      <td>$${r.pump.toFixed(2)}</td>
+      <td class="${warClass}">${sign}$${r.extra.toFixed(2)}</td>
+      <td class="${warClass}">${mSign}$${Math.round(Math.abs(r.monthly)).toLocaleString()}</td>
+      <td class="bar-cell"><div class="cost-bar-track"><div class="cost-bar-fill" style="width:${barPct}%"></div></div></td>
+    </tr>`;
+  }).join('');
+
+  const tSign = totalExtra >= 0 ? '+' : '−';
+  document.getElementById('cost-table-body').innerHTML = tbodyHTML;
+  document.getElementById('cost-table-foot').innerHTML = `<tr>
+    <td colspan="3">Total over next 12 months</td>
+    <td class="war-cost">${tSign}$${Math.round(Math.abs(totalExtra)).toLocaleString()}</td>
+    <td></td>
+  </tr>`;
+
+  const totalEl = document.getElementById('cost-total-number');
+  totalEl.textContent = `${tSign}$${Math.round(Math.abs(totalExtra)).toLocaleString()}`;
+  totalEl.style.color = totalExtra >= 0 ? '#c0392b' : '#27ae60';
+}
+
+Promise.all([
+  fetch(DATA_BASE + '/data/oil-futures.json').then(r => r.json()),
+  fetch(DATA_BASE + '/data/lag-model.json').then(r => r.json()).catch(() => null),
+]).then(([futures, lag]) => {
+  oilData = futures;
+  if (lag?.alpha != null && (lag?.betas != null || lag?.betas_pos != null)) lagModel = lag;
+  if (oilData.data_available) renderCostCalc();
+  else document.getElementById('cost-total-number').textContent = 'No data';
+}).catch(() => {
+  document.getElementById('cost-total-number').textContent = 'Error loading data';
+});
+</script>
+</body>
+</html>
