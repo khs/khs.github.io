@@ -762,6 +762,11 @@ function renderCurve() {
   const nFut  = bands.length;
   const nullH = new Array(nHist).fill(null);
   const nullF = new Array(nFut).fill(null);
+  // Connector: last historical price becomes first point of forward series so the
+  // two line segments share an endpoint and Chart.js draws through the junction.
+  const fwdHead = nHist > 0
+    ? [...new Array(nHist - 1).fill(null), hist.prices[nHist - 1]]
+    : nullH;
 
   const allLabels = [...hist.labels, ...bands.map(b => b.label)];
 
@@ -786,7 +791,7 @@ function renderCurve() {
   const fwdDatasetIdx = datasets.length;
   datasets.push({
     label: `Est. pump price — ${PUMP_REGIONS[pumpRegion].label}`,
-    data: [...nullH, ...futurePrices],
+    data: [...fwdHead, ...futurePrices],
     borderColor: '#2c5282', backgroundColor: '#2c5282',
     borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6,
     fill: false, order: 1, tension: 0.2,
