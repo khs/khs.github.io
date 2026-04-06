@@ -37,6 +37,10 @@ import os
 
 OUT_FILE = Path(__file__).parents[2] / "data" / "lag-model.json"
 HEADERS  = {"User-Agent": "oil-lag-model/1.0 (academic/personal use)"}
+WTI_TO_BRENT_ADJ = 4.0  # $/bbl Brent premium over WTI (long-run average)
+                         # Model is trained on Brent-equivalent crude so that
+                         # JS/Python predictions (which use Brent) are consistent.
+                         # Using WTI alone would inflate alpha by tp*4/42 ≈ $0.11/gal.
 N_LAGS   = 8          # weeks: captures ~85-90% of pass-through per literature
 PDL_THRESH = 0.80     # max off-diagonal correlation before switching to PDL
                       # 0.80 catches collinearity that produces physically impossible
@@ -576,7 +580,11 @@ def main():
 
     print("Fetching WTI crude price (weekly, 14-year history)...")
     crude_weekly = fetch_crude_weekly(lookback_years=NARDL_LOOKBACK_YEARS)
-    crude_gal    = crude_weekly / 42.0
+    # Convert to Brent-equivalent $/gal: model must be trained on the same
+    # quantity used in prediction (JS uses Brent contracts; backtest adds
+    # WTI_TO_BRENT_ADJ before dividing by 42). Using raw WTI/42 would inflate
+    # the model intercept by tp * 4/42 ≈ $0.11/gal, biasing all pump forecasts high.
+    crude_gal    = (crude_weekly + WTI_TO_BRENT_ADJ) / 42.0
     print(f"  {len(crude_weekly)} weekly obs, {crude_weekly.index.min().date()} – {crude_weekly.index.max().date()}")
 
     # Trim both series to the NARDL origin (2012-01-01) for modelling
