@@ -290,9 +290,13 @@ function buildHistoricalSegment() {
     const base = MTHS[parseInt(m, 10) - 1] + ' \'' + y.slice(2);
     return ym === currentYM ? base + ' (to date)' : base;
   });
+  // Use the empirical average crack spread so historical estimates match the
+  // lag model's implicit assumption (lag model alpha absorbs crack_avg ≈ $0.628;
+  // falling back to PUMP_FIXED.refining prevents a visible jump at the connector).
+  const crackEst = oilData?.crack_spreads?.average ?? PUMP_FIXED.refining;
   const prices = sorted.map(ym => {
     const month = parseInt(ym.slice(5, 7), 10);
-    return crudeToGallon(byMonth[ym], true, pumpRegion, PUMP_FIXED.refining, month);
+    return crudeToGallon(byMonth[ym], true, pumpRegion, crackEst, month);
   });
   return { labels, prices };
 }

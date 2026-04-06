@@ -846,24 +846,27 @@ function buildHistoricalSegment() {
   });
 
   const byMonth = {};  // value is already $/gal pump price
+  // Use the empirical average crack spread so crude-based estimates match the
+  // lag model's implicit assumption (alpha absorbs crack_avg, not PUMP_FIXED.refining).
+  const crackEst = oilData?.crack_spreads?.average ?? PUMP_FIXED.refining;
   // Lowest priority: Brent snapshot → estimated pump
   Object.entries(snapshotByMonth).forEach(([ym, brentBbl]) => {
     if (ym >= cutoffYM) {
       const month = parseInt(ym.slice(5, 7), 10);
-      byMonth[ym] = crudeToGallon(brentBbl, true, pumpRegion, PUMP_FIXED.refining, month);
+      byMonth[ym] = crudeToGallon(brentBbl, true, pumpRegion, crackEst, month);
     }
   });
   // Medium priority: historical Brent spot (or legacy WTI+4) → estimated pump
   histBrent.forEach(h => {
     if (h.month >= cutoffYM) {
       const month = parseInt(h.month.slice(5, 7), 10);
-      byMonth[h.month] = crudeToGallon(h.price, true, pumpRegion, PUMP_FIXED.refining, month);
+      byMonth[h.month] = crudeToGallon(h.price, true, pumpRegion, crackEst, month);
     }
   });
   histWti.forEach(h => {  // legacy fallback only
     if (h.month >= cutoffYM) {
       const month = parseInt(h.month.slice(5, 7), 10);
-      byMonth[h.month] = crudeToGallon(h.price + WTI_TO_BRENT_ADJ, true, pumpRegion, PUMP_FIXED.refining, month);
+      byMonth[h.month] = crudeToGallon(h.price + WTI_TO_BRENT_ADJ, true, pumpRegion, crackEst, month);
     }
   });
   // Highest priority: actual retail pump price + regional offset

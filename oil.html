@@ -819,25 +819,26 @@ function buildHistoricalSegment() {
   const byMonth = {};
 
   if (showPump) {
+    const crackEst = oilData?.crack_spreads?.average ?? PUMP_FIXED.refining;
     // Lowest priority: snapshot crude → estimated pump
     Object.entries(snapshotByMonth).forEach(([ym, crudeBbl]) => {
       if (ym >= cutoffYM) {
         const month = parseInt(ym.slice(5, 7), 10);
-        byMonth[ym] = crudeToGallon(crudeBbl, isBrent, pumpRegion, PUMP_FIXED.refining, month);
+        byMonth[ym] = crudeToGallon(crudeBbl, isBrent, pumpRegion, crackEst, month);
       }
     });
     // Medium priority: historical Brent (or legacy WTI+4) → estimated pump
     histBrent.forEach(h => {
       if (h.month >= cutoffYM) {
         const month = parseInt(h.month.slice(5, 7), 10);
-        byMonth[h.month] = crudeToGallon(h.price, true, pumpRegion, PUMP_FIXED.refining, month);
+        byMonth[h.month] = crudeToGallon(h.price, true, pumpRegion, crackEst, month);
       }
     });
     histWti.forEach(h => {  // legacy fallback only
       if (h.month >= cutoffYM) {
         const crudeBbl = isBrent ? h.price + WTI_TO_BRENT_ADJ : h.price;
         const month    = parseInt(h.month.slice(5, 7), 10);
-        byMonth[h.month] = crudeToGallon(crudeBbl, isBrent, pumpRegion, PUMP_FIXED.refining, month);
+        byMonth[h.month] = crudeToGallon(crudeBbl, isBrent, pumpRegion, crackEst, month);
       }
     });
     // Highest priority: actual EIA retail gasoline + regional offset
