@@ -738,9 +738,10 @@ function buildHistoricalSegment() {
     const base   = MTHS[parseInt(m, 10) - 1] + ' \'' + y.slice(2);
     return ym === currentYM ? base + ' (to date)' : base;
   });
+  const crackEst = oilData?.crack_spreads?.average ?? PUMP_FIXED.refining;
   const prices = sorted.map(ym => {
     const month = parseInt(ym.slice(5, 7), 10);
-    return crudeToGallon(byMonth[ym], true, pumpRegion, PUMP_FIXED.refining, month);
+    return crudeToGallon(byMonth[ym], true, pumpRegion, crackEst, month);
   });
   return { labels, prices };
 }

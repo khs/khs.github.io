@@ -836,8 +836,9 @@ function buildHistoricalSegment() {
   const prices = sorted.map(ym => {
     const crudeBbl = byMonth[ym];
     const month    = parseInt(ym.slice(5, 7), 10);
+    const crackEst = oilData?.crack_spreads?.average ?? PUMP_FIXED.refining;
     return showPump
-      ? crudeToGallon(crudeBbl, isBrent, pumpRegion, PUMP_FIXED.refining, month)
+      ? crudeToGallon(crudeBbl, isBrent, pumpRegion, crackEst, month)
       : +crudeBbl.toFixed(2);
   });
   return { labels, prices };
