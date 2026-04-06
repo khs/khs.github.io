@@ -624,12 +624,15 @@ function pumpBandEndpoint(contracts, bands, idx, isBrent, crudeBandBbl, nSigma =
   const tp = lagModel.band_passthrough ?? lagModel.total_passthrough ?? 0.75;
   const brentAdj = isBrent ? 0 : WTI_TO_BRENT_ADJ;
   const crudeDelta = ((crudeBandBbl + brentAdj) - (central + brentAdj)) / 42 * tp;
-  // Scale residual by sqrt(T/T_1m): crack-spread and blend-cost uncertainty
-  // accumulates over time just like crude vol does. T_1m = 1 month (calibration point).
+  // Scale residual by (T/T_1m)^0.25: crack-spread uncertainty grows with horizon
+  // but mean-reverts, so actual pump RMSE scales ~T^0.25 not T^0.5.
+  // Empirical: 1m RMSE $0.36, 4m RMSE $0.52 → ratio 1.44 over 4× time → exponent ≈ 0.25.
+  // sqrt(T) (exponent 0.5) overshoots: gives 88% coverage at 4m vs 68% target.
+  // T_1m = 1 month = calibration point for PUMP_RESIDUAL_GAL.
   const expiry  = new Date(contracts[idx].expiry + '-15');
   const T       = Math.max(1 / 52, (expiry - Date.now()) / (365.25 * 86400e3));
   const T_1m    = 1 / 12;
-  const residual = nSigma * PUMP_RESIDUAL_GAL * Math.sqrt(T / T_1m);
+  const residual = nSigma * PUMP_RESIDUAL_GAL * Math.pow(T / T_1m, 0.25);
   const totalDelta = Math.sign(crudeDelta) * Math.sqrt(crudeDelta ** 2 + residual ** 2);
   return +(pumpCentral + totalDelta).toFixed(3);
 }

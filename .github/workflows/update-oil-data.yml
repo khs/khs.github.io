@@ -61,6 +61,57 @@ jobs:
         run: python .github/scripts/backtest_oil.py
         continue-on-error: true   # EIA XLS endpoint occasionally flaky
 
+      - name: Check pipeline results (fail job if any script silently failed)
+        run: |
+          python - <<'EOF'
+          import json, sys
+          from pathlib import Path
+          from datetime import datetime, timezone, timedelta
+
+          errors = []
+          now = datetime.now(timezone.utc)
+
+          checks = {
+              "oil-futures.json":  ("last_updated", 8),
+              "lag-model.json":    ("generated",    8),
+              "oil-backtest.json": ("generated",    8),
+          }
+          for fname, (ts_key, max_days) in checks.items():
+              path = Path("data") / fname
+              if not path.exists():
+                  errors.append(f"MISSING: {fname}")
+                  continue
+              try:
+                  data = json.loads(path.read_text())
+                  ts = data.get(ts_key)
+                  if not ts:
+                      errors.append(f"NO TIMESTAMP in {fname}")
+                  else:
+                      dt  = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                      age = now - dt
+                      if age.days > max_days:
+                          errors.append(f"STALE ({age.days}d old): {fname}")
+              except Exception as e:
+                  errors.append(f"PARSE ERROR in {fname}: {e}")
+
+          # Error artifacts written by scripts on failure
+          for ef in ["data/futures-error.json", "data/lag-model-debug.json"]:
+              if Path(ef).exists():
+                  errors.append(f"ERROR ARTIFACT present: {ef}")
+
+          # Warn if EIA_API_KEY is absent (won't fail, but worth noting)
+          import os
+          if not os.environ.get("EIA_API_KEY"):
+              print("::warning::EIA_API_KEY not set — falling back to public XLS endpoints")
+
+          if errors:
+              for e in errors:
+                  print(f"::error::{e}")
+              sys.exit(1)
+          else:
+              print("All pipeline outputs are fresh and parseable.")
+          EOF
+
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"

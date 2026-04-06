@@ -36,10 +36,12 @@ OUT_FILE = Path(__file__).parents[2] / "data" / "oil-backtest.json"
 # Approximate trading-day offsets for each "nearby" contract horizon
 # RCLC1 ≈ 30 cal days, RCLC2 ≈ 60, RCLC3 ≈ 90, RCLC4 ≈ 120
 HORIZONS = {
-    "1m":  {"series": "RCLC1", "biz_days": 21,  "label": "1 month"},
-    "2m":  {"series": "RCLC2", "biz_days": 42,  "label": "2 months"},
-    "3m":  {"series": "RCLC3", "biz_days": 63,  "label": "3 months"},
-    "4m":  {"series": "RCLC4", "biz_days": 84,  "label": "4 months"},
+    "1m":  {"series": "RCLC1",  "biz_days": 21,  "label": "1 month"},
+    "2m":  {"series": "RCLC2",  "biz_days": 42,  "label": "2 months"},
+    "3m":  {"series": "RCLC3",  "biz_days": 63,  "label": "3 months"},
+    "4m":  {"series": "RCLC4",  "biz_days": 84,  "label": "4 months"},
+    "6m":  {"series": "RCLC6",  "biz_days": 126, "label": "6 months"},
+    "12m": {"series": "RCLC12", "biz_days": 252, "label": "12 months"},
 }
 
 REGIMES = [
@@ -281,7 +283,10 @@ def compute_pump_bands(crude_bbl: float, pump_price: float, T_years: float) -> d
     # Scale residual by sqrt(T/T_1m): crack-spread and blend-cost uncertainty
     # accumulates over time. T_1m = 1 month = calibration point for PUMP_RESIDUAL_GAL.
     T_1m = 1.0 / 12.0
-    residual_scale = math.sqrt(max(T_years, 1.0 / 52) / T_1m)
+    # Exponent 0.25: empirical pump RMSE grows ~T^0.25 (crack spreads mean-revert,
+    # not random-walk). T^0.5 overshoots: 88% coverage at 4m vs 68% target.
+    # Calibrated from backtest: 1m RMSE $0.36, 4m RMSE $0.52, ratio 1.44 over 4× T.
+    residual_scale = (max(T_years, 1.0 / 52) / T_1m) ** 0.25
 
     def combine(crude_band_bbl: float, n: int) -> float:
         crude_delta_gal = (crude_band_bbl - crude_bbl) / 42.0 * PUMP_PASSTHROUGH

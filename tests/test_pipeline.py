@@ -261,12 +261,14 @@ class TestComputePumpBands:
     def test_passthrough_and_residual_formula(self):
         """upper1 = pump + sqrt((crude_delta/42 * tp)^2 + residual_scaled^2) exactly.
 
-        residual_scaled = PUMP_RESIDUAL_GAL * sqrt(T / T_1m) where T_1m = 1/12 yr.
+        residual_scaled = PUMP_RESIDUAL_GAL * (T / T_1m)^0.25 where T_1m = 1/12 yr.
+        Exponent 0.25 matches empirical pump RMSE growth: 1m $0.36 → 4m $0.52 (ratio 1.44
+        over 4× time), consistent with crack spreads mean-reverting rather than random-walking.
         """
         import math as _math
         crude_bbl, pump_price, T = 80.0, 3.0, 1.0
         T_1m = 1.0 / 12.0
-        residual_scale = _math.sqrt(T / T_1m)
+        residual_scale = (T / T_1m) ** 0.25
         crude_b = compute_bands(crude_bbl, T)
         expected_crude_delta = (crude_b["upper1"] - crude_bbl) / 42.0 * PUMP_PASSTHROUGH
         expected_upper1 = pump_price + _math.sqrt(

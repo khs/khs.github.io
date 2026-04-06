@@ -721,12 +721,15 @@ function pumpBandEndpoint(contracts, bands, idx, crudeBandBbl, nSigma = 1) {
   }
   const tp         = lagModel.band_passthrough ?? lagModel.total_passthrough ?? 0.75;
   const crudeDelta = (crudeBandBbl - central) / 42 * tp;
-  // Scale residual by sqrt(T/T_1m): crack-spread and blend-cost uncertainty
-  // accumulates over time just like crude vol does. T_1m = 1 month (calibration point).
+  // Scale residual by (T/T_1m)^0.25: crack-spread uncertainty grows with horizon
+  // but mean-reverts, so actual pump RMSE scales ~T^0.25 not T^0.5.
+  // Empirical: 1m RMSE $0.36, 4m RMSE $0.52 → ratio 1.44 over 4× time → exponent ≈ 0.25.
+  // sqrt(T) (exponent 0.5) overshoots: gives 88% coverage at 4m vs 68% target.
+  // T_1m = 1 month = calibration point for PUMP_RESIDUAL_GAL.
   const expiry  = new Date(contracts[idx].expiry + '-15');
   const T       = Math.max(1 / 52, (expiry - Date.now()) / (365.25 * 86400e3));
   const T_1m    = 1 / 12;
-  const residual = nSigma * PUMP_RESIDUAL_GAL * Math.sqrt(T / T_1m);
+  const residual = nSigma * PUMP_RESIDUAL_GAL * Math.pow(T / T_1m, 0.25);
   const totalDelta = Math.sign(crudeDelta) * Math.sqrt(crudeDelta ** 2 + residual ** 2);
   return +(pumpCentral + totalDelta).toFixed(3);
 }
@@ -1038,26 +1041,23 @@ function updateHistorySlider(val) {
 function getPreWarBaseline(deliveryMonth) {
   // December 2025: before the strike. Use actual pump price if available,
   // otherwise fall back to Brent-derived estimate.
+  // Seasonal delta uses the lag model's fitted premium (same source as pumpForContract)
+  // so the summer surcharge cancels out of the war-cost calculation correctly.
+  const sp = lagModel?.seasonal_premium_nardl ?? lagModel?.seasonal_premium ?? 0.12;
+  const seasonalDelta = (deliveryMonth >= 4 && deliveryMonth <= 9) ? sp : 0;
+
   const histPump = oilData?.historical_pump || [];
   const pumpDec = histPump.find(h => h.month === '2025-12');
   if (pumpDec) {
     const regional = PUMP_REGIONS[pumpRegion].offset;
-    // Apply each delivery month's own seasonal adjustment relative to Dec baseline
-    // so summer blend costs aren't misattributed to the war.
-    const histWti  = oilData?.historical_wti  || [];
-    const dec2025wti = histWti.find(h => h.month === '2025-12');
-    const brentBbl   = dec2025wti ? dec2025wti.price + WTI_TO_BRENT_ADJ : null;
-    if (brentBbl) {
-      const decBase = crudeToGallon(brentBbl, true, pumpRegion, PUMP_FIXED.refining, 12);
-      const monAdj  = crudeToGallon(brentBbl, true, pumpRegion, PUMP_FIXED.refining, deliveryMonth);
-      return +(pumpDec.price + regional + (monAdj - decBase)).toFixed(3);
-    }
-    return +(pumpDec.price + regional).toFixed(3);
+    return +(pumpDec.price + regional + seasonalDelta).toFixed(3);
   }
+  // Fallback: derive December pump from WTI history, then apply seasonal delta
   const histWti = oilData?.historical_wti || [];
   const dec2025 = histWti.find(h => h.month === '2025-12');
   const brentBbl = dec2025 ? dec2025.price + WTI_TO_BRENT_ADJ : 62.0;
-  return crudeToGallon(brentBbl, true, pumpRegion, PUMP_FIXED.refining, deliveryMonth);
+  const decPump = crudeToGallon(brentBbl, true, pumpRegion, PUMP_FIXED.refining, 12);
+  return +(decPump + seasonalDelta).toFixed(3);
 }
 
 function renderCostCalc() {
