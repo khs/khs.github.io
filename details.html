@@ -310,7 +310,7 @@
   <p>Crude oil does not appear at the pump immediately. It must be shipped to refineries, cracked into gasoline, blended with ethanol, moved through pipelines, and finally reach retail stations. The pass-through of crude price changes to retail gasoline prices therefore plays out over several weeks. Borenstein, Cameron, and Gilbert<a class="ref-sup" href="#ref-5">[5]</a> provide the canonical empirical study of this relationship, documenting both the lag structure and significant asymmetries (discussed below).</p>
   <p>The model fits a finite distributed lag (FDL) specification over weekly data:<a class="ref-sup" href="#ref-5">[5]</a></p>
   <div class="formula">pump<sub>t</sub> = &#945; + &#946;<sub>0</sub>&thinsp;(crude<sub>t</sub>/42) + &#946;<sub>1</sub>&thinsp;(crude<sub>t&#8722;1</sub>/42) + &hellip; + &#946;<sub>8</sub>&thinsp;(crude<sub>t&#8722;8</sub>/42) + &epsilon;<sub>t</sub></div>
-  <p>Dividing crude by 42 converts $/barrel to $/gallon (one barrel = 42 US gallons). The constant &#945; captures average non-crude costs: taxes, distribution, retail margin, and the long-run average refining margin. The coefficients &#946;<sub>k</sub> measure the share of a crude price change that passes through to pump prices after <em>k</em> weeks; their sum &#x03A3;&#946;<sub>k</sub> is the total pass-through, typically around 0.70&#8211;0.80 in EIA data.</p>
+  <p>Dividing crude by 42 converts $/barrel to $/gallon (one barrel = 42 US gallons). The constant &#945; captures average non-crude costs: taxes, distribution, retail margin, and the long-run average refining margin. The coefficients &#946;<sub>k</sub> measure the share of a crude price change that passes through to pump prices after <em>k</em> weeks; their sum &#x03A3;&#946;<sub>k</sub> is the total pass-through — estimated at approximately 1.02 in the current training window, implying near-full crude pass-through to retail prices.</p>
   <p>Weekly crude prices are highly autocorrelated, making adjacent lag values nearly collinear. When the maximum pairwise correlation among lags exceeds 0.95, the model switches to a Polynomial Distributed Lag (PDL) estimator due to Almon,<a class="ref-sup" href="#ref-1">[1]</a> which constrains the &#946;<sub>k</sub> to lie on a low-degree polynomial in <em>k</em>. This stabilises the individual coefficient estimates while preserving an unbiased estimate of total pass-through.</p>
   <p><strong>Rockets-and-feathers test.</strong> Bacon<a class="ref-sup" href="#ref-3">[3]</a> coined the term &#8220;rockets and feathers&#8221; to describe the empirical regularity that retail gasoline prices rise quickly when crude rises (&#8220;rockets&#8221;) but fall slowly when crude falls (&#8220;feathers&#8221;). Borenstein, Cameron, and Gilbert<a class="ref-sup" href="#ref-5">[5]</a> confirm this asymmetry for the US market. The model tests for asymmetry by adding a single indicator term:</p>
   <div class="formula">D<sub>t</sub> &times; &Delta;crude<sub>t</sub>, where D<sub>t</sub> = 1 if crude rose that week, 0 otherwise</div>
@@ -383,6 +383,16 @@
   <p class="legend-note">
     Error = realized spot &minus; futures prediction ($/bbl).
     Positive (red) = futures under-predicted; negative (green) = futures over-predicted.
+  </p>
+</div>
+
+<div class="bt-section" id="bt-error-4m-section" style="display:none">
+  <h2 class="section-head">4-month percentage error over time</h2>
+  <div class="chart-container"><canvas id="btError4mPctChart"></canvas></div>
+  <p class="legend-note">
+    Percentage error = (realized &minus; predicted) / |realized| &times; 100%.
+    Positive (red) = futures under-predicted; negative (green) = over-predicted.
+    4-month horizon only.
   </p>
 </div>
 
@@ -488,14 +498,15 @@
 </site-footer>
 
 <script>
-let btData       = null;
-let futuresData  = null;
-let activeHorizon = '1m';
-let btErrorChart  = null;
-let btYearChart   = null;
-let predHistChart = null;
-let btType        = 'crude';   // 'crude' | 'pump'
-let phBenchmark   = 'brent';   // benchmark for prediction history chart
+let btData            = null;
+let futuresData       = null;
+let activeHorizon     = '1m';
+let btErrorChart      = null;
+let btError4mPctChart = null;
+let btYearChart       = null;
+let predHistChart     = null;
+let btType            = 'crude';   // 'crude' | 'pump'
+let phBenchmark       = 'brent';   // benchmark for prediction history chart
 
 function getBtResults() {
   if (!btData) return null;
@@ -669,12 +680,14 @@ function renderBacktest() {
      </p>`;
 
   document.getElementById('bt-error-section').style.display = '';
+  document.getElementById('bt-error-4m-section').style.display = '';
   document.getElementById('bt-year-section').style.display = '';
   // Regime breakdown is crude-only — hide when pump is selected
   if (btData.results?.regimes)
     document.getElementById('bt-regime-section').style.display = btType === 'crude' ? '' : 'none';
 
   renderBtErrorChart();
+  renderBtError4mPctChart();
   renderBtYearChart();
   if (btType === 'crude') renderBtRegimes();
 }
@@ -730,6 +743,59 @@ function renderBtErrorChart() {
           ticks: { font: { family: 'Georgia, serif', size: 11 }, callback: v => (v >= 0 ? '+' : '') + '$' + v.toFixed(btType === 'pump' ? 2 : 0) },
           grid: { color: '#f0f0f0' },
           title: { display: true, text: `Error (${unit})`, font: { family: 'Georgia, serif', size: 11 }, color: '#666' },
+        },
+      },
+    },
+  });
+}
+
+function renderBtError4mPctChart() {
+  const res = getBtResults();
+  if (!res || !res['4m']?.monthly) return;
+
+  const monthly  = res['4m'].monthly;
+  const labels   = monthly.map(m => m.month);
+  const pctErrs  = monthly.map(m => m.pct_error);
+  const bgColors = pctErrs.map(e =>
+    e >= 0 ? 'rgba(155,44,44,0.55)' : 'rgba(39,103,73,0.55)'
+  );
+
+  if (btError4mPctChart) btError4mPctChart.destroy();
+  const ctx = document.getElementById('btError4mPctChart').getContext('2d');
+  btError4mPctChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label: '4-month % error', data: pctErrs, backgroundColor: bgColors, borderWidth: 0 }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: ctx => {
+              const m = ctx[0].label;
+              return KEY_EVENTS[m] ? `${m} \u2014 ${KEY_EVENTS[m]}` : m;
+            },
+            label: ctx => {
+              const e = ctx.raw;
+              const dir = e >= 0 ? 'under-predicted' : 'over-predicted';
+              return `Prediction ${dir} by ${Math.abs(e).toFixed(1)}%`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'Georgia, serif', size: 10 }, maxTicksLimit: 24, maxRotation: 45 },
+          grid: { display: false },
+        },
+        y: {
+          ticks: { font: { family: 'Georgia, serif', size: 11 }, callback: v => (v >= 0 ? '+' : '') + v.toFixed(0) + '%' },
+          grid: { color: '#f0f0f0' },
+          title: { display: true, text: '% error (4-month horizon)', font: { family: 'Georgia, serif', size: 11 }, color: '#666' },
         },
       },
     },
