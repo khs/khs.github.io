@@ -112,11 +112,43 @@ jobs:
               print("All pipeline outputs are fresh and parseable.")
           EOF
 
+      - name: Regenerate self-contained widgets
+        run: |
+          python - <<'EOF'
+          import re, json
+
+          with open('data/oil-futures.json') as f:
+              oil = json.load(f)
+          with open('data/lag-model.json') as f:
+              lag_full = json.load(f)
+
+          lag = {
+              'alpha':             lag_full['alpha'],
+              'betas':             lag_full['betas'],
+              'r2':                lag_full['r2'],
+              'seasonal_premium':  lag_full['seasonal_premium'],
+              'total_passthrough': lag_full['total_passthrough'],
+              'band_passthrough':  lag_full['band_passthrough'],
+          }
+
+          oil_json = json.dumps(oil, separators=(',', ':'))
+          lag_json = json.dumps(lag, separators=(',', ':'))
+
+          for fname in ['self-contained/chart.html', 'self-contained/cost.html']:
+              with open(fname) as f:
+                  content = f.read()
+              content = re.sub(r'oilData = \{.*?\};', f'oilData = {oil_json};', content)
+              content = re.sub(r'lagModel = \{.*?\};', f'lagModel = {lag_json};', content)
+              with open(fname, 'w') as f:
+                  f.write(content)
+              print(f'Updated {fname}')
+          EOF
+
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A data/
+          git add -A data/ self-contained/
           git diff --cached --quiet || git commit -m "chore: update oil data [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main
