@@ -800,11 +800,12 @@ function buildHistoricalSegment() {
 
   const isBrent = benchmark === 'brent';
 
-  // When showing crude: use historical_wti (WTI or Brent-adjusted).
-  // When showing pump: prefer actual EIA retail gasoline (historical_pump)
-  // which is far more accurate than a crude-derived estimate.
-  const histWti  = oilData?.historical_wti  || [];
-  const histPump = oilData?.historical_pump  || [];
+  // historical_brent: actual Europe Brent spot (new, no adjustment needed).
+  // historical_wti: legacy field (pre-April 2026 pipeline runs); add +4 when used.
+  // When showing pump: prefer actual EIA retail gasoline (historical_pump).
+  const histBrent = oilData?.historical_brent || [];
+  const histWti   = histBrent.length ? [] : (oilData?.historical_wti || []);
+  const histPump  = oilData?.historical_pump  || [];
 
   // Snapshot front-month crude — fills gaps not covered by EIA series.
   const snapshotByMonth = {};
@@ -825,8 +826,14 @@ function buildHistoricalSegment() {
         byMonth[ym] = crudeToGallon(crudeBbl, isBrent, pumpRegion, PUMP_FIXED.refining, month);
       }
     });
-    // Medium priority: historical WTI → estimated pump
-    histWti.forEach(h => {
+    // Medium priority: historical Brent (or legacy WTI+4) → estimated pump
+    histBrent.forEach(h => {
+      if (h.month >= cutoffYM) {
+        const month = parseInt(h.month.slice(5, 7), 10);
+        byMonth[h.month] = crudeToGallon(h.price, true, pumpRegion, PUMP_FIXED.refining, month);
+      }
+    });
+    histWti.forEach(h => {  // legacy fallback only
       if (h.month >= cutoffYM) {
         const crudeBbl = isBrent ? h.price + WTI_TO_BRENT_ADJ : h.price;
         const month    = parseInt(h.month.slice(5, 7), 10);
@@ -839,11 +846,13 @@ function buildHistoricalSegment() {
       if (h.month >= cutoffYM) byMonth[h.month] = +(h.price + regional).toFixed(3);
     });
   } else {
-    // Crude view: historical_wti wins; snapshots fill recent gaps
-    histWti.forEach(h => {
-      if (h.month >= cutoffYM) {
+    // Crude view: historical_brent wins; legacy WTI fills if no Brent; snapshots fill recent gaps
+    histBrent.forEach(h => {
+      if (h.month >= cutoffYM) byMonth[h.month] = h.price;  // already Brent
+    });
+    histWti.forEach(h => {  // legacy fallback only
+      if (h.month >= cutoffYM)
         byMonth[h.month] = isBrent ? h.price + WTI_TO_BRENT_ADJ : h.price;
-      }
     });
     Object.entries(snapshotByMonth).forEach(([ym, crudeBbl]) => {
       if (ym >= cutoffYM && !(ym in byMonth)) byMonth[ym] = crudeBbl;
@@ -1082,9 +1091,9 @@ function renderCurve() {
 // Time slider helpers
 // ---------------------------------------------------------------------------
 function updateSliderRange() {
-  const histWti = oilData?.historical_wti || [];
-  const snaps   = oilData?.snapshots || [];
-  const hasHistory = histWti.length > 0 || snaps.length > 0;
+  const histCrude = (oilData?.historical_brent || oilData?.historical_wti || []);
+  const snaps     = oilData?.snapshots || [];
+  const hasHistory = histCrude.length > 0 || snaps.length > 0;
   const row = document.getElementById('history-slider-row');
   if (!hasHistory) { row.style.display = 'none'; return; }
   row.style.display = '';

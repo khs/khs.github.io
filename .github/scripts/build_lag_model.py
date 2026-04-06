@@ -37,10 +37,9 @@ import os
 
 OUT_FILE = Path(__file__).parents[2] / "data" / "lag-model.json"
 HEADERS  = {"User-Agent": "oil-lag-model/1.0 (academic/personal use)"}
-WTI_TO_BRENT_ADJ = 4.0  # $/bbl Brent premium over WTI (long-run average)
-                         # Model is trained on Brent-equivalent crude so that
-                         # JS/Python predictions (which use Brent) are consistent.
-                         # Using WTI alone would inflate alpha by tp*4/42 ≈ $0.11/gal.
+# Model trained on Brent spot (Europe Brent FOB) so predictions — which use
+# Brent futures contracts — need no adjustment. WTI is used only in the
+# crude backtest (RCLC1–4) which has no Brent equivalent at EIA.
 N_LAGS   = 8          # weeks: captures ~85-90% of pass-through per literature
 PDL_THRESH = 0.80     # max off-diagonal correlation before switching to PDL
                       # 0.80 catches collinearity that produces physically impossible
@@ -170,13 +169,13 @@ def fetch_eia_api_gasoline(api_key: str) -> pd.Series:
 
 
 def fetch_eia_api_crude(api_key: str) -> pd.Series:
-    """EIA Open Data API v2 for WTI Cushing daily spot price."""
+    """EIA Open Data API v2 for Europe Brent spot price (RBRTE)."""
     if not api_key:
         raise ValueError("EIA_API_KEY not set")
     url = (
         "https://api.eia.gov/v2/petroleum/pri/spt/data/"
         f"?api_key={api_key}&frequency=daily&data[0]=value"
-        "&facets[series][]=RWTC"
+        "&facets[series][]=RBRTE"
         "&sort[0][column]=period&sort[0][direction]=asc&length=20000"
     )
     content = fetch_with_retry(url, retries=3, base_timeout=30)
@@ -227,18 +226,18 @@ def fetch_gasoline_weekly(lookback_years: int = 14) -> pd.Series:
     raise RuntimeError("All gasoline data sources failed:\n" + "\n".join(errors))
 
 
-def fetch_crude_weekly(lookback_years: int = 14) -> pd.Series:
-    """Fetch weekly WTI crude price.
-    Tries EIA Open Data API first (requires EIA_API_KEY), then yfinance,
-    then EIA RWTC XLS. Returns weekly (Monday) resampled series.
+def fetch_brent_weekly(lookback_years: int = 14) -> pd.Series:
+    """Fetch weekly Europe Brent spot price (RBRTE).
+    Tries EIA Open Data API (RBRTE), then FRED DCOILBRENTEU,
+    then yfinance BZ=F, then EIA RBRTE XLS. Returns weekly (Monday) series.
     """
     api_key = os.environ.get("EIA_API_KEY", "")
     cutoff = pd.Timestamp.today() - pd.DateOffset(years=lookback_years)
 
-    # Try EIA API first (most reliable, full history)
+    # Try EIA API first (RBRTE = Europe Brent Spot Price FOB)
     if api_key:
         try:
-            print("  Trying EIA API (RWTC daily)...")
+            print("  Trying EIA API (RBRTE Brent daily)...")
             s = fetch_eia_api_crude(api_key)
             s = s[s.index >= cutoff].dropna()
             weekly = s.resample("W-MON").last().dropna()
@@ -246,11 +245,31 @@ def fetch_crude_weekly(lookback_years: int = 14) -> pd.Series:
                 print(f"  EIA API OK: {len(weekly)} weekly obs")
                 return weekly
         except Exception as e:
-            print(f"  EIA API failed ({e}), trying yfinance...")
+            print(f"  EIA API failed ({e}), trying FRED...")
+
+    # FRED DCOILBRENTEU — reliable, free, no key required
+    try:
+        import requests as _req
+        r = _req.get("https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILBRENTEU",
+                     headers=HEADERS, timeout=(10, 120), stream=True)
+        r.raise_for_status()
+        from io import StringIO
+        content = b"".join(r.iter_content(8192))
+        df = pd.read_csv(StringIO(content.decode("utf-8", errors="replace")),
+                         parse_dates=["DATE"], index_col="DATE", na_values=[".", ""])
+        s = df.squeeze().dropna().astype(float)
+        s.index.name = "date"
+        s = s[s.index >= cutoff].dropna()
+        weekly = s.resample("W-MON").last().dropna()
+        if len(weekly) >= 10:
+            print(f"  FRED DCOILBRENTEU: {len(weekly)} weekly obs")
+            return weekly
+    except Exception as e:
+        print(f"  FRED failed ({e}), trying yfinance BZ=F...")
 
     import yfinance as yf
     try:
-        raw = yf.download("CL=F", start=cutoff.strftime("%Y-%m-%d"),
+        raw = yf.download("BZ=F", start=cutoff.strftime("%Y-%m-%d"),
                           auto_adjust=True, progress=False)
         if raw.empty:
             raise ValueError("yfinance returned empty data")
@@ -260,13 +279,13 @@ def fetch_crude_weekly(lookback_years: int = 14) -> pd.Series:
         s.index.name = "date"
         s = s.dropna()
         weekly = s.resample("W-MON").last().dropna()
-        print(f"  yfinance CL=F: {len(weekly)} weekly obs")
+        print(f"  yfinance BZ=F: {len(weekly)} weekly obs")
         return weekly
     except Exception as e:
-        print(f"  yfinance failed ({e}), falling back to EIA RWTC XLS...")
+        print(f"  yfinance failed ({e}), falling back to EIA RBRTE XLS...")
 
-    # Fallback: EIA RWTC XLS (daily → weekly) — returns full history
-    content = fetch_with_retry("https://www.eia.gov/dnav/pet/hist_xls/RWTCd.xls")
+    # Fallback: EIA RBRTE XLS (Europe Brent daily → weekly)
+    content = fetch_with_retry("https://www.eia.gov/dnav/pet/hist_xls/RBRTEd.xls")
     for sheet in ("Data 1", 0):
         try:
             df = pd.read_excel(BytesIO(content), sheet_name=sheet, skiprows=2, header=0)
@@ -279,7 +298,7 @@ def fetch_crude_weekly(lookback_years: int = 14) -> pd.Series:
             return s.resample("W-MON").last().dropna()
         except Exception:
             continue
-    raise ValueError("Could not fetch crude price data via EIA API, yfinance, or EIA XLS")
+    raise ValueError("Could not fetch Brent price data via EIA API, FRED, yfinance, or EIA XLS")
 
 
 # ---------------------------------------------------------------------------
@@ -578,14 +597,10 @@ def main():
     gas_raw = fetch_gasoline_weekly(lookback_years=NARDL_LOOKBACK_YEARS)
     print(f"  {len(gas_raw)} weekly obs, {gas_raw.index.min().date()} – {gas_raw.index.max().date()}")
 
-    print("Fetching WTI crude price (weekly, 14-year history)...")
-    crude_weekly = fetch_crude_weekly(lookback_years=NARDL_LOOKBACK_YEARS)
-    # Convert to Brent-equivalent $/gal: model must be trained on the same
-    # quantity used in prediction (JS uses Brent contracts; backtest adds
-    # WTI_TO_BRENT_ADJ before dividing by 42). Using raw WTI/42 would inflate
-    # the model intercept by tp * 4/42 ≈ $0.11/gal, biasing all pump forecasts high.
-    crude_gal    = (crude_weekly + WTI_TO_BRENT_ADJ) / 42.0
-    print(f"  {len(crude_weekly)} weekly obs, {crude_weekly.index.min().date()} – {crude_weekly.index.max().date()}")
+    print("Fetching Brent spot price (weekly, 14-year history)...")
+    brent_weekly = fetch_brent_weekly(lookback_years=NARDL_LOOKBACK_YEARS)
+    crude_gal    = brent_weekly / 42.0  # Brent $/bbl → $/gal; no adjustment needed
+    print(f"  {len(brent_weekly)} weekly obs, {brent_weekly.index.min().date()} – {brent_weekly.index.max().date()}")
 
     # Trim both series to the NARDL origin (2012-01-01) for modelling
     cutoff = pd.Timestamp(NARDL_ORIGIN)

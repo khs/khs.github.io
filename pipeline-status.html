@@ -171,9 +171,12 @@ function renderFutures(f) {
   const brentN  = f.brent?.length ?? 0;
   const wtiR    = f.wti?.length  ? `${f.wti[0].expiry} – ${f.wti.at(-1).expiry}` : '–';
   const brentR  = f.brent?.length ? `${f.brent[0].expiry} – ${f.brent.at(-1).expiry}` : '–';
-  const histW   = f.historical_wti?.length;
+  // historical_brent: new field (actual Brent spot). historical_wti: legacy fallback.
+  const histCrude   = f.historical_brent || f.historical_wti;
+  const histCrudeKey = f.historical_brent ? 'historical_brent' : 'historical_wti (legacy)';
+  const histW   = histCrude?.length;
   const histP   = f.historical_pump?.length;
-  const histWR  = histW ? `${f.historical_wti[0].month} – ${f.historical_wti.at(-1).month}` : null;
+  const histWR  = histW ? `${histCrude[0].month} – ${histCrude.at(-1).month}` : null;
   const histPR  = histP ? `${f.historical_pump[0].month} – ${f.historical_pump.at(-1).month}` : null;
   const snapN   = f.snapshots?.length ?? 0;
   const snapR   = snapN ? `${f.snapshots[0].date} – ${f.snapshots.at(-1).date}` : '–';
@@ -201,7 +204,7 @@ function renderFutures(f) {
     <div class="card">
       <div class="card-title">Historical series</div>
       ${kv([
-        ['historical_wti',  histW ? ok(histW + ' months') + ` &nbsp;<span style="color:#888">${histWR}</span>` : err('missing')],
+        [histCrudeKey,  histW ? ok(histW + ' months') + ` &nbsp;<span style="color:#888">${histWR}</span>` : err('missing')],
         ['historical_pump', histP ? ok(histP + ' months') + ` &nbsp;<span style="color:#888">${histPR}</span>` : warn('missing — run workflow to populate')],
       ])}
     </div>`;

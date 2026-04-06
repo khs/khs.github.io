@@ -834,8 +834,10 @@ function buildHistoricalSegment() {
 
   // Primary: actual EIA retail gasoline monthly averages ($/gal national).
   // Fall back to Brent-derived estimate only for months not covered.
-  const histPump = oilData?.historical_pump || [];
-  const histWti  = oilData?.historical_wti  || [];
+  const histPump  = oilData?.historical_pump  || [];
+  // historical_brent: actual Brent spot (new). historical_wti: legacy (add +4).
+  const histBrent = oilData?.historical_brent || [];
+  const histWti   = histBrent.length ? [] : (oilData?.historical_wti || []);
   const snapshotByMonth = {};
   (oilData?.snapshots || []).forEach(s => {
     const ym = s.date.slice(0, 7);
@@ -851,8 +853,14 @@ function buildHistoricalSegment() {
       byMonth[ym] = crudeToGallon(brentBbl, true, pumpRegion, PUMP_FIXED.refining, month);
     }
   });
-  // Medium priority: historical WTI → Brent estimate (better than snapshot)
-  histWti.forEach(h => {
+  // Medium priority: historical Brent spot (or legacy WTI+4) → estimated pump
+  histBrent.forEach(h => {
+    if (h.month >= cutoffYM) {
+      const month = parseInt(h.month.slice(5, 7), 10);
+      byMonth[h.month] = crudeToGallon(h.price, true, pumpRegion, PUMP_FIXED.refining, month);
+    }
+  });
+  histWti.forEach(h => {  // legacy fallback only
     if (h.month >= cutoffYM) {
       const month = parseInt(h.month.slice(5, 7), 10);
       byMonth[h.month] = crudeToGallon(h.price + WTI_TO_BRENT_ADJ, true, pumpRegion, PUMP_FIXED.refining, month);
@@ -1005,10 +1013,10 @@ function renderCurve() {
 }
 
 function updateSliderRange() {
-  const histPump = oilData?.historical_pump || [];
-  const histWti  = oilData?.historical_wti  || [];
-  const snaps    = oilData?.snapshots || [];
-  if (!histPump.length && !histWti.length && !snaps.length) return;
+  const histPump  = oilData?.historical_pump  || [];
+  const histCrude = (oilData?.historical_brent || oilData?.historical_wti || []);
+  const snaps     = oilData?.snapshots || [];
+  if (!histPump.length && !histCrude.length && !snaps.length) return;
   document.getElementById('history-slider-row').style.display = '';
 
   const today = new Date();
@@ -1052,10 +1060,14 @@ function getPreWarBaseline(deliveryMonth) {
     const regional = PUMP_REGIONS[pumpRegion].offset;
     return +(pumpDec.price + regional + seasonalDelta).toFixed(3);
   }
-  // Fallback: derive December pump from WTI history, then apply seasonal delta
-  const histWti = oilData?.historical_wti || [];
-  const dec2025 = histWti.find(h => h.month === '2025-12');
-  const brentBbl = dec2025 ? dec2025.price + WTI_TO_BRENT_ADJ : 62.0;
+  // Fallback: derive December pump from Brent history (or legacy WTI+4)
+  const histBrentFb = oilData?.historical_brent || [];
+  const histWtiFb   = oilData?.historical_wti   || [];
+  const dec2025b = histBrentFb.find(h => h.month === '2025-12');
+  const dec2025w = histWtiFb.find(h => h.month === '2025-12');
+  const brentBbl = dec2025b ? dec2025b.price
+                 : dec2025w ? dec2025w.price + WTI_TO_BRENT_ADJ
+                 : 62.0;
   const decPump = crudeToGallon(brentBbl, true, pumpRegion, PUMP_FIXED.refining, 12);
   return +(decPump + seasonalDelta).toFixed(3);
 }

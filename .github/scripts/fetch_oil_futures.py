@@ -139,9 +139,10 @@ def fetch_historical_pump_prices(years_back: int = 3) -> list[dict]:
 
 def fetch_historical_monthly(years_back: int = 3) -> list[dict]:
     """
-    Fetch monthly average WTI spot prices from EIA RWTC daily XLS.
+    Fetch monthly average Europe Brent spot prices from EIA RBRTE daily XLS.
     Returns [{month: "YYYY-MM", price: float}, ...] sorted oldest-first.
-    Used by oil.html to draw the historical price line on the forward-curve chart.
+    Stored as historical_brent in oil-futures.json — used by oil.html and
+    trumps-war.html as the historical crude line (no WTI→Brent adjustment needed).
     """
     import requests
     import pandas as pd
@@ -153,7 +154,7 @@ def fetch_historical_monthly(years_back: int = 3) -> list[dict]:
 
     try:
         r = requests.get(
-            "https://www.eia.gov/dnav/pet/hist_xls/RWTCd.xls",
+            "https://www.eia.gov/dnav/pet/hist_xls/RBRTEd.xls",
             headers=headers, timeout=60,
         )
         r.raise_for_status()
@@ -176,13 +177,13 @@ def fetch_historical_monthly(years_back: int = 3) -> list[dict]:
                     {"month": row["month"], "price": float(row["price"])}
                     for _, row in monthly.iterrows()
                 ]
-                print(f"  Historical WTI: {len(result)} monthly averages, "
+                print(f"  Historical Brent: {len(result)} monthly averages, "
                       f"{result[0]['month']} – {result[-1]['month']}")
                 return result
             except Exception:
                 continue
     except Exception as e:
-        print(f"  WARNING: could not fetch historical WTI: {e}")
+        print(f"  WARNING: could not fetch historical Brent: {e}")
     return []
 
 
@@ -378,8 +379,8 @@ def main():
     brent = fill_gaps(backfill_near_term(brent_raw, existing_snapshots, "brent", brent_front))
     print(f"  Got {len(brent)} contracts")
 
-    print("Fetching historical WTI monthly prices (CL=F, 3 years)...")
-    historical_wti = fetch_historical_monthly(years_back=3)
+    print("Fetching historical Brent spot monthly prices (EIA RBRTE, 3 years)...")
+    historical_brent = fetch_historical_monthly(years_back=3)
 
     print("Fetching historical retail gasoline monthly prices (EIA, 3 years)...")
     historical_pump = fetch_historical_pump_prices(years_back=3)
@@ -411,7 +412,7 @@ def main():
         "wti":            wti,
         "brent":          brent,
         "crack_spreads":  crack_spreads,
-        "historical_wti":  historical_wti,
+        "historical_brent": historical_brent,
         "historical_pump": historical_pump,
         "snapshots":       snapshots,
     }
