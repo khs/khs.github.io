@@ -408,6 +408,8 @@
 <div class="bt-section" id="bt-regime-section" style="display:none">
   <h2 class="section-head">Performance by market regime (1-month horizon)</h2>
   <div id="bt-regime-container"></div>
+  <h2 class="section-head" style="margin-top:1.5em">Performance by market regime (4-month horizon)</h2>
+  <div id="bt-regime-4m-container"></div>
 </div>
 
 
@@ -851,24 +853,20 @@ function renderBtYearChart() {
   });
 }
 
-function renderBtRegimes() {
-  if (!btData?.results?.regimes) return;
-  const regimes = btData.results.regimes;
-
-  const rows = regimes.map(r => {
+function regimeTableHTML(rows, note) {
+  const rowsHTML = rows.map(r => {
     const biasClass = r.bias > 0 ? 'bad' : 'good';
     return `<tr>
       <td>${r.name}</td>
       <td>${r.start} \u2013 ${r.end}</td>
       <td>${r.n}</td>
-      <td class="${biasClass}">${r.bias > 0 ? '+' : ''}${r.bias}</td>
-      <td>${r.mae}</td>
-      <td>${r.rmse}</td>
+      <td class="${biasClass}">${r.bias > 0 ? '+' : ''}${typeof r.bias === 'number' ? r.bias.toFixed(2) : r.bias}</td>
+      <td>${typeof r.mae === 'number' ? r.mae.toFixed(2) : r.mae}</td>
+      <td>${typeof r.rmse === 'number' ? r.rmse.toFixed(2) : r.rmse}</td>
       <td>${r.pct_error != null ? r.pct_error.toFixed(1) + '%' : '\u2014'}</td>
     </tr>`;
   }).join('');
-
-  document.getElementById('bt-regime-container').innerHTML = `
+  return `
     <table class="bt">
       <thead><tr>
         <th>Regime</th><th>Period</th><th>N</th>
@@ -877,10 +875,45 @@ function renderBtRegimes() {
         <th>RMSE <span class="note">$/bbl</span></th>
         <th>Avg abs % error</th>
       </tr></thead>
-      <tbody>${rows}</tbody>
+      <tbody>${rowsHTML}</tbody>
     </table>
-    <p class="legend-note">1-month horizon only. Illustrates how error varies across different market environments.</p>
-  `;
+    <p class="legend-note">${note}</p>`;
+}
+
+function computeRegimes4m() {
+  const regimes = btData?.results?.regimes;
+  const monthly4m = btData?.results?.['4m']?.monthly;
+  if (!regimes || !monthly4m) return null;
+
+  return regimes.map(r => {
+    const entries = monthly4m.filter(m => m.month >= r.start && m.month <= r.end);
+    if (!entries.length) return { ...r, n: 0, bias: null, mae: null, rmse: null, pct_error: null };
+    const n    = entries.length;
+    const bias = entries.reduce((s, e) => s + e.error, 0) / n;
+    const mae  = entries.reduce((s, e) => s + Math.abs(e.error), 0) / n;
+    const rmse = Math.sqrt(entries.reduce((s, e) => s + e.error ** 2, 0) / n);
+    const pct  = entries.reduce((s, e) => s + Math.abs(e.pct_error), 0) / n;
+    return { name: r.name, start: r.start, end: r.end, n, bias, mae, rmse, pct_error: pct };
+  });
+}
+
+function renderBtRegimes() {
+  if (!btData?.results?.regimes) return;
+
+  document.getElementById('bt-regime-container').innerHTML =
+    regimeTableHTML(
+      btData.results.regimes,
+      'Illustrates how error varies across different market environments.'
+    );
+
+  const regimes4m = computeRegimes4m();
+  if (regimes4m) {
+    document.getElementById('bt-regime-4m-container').innerHTML =
+      regimeTableHTML(
+        regimes4m,
+        '4-month horizon. Derived from monthly backtest data grouped by regime period.'
+      );
+  }
 }
 
 // ---------------------------------------------------------------------------
