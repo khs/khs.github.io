@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-09T21:51:52+00:00",
+  "generated": "2026-04-10T21:44:46+00:00",
   "description": "How well did WTI futures predict realized spot prices, and how well were the uncertainty bands calibrated? Prediction = EIA nth-nearby futures (RCLC1-4). Realized = EIA RWTC WTI Cushing spot price. Naive benchmark = today's spot price used as forecast. Bands: VOL_UP=0.33, VOL_DOWN=0.33, MR_CAP=2.5y. pump_results: same horizons but prediction = WTI futures converted to pump price via lag-model steady state (alpha + total_passthrough_pos * brent_gal + seasonal); realized = EIA retail gasoline weekly. Cutoff 2012-01-01 avoids pre-shale-era tax-structure bias. Pump bands: crude vol applied to crude $/bbl, converted via PUMP_PASSTHROUGH=1.0638/42, then PUMP_RESIDUAL_GAL=0.37 $/gal added in quadrature for non-crude pump price variance (crack spreads, taxes, distribution).",
   "results": {
     "1m": {
