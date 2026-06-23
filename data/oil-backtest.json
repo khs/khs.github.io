@@ -1,5 +1,5 @@
 {
-  "generated": "2026-06-22T22:53:32+00:00",
+  "generated": "2026-06-23T22:19:36+00:00",
   "description": "How well did WTI futures predict realized spot prices, and how well were the uncertainty bands calibrated? Prediction = EIA nth-nearby futures (RCLC1-4). Realized = EIA RWTC WTI Cushing spot price. Naive benchmark = today's spot price used as forecast. Bands: VOL_UP=0.33, VOL_DOWN=0.33, MR_CAP=2.5y. pump_results: same horizons but prediction = WTI futures converted to pump price via lag-model steady state (alpha + total_passthrough_pos * brent_gal + seasonal); realized = EIA retail gasoline weekly. Cutoff 2012-01-01 avoids pre-shale-era tax-structure bias. Pump bands: crude vol applied to crude $/bbl, converted via PUMP_PASSTHROUGH=1.0609/42, then PUMP_RESIDUAL_GAL=0.37 $/gal added in quadrature for non-crude pump price variance (crack spreads, taxes, distribution).",
   "results": {
     "1m": {
@@ -9549,7 +9549,7 @@
       "mae": 0.23,
       "rmse": 0.28,
       "naive_rmse": 0.18,
-      "r2": 0.8,
+      "r2": 0.81,
       "hit_rate": 0.58,
       "within_10pct": 0.69,
       "within_20pct": 0.96,
@@ -9563,7 +9563,7 @@
         {
           "month": "2012-01",
           "error": -0.21,
-          "pct_error": -6.15,
+          "pct_error": -6.1,
           "pred": 3.76,
           "realized": 3.55,
           "inside_68": 1.0,
@@ -9572,7 +9572,7 @@
         {
           "month": "2012-02",
           "error": 0.02,
-          "pct_error": 0.57,
+          "pct_error": 0.62,
           "pred": 3.83,
           "realized": 3.85,
           "inside_68": 1.0,
@@ -9581,7 +9581,7 @@
         {
           "month": "2012-03",
           "error": -0.03,
-          "pct_error": -0.82,
+          "pct_error": -0.78,
           "pred": 3.95,
           "realized": 3.92,
           "inside_68": 1.0,
@@ -9644,7 +9644,7 @@
         {
           "month": "2012-10",
           "error": -0.03,
-          "pct_error": -0.89,
+          "pct_error": -0.85,
           "pred": 3.51,
           "realized": 3.48,
           "inside_68": 1.0,
@@ -9653,16 +9653,16 @@
         {
           "month": "2012-11",
           "error": -0.13,
-          "pct_error": -3.83,
-          "pred": 3.45,
+          "pct_error": -3.78,
+          "pred": 3.44,
           "realized": 3.31,
           "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
           "month": "2012-12",
-          "error": -0.17,
-          "pct_error": -5.01,
+          "error": -0.16,
+          "pct_error": -4.97,
           "pred": 3.48,
           "realized": 3.31,
           "inside_68": 1.0,
@@ -9671,7 +9671,7 @@
         {
           "month": "2013-01",
           "error": 0.03,
-          "pct_error": 0.85,
+          "pct_error": 0.9,
           "pred": 3.64,
           "realized": 3.67,
           "inside_68": 1.0,
@@ -9680,7 +9680,7 @@
         {
           "month": "2013-02",
           "error": 0.05,
-          "pct_error": 1.41,
+          "pct_error": 1.46,
           "pred": 3.66,
           "realized": 3.71,
           "inside_68": 1.0,
@@ -9689,7 +9689,7 @@
         {
           "month": "2013-03",
           "error": -0.0,
-          "pct_error": -0.14,
+          "pct_error": -0.09,
           "pred": 3.59,
           "realized": 3.58,
           "inside_68": 1.0,
@@ -9752,7 +9752,7 @@
         {
           "month": "2013-10",
           "error": -0.55,
-          "pct_error": -16.45,
+          "pct_error": -16.4,
           "pred": 3.79,
           "realized": 3.24,
           "inside_68": 0.0,
@@ -9761,8 +9761,8 @@
         {
           "month": "2013-11",
           "error": -0.36,
-          "pct_error": -11.21,
-          "pred": 3.63,
+          "pct_error": -11.16,
+          "pred": 3.62,
           "realized": 3.26,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -9770,8 +9770,8 @@
         {
           "month": "2013-12",
           "error": -0.39,
-          "pct_error": -11.88,
-          "pred": 3.71,
+          "pct_error": -11.83,
+          "pred": 3.7,
           "realized": 3.32,
           "inside_68": 0.6,
           "inside_95": 1.0
@@ -9779,8 +9779,8 @@
         {
           "month": "2014-01",
           "error": -0.26,
-          "pct_error": -7.84,
-          "pred": 3.62,
+          "pct_error": -7.79,
+          "pred": 3.61,
           "realized": 3.36,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -9788,7 +9788,7 @@
         {
           "month": "2014-02",
           "error": -0.25,
-          "pct_error": -7.37,
+          "pct_error": -7.32,
           "pred": 3.77,
           "realized": 3.52,
           "inside_68": 1.0,
@@ -9797,7 +9797,7 @@
         {
           "month": "2014-03",
           "error": -0.15,
-          "pct_error": -4.39,
+          "pct_error": -4.35,
           "pred": 3.8,
           "realized": 3.64,
           "inside_68": 1.0,
@@ -9860,7 +9860,7 @@
         {
           "month": "2014-10",
           "error": -0.48,
-          "pct_error": -15.11,
+          "pct_error": -15.06,
           "pred": 3.39,
           "realized": 2.91,
           "inside_68": 0.0,
@@ -9868,8 +9868,8 @@
         },
         {
           "month": "2014-11",
-          "error": -0.59,
-          "pct_error": -20.18,
+          "error": -0.58,
+          "pct_error": -20.12,
           "pred": 3.19,
           "realized": 2.6,
           "inside_68": 0.0,
@@ -9878,8 +9878,8 @@
         {
           "month": "2014-12",
           "error": -0.59,
-          "pct_error": -23.33,
-          "pred": 2.75,
+          "pct_error": -23.26,
+          "pred": 2.74,
           "realized": 2.15,
           "inside_68": 0.0,
           "inside_95": 1.0
@@ -9887,8 +9887,8 @@
         {
           "month": "2015-01",
           "error": -0.23,
-          "pct_error": -10.66,
-          "pred": 2.45,
+          "pct_error": -10.58,
+          "pred": 2.44,
           "realized": 2.22,
           "inside_68": 0.75,
           "inside_95": 1.0
@@ -9896,7 +9896,7 @@
         {
           "month": "2015-02",
           "error": -0.07,
-          "pct_error": -3.18,
+          "pct_error": -3.1,
           "pred": 2.54,
           "realized": 2.47,
           "inside_68": 1.0,
@@ -9905,8 +9905,8 @@
         {
           "month": "2015-03",
           "error": 0.01,
-          "pct_error": 0.35,
-          "pred": 2.46,
+          "pct_error": 0.42,
+          "pred": 2.45,
           "realized": 2.46,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -9967,8 +9967,8 @@
         },
         {
           "month": "2015-10",
-          "error": -0.24,
-          "pct_error": -10.33,
+          "error": -0.23,
+          "pct_error": -10.26,
           "pred": 2.42,
           "realized": 2.18,
           "inside_68": 1.0,
@@ -9977,7 +9977,7 @@
         {
           "month": "2015-11",
           "error": -0.29,
-          "pct_error": -13.47,
+          "pct_error": -13.4,
           "pred": 2.33,
           "realized": 2.04,
           "inside_68": 1.0,
@@ -9985,8 +9985,8 @@
         },
         {
           "month": "2015-12",
-          "error": -0.22,
-          "pct_error": -10.63,
+          "error": -0.21,
+          "pct_error": -10.55,
           "pred": 2.16,
           "realized": 1.95,
           "inside_68": 1.0,
@@ -9994,8 +9994,8 @@
         },
         {
           "month": "2016-01",
-          "error": -0.3,
-          "pct_error": -15.13,
+          "error": -0.29,
+          "pct_error": -15.04,
           "pred": 2.05,
           "realized": 1.76,
           "inside_68": 1.0,
@@ -10004,7 +10004,7 @@
         {
           "month": "2016-02",
           "error": -0.1,
-          "pct_error": -5.73,
+          "pct_error": -5.64,
           "pred": 2.03,
           "realized": 1.93,
           "inside_68": 1.0,
@@ -10013,7 +10013,7 @@
         {
           "month": "2016-03",
           "error": -0.11,
-          "pct_error": -5.53,
+          "pct_error": -5.45,
           "pred": 2.22,
           "realized": 2.11,
           "inside_68": 1.0,
@@ -10076,7 +10076,7 @@
         {
           "month": "2016-10",
           "error": -0.3,
-          "pct_error": -13.22,
+          "pct_error": -13.15,
           "pred": 2.49,
           "realized": 2.19,
           "inside_68": 1.0,
@@ -10084,8 +10084,8 @@
         },
         {
           "month": "2016-11",
-          "error": -0.15,
-          "pct_error": -6.69,
+          "error": -0.14,
+          "pct_error": -6.62,
           "pred": 2.4,
           "realized": 2.25,
           "inside_68": 1.0,
@@ -10094,7 +10094,7 @@
         {
           "month": "2016-12",
           "error": -0.21,
-          "pct_error": -9.23,
+          "pct_error": -9.15,
           "pred": 2.57,
           "realized": 2.36,
           "inside_68": 1.0,
@@ -10103,7 +10103,7 @@
         {
           "month": "2017-01",
           "error": -0.27,
-          "pct_error": -11.68,
+          "pct_error": -11.61,
           "pred": 2.58,
           "realized": 2.3,
           "inside_68": 1.0,
@@ -10112,7 +10112,7 @@
         {
           "month": "2017-02",
           "error": -0.27,
-          "pct_error": -11.65,
+          "pct_error": -11.58,
           "pred": 2.59,
           "realized": 2.33,
           "inside_68": 1.0,
@@ -10120,8 +10120,8 @@
         },
         {
           "month": "2017-03",
-          "error": -0.08,
-          "pct_error": -3.27,
+          "error": -0.07,
+          "pct_error": -3.2,
           "pred": 2.49,
           "realized": 2.42,
           "inside_68": 1.0,
@@ -10130,7 +10130,7 @@
         {
           "month": "2017-04",
           "error": -0.34,
-          "pct_error": -13.91,
+          "pct_error": -13.9,
           "pred": 2.72,
           "realized": 2.39,
           "inside_68": 0.5,
@@ -10139,7 +10139,7 @@
         {
           "month": "2017-05",
           "error": -0.31,
-          "pct_error": -12.78,
+          "pct_error": -12.77,
           "pred": 2.66,
           "realized": 2.36,
           "inside_68": 0.6,
@@ -10184,7 +10184,7 @@
         {
           "month": "2017-10",
           "error": 0.0,
-          "pct_error": 0.01,
+          "pct_error": 0.07,
           "pred": 2.55,
           "realized": 2.55,
           "inside_68": 1.0,
@@ -10193,7 +10193,7 @@
         {
           "month": "2017-11",
           "error": -0.21,
-          "pct_error": -8.24,
+          "pct_error": -8.18,
           "pred": 2.69,
           "realized": 2.48,
           "inside_68": 1.0,
@@ -10202,8 +10202,8 @@
         {
           "month": "2017-12",
           "error": -0.16,
-          "pct_error": -6.61,
-          "pred": 2.71,
+          "pct_error": -6.54,
+          "pred": 2.7,
           "realized": 2.54,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -10211,7 +10211,7 @@
         {
           "month": "2018-01",
           "error": -0.25,
-          "pct_error": -9.7,
+          "pct_error": -9.64,
           "pred": 2.84,
           "realized": 2.59,
           "inside_68": 1.0,
@@ -10220,7 +10220,7 @@
         {
           "month": "2018-02",
           "error": -0.23,
-          "pct_error": -8.77,
+          "pct_error": -8.71,
           "pred": 2.82,
           "realized": 2.59,
           "inside_68": 1.0,
@@ -10229,7 +10229,7 @@
         {
           "month": "2018-03",
           "error": -0.1,
-          "pct_error": -3.85,
+          "pct_error": -3.79,
           "pred": 2.83,
           "realized": 2.73,
           "inside_68": 1.0,
@@ -10265,7 +10265,7 @@
         {
           "month": "2018-07",
           "error": -0.38,
-          "pct_error": -13.28,
+          "pct_error": -13.27,
           "pred": 3.22,
           "realized": 2.84,
           "inside_68": 0.6,
@@ -10292,7 +10292,7 @@
         {
           "month": "2018-10",
           "error": -0.37,
-          "pct_error": -13.03,
+          "pct_error": -12.97,
           "pred": 3.05,
           "realized": 2.68,
           "inside_68": 0.8,
@@ -10301,16 +10301,16 @@
         {
           "month": "2018-11",
           "error": -0.32,
-          "pct_error": -11.92,
+          "pct_error": -11.86,
           "pred": 2.71,
           "realized": 2.39,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
           "month": "2018-12",
-          "error": -0.22,
-          "pct_error": -9.04,
+          "error": -0.21,
+          "pct_error": -8.97,
           "pred": 2.47,
           "realized": 2.25,
           "inside_68": 1.0,
@@ -10319,7 +10319,7 @@
         {
           "month": "2019-01",
           "error": -0.23,
-          "pct_error": -10.24,
+          "pct_error": -10.17,
           "pred": 2.54,
           "realized": 2.31,
           "inside_68": 1.0,
@@ -10328,7 +10328,7 @@
         {
           "month": "2019-02",
           "error": -0.11,
-          "pct_error": -4.69,
+          "pct_error": -4.62,
           "pred": 2.62,
           "realized": 2.52,
           "inside_68": 1.0,
@@ -10337,8 +10337,8 @@
         {
           "month": "2019-03",
           "error": 0.07,
-          "pct_error": 2.73,
-          "pred": 2.71,
+          "pct_error": 2.79,
+          "pred": 2.7,
           "realized": 2.78,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -10346,7 +10346,7 @@
         {
           "month": "2019-04",
           "error": -0.17,
-          "pct_error": -6.15,
+          "pct_error": -6.14,
           "pred": 3.04,
           "realized": 2.86,
           "inside_68": 1.0,
@@ -10355,7 +10355,7 @@
         {
           "month": "2019-05",
           "error": -0.26,
-          "pct_error": -9.1,
+          "pct_error": -9.09,
           "pred": 2.98,
           "realized": 2.72,
           "inside_68": 1.0,
@@ -10400,7 +10400,7 @@
         {
           "month": "2019-10",
           "error": -0.01,
-          "pct_error": -0.35,
+          "pct_error": -0.29,
           "pred": 2.61,
           "realized": 2.6,
           "inside_68": 1.0,
@@ -10409,7 +10409,7 @@
         {
           "month": "2019-11",
           "error": -0.14,
-          "pct_error": -5.4,
+          "pct_error": -5.34,
           "pred": 2.69,
           "realized": 2.55,
           "inside_68": 1.0,
@@ -10417,8 +10417,8 @@
         },
         {
           "month": "2019-12",
-          "error": -0.2,
-          "pct_error": -7.68,
+          "error": -0.19,
+          "pct_error": -7.61,
           "pred": 2.75,
           "realized": 2.55,
           "inside_68": 1.0,
@@ -10426,17 +10426,17 @@
         },
         {
           "month": "2020-01",
-          "error": -0.28,
-          "pct_error": -10.78,
+          "error": -0.27,
+          "pct_error": -10.72,
           "pred": 2.72,
           "realized": 2.44,
-          "inside_68": 0.75,
+          "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
           "month": "2020-02",
           "error": -0.24,
-          "pct_error": -9.71,
+          "pct_error": -9.64,
           "pred": 2.53,
           "realized": 2.29,
           "inside_68": 0.75,
@@ -10445,7 +10445,7 @@
         {
           "month": "2020-03",
           "error": -0.13,
-          "pct_error": -5.48,
+          "pct_error": -5.41,
           "pred": 2.0,
           "realized": 1.87,
           "inside_68": 0.8,
@@ -10508,7 +10508,7 @@
         {
           "month": "2020-10",
           "error": -0.14,
-          "pct_error": -6.43,
+          "pct_error": -6.36,
           "pred": 2.24,
           "realized": 2.11,
           "inside_68": 1.0,
@@ -10517,7 +10517,7 @@
         {
           "month": "2020-11",
           "error": -0.11,
-          "pct_error": -5.25,
+          "pct_error": -5.18,
           "pred": 2.29,
           "realized": 2.18,
           "inside_68": 1.0,
@@ -10526,7 +10526,7 @@
         {
           "month": "2020-12",
           "error": -0.1,
-          "pct_error": -4.57,
+          "pct_error": -4.5,
           "pred": 2.43,
           "realized": 2.33,
           "inside_68": 1.0,
@@ -10535,7 +10535,7 @@
         {
           "month": "2021-01",
           "error": -0.04,
-          "pct_error": -1.72,
+          "pct_error": -1.65,
           "pred": 2.54,
           "realized": 2.5,
           "inside_68": 1.0,
@@ -10544,7 +10544,7 @@
         {
           "month": "2021-02",
           "error": 0.09,
-          "pct_error": 3.45,
+          "pct_error": 3.52,
           "pred": 2.71,
           "realized": 2.8,
           "inside_68": 1.0,
@@ -10552,8 +10552,8 @@
         },
         {
           "month": "2021-03",
-          "error": 0.02,
-          "pct_error": 0.85,
+          "error": 0.03,
+          "pct_error": 0.91,
           "pred": 2.83,
           "realized": 2.86,
           "inside_68": 1.0,
@@ -10615,8 +10615,8 @@
         },
         {
           "month": "2021-10",
-          "error": 0.1,
-          "pct_error": 3.21,
+          "error": 0.11,
+          "pct_error": 3.26,
           "pred": 3.29,
           "realized": 3.4,
           "inside_68": 1.0,
@@ -10625,7 +10625,7 @@
         {
           "month": "2021-11",
           "error": 0.09,
-          "pct_error": 2.57,
+          "pct_error": 2.61,
           "pred": 3.23,
           "realized": 3.32,
           "inside_68": 1.0,
@@ -10634,7 +10634,7 @@
         {
           "month": "2021-12",
           "error": 0.26,
-          "pct_error": 7.8,
+          "pct_error": 7.85,
           "pred": 3.04,
           "realized": 3.3,
           "inside_68": 1.0,
@@ -10643,8 +10643,8 @@
         {
           "month": "2022-01",
           "error": 0.17,
-          "pct_error": 5.2,
-          "pred": 3.32,
+          "pct_error": 5.25,
+          "pred": 3.31,
           "realized": 3.49,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -10652,8 +10652,8 @@
         {
           "month": "2022-02",
           "error": 0.62,
-          "pct_error": 17.54,
-          "pred": 3.61,
+          "pct_error": 17.58,
+          "pred": 3.6,
           "realized": 4.22,
           "inside_68": 0.0,
           "inside_95": 1.0
@@ -10661,7 +10661,7 @@
         {
           "month": "2022-03",
           "error": 0.08,
-          "pct_error": 1.87,
+          "pct_error": 1.9,
           "pred": 4.03,
           "realized": 4.11,
           "inside_68": 1.0,
@@ -10724,8 +10724,8 @@
         {
           "month": "2022-10",
           "error": 0.27,
-          "pct_error": 7.1,
-          "pred": 3.43,
+          "pct_error": 7.14,
+          "pred": 3.42,
           "realized": 3.7,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -10733,7 +10733,7 @@
         {
           "month": "2022-11",
           "error": -0.15,
-          "pct_error": -4.03,
+          "pct_error": -3.99,
           "pred": 3.36,
           "realized": 3.21,
           "inside_68": 1.0,
@@ -10742,7 +10742,7 @@
         {
           "month": "2022-12",
           "error": 0.13,
-          "pct_error": 4.13,
+          "pct_error": 4.18,
           "pred": 3.17,
           "realized": 3.3,
           "inside_68": 1.0,
@@ -10751,7 +10751,7 @@
         {
           "month": "2023-01",
           "error": 0.17,
-          "pct_error": 5.18,
+          "pct_error": 5.22,
           "pred": 3.24,
           "realized": 3.41,
           "inside_68": 1.0,
@@ -10760,7 +10760,7 @@
         {
           "month": "2023-02",
           "error": 0.24,
-          "pct_error": 7.14,
+          "pct_error": 7.19,
           "pred": 3.18,
           "realized": 3.42,
           "inside_68": 1.0,
@@ -10769,7 +10769,7 @@
         {
           "month": "2023-03",
           "error": 0.49,
-          "pct_error": 14.29,
+          "pct_error": 14.34,
           "pred": 3.11,
           "realized": 3.6,
           "inside_68": 0.25,
@@ -10832,7 +10832,7 @@
         {
           "month": "2023-10",
           "error": -0.07,
-          "pct_error": -1.9,
+          "pct_error": -1.86,
           "pred": 3.42,
           "realized": 3.35,
           "inside_68": 1.0,
@@ -10841,7 +10841,7 @@
         {
           "month": "2023-11",
           "error": -0.08,
-          "pct_error": -2.39,
+          "pct_error": -2.34,
           "pred": 3.21,
           "realized": 3.13,
           "inside_68": 1.0,
@@ -10850,7 +10850,7 @@
         {
           "month": "2023-12",
           "error": -0.01,
-          "pct_error": -0.3,
+          "pct_error": -0.25,
           "pred": 3.08,
           "realized": 3.07,
           "inside_68": 1.0,
@@ -10859,7 +10859,7 @@
         {
           "month": "2024-01",
           "error": 0.09,
-          "pct_error": 2.86,
+          "pct_error": 2.91,
           "pred": 3.1,
           "realized": 3.19,
           "inside_68": 1.0,
@@ -10867,8 +10867,8 @@
         },
         {
           "month": "2024-02",
-          "error": 0.24,
-          "pct_error": 7.6,
+          "error": 0.25,
+          "pct_error": 7.65,
           "pred": 3.18,
           "realized": 3.43,
           "inside_68": 1.0,
@@ -10877,8 +10877,8 @@
         {
           "month": "2024-03",
           "error": 0.33,
-          "pct_error": 9.51,
-          "pred": 3.28,
+          "pct_error": 9.55,
+          "pred": 3.27,
           "realized": 3.6,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -10899,15 +10899,15 @@
           "mae": 0.13,
           "rmse": 0.16,
           "bias": -0.1,
-          "pct_error": 3.51,
+          "pct_error": 3.5,
           "n": 53
         },
         {
           "year": 2013,
-          "mae": 0.34,
+          "mae": 0.33,
           "rmse": 0.4,
           "bias": -0.31,
-          "pct_error": 9.63,
+          "pct_error": 9.62,
           "n": 52
         },
         {
@@ -10915,7 +10915,7 @@
           "mae": 0.42,
           "rmse": 0.45,
           "bias": -0.42,
-          "pct_error": 12.88,
+          "pct_error": 12.85,
           "n": 52
         },
         {
@@ -10923,7 +10923,7 @@
           "mae": 0.16,
           "rmse": 0.19,
           "bias": -0.15,
-          "pct_error": 6.88,
+          "pct_error": 6.85,
           "n": 52
         },
         {
@@ -10931,7 +10931,7 @@
           "mae": 0.25,
           "rmse": 0.28,
           "bias": -0.25,
-          "pct_error": 11.64,
+          "pct_error": 11.6,
           "n": 52
         },
         {
@@ -10939,7 +10939,7 @@
           "mae": 0.2,
           "rmse": 0.23,
           "bias": -0.19,
-          "pct_error": 8.36,
+          "pct_error": 8.34,
           "n": 52
         },
         {
@@ -10947,7 +10947,7 @@
           "mae": 0.27,
           "rmse": 0.29,
           "bias": -0.27,
-          "pct_error": 9.94,
+          "pct_error": 9.9,
           "n": 53
         },
         {
@@ -10955,7 +10955,7 @@
           "mae": 0.17,
           "rmse": 0.2,
           "bias": -0.16,
-          "pct_error": 6.6,
+          "pct_error": 6.58,
           "n": 52
         },
         {
@@ -10963,15 +10963,15 @@
           "mae": 0.22,
           "rmse": 0.29,
           "bias": -0.15,
-          "pct_error": 10.2,
+          "pct_error": 10.17,
           "n": 52
         },
         {
           "year": 2021,
-          "mae": 0.08,
+          "mae": 0.09,
           "rmse": 0.11,
           "bias": 0.03,
-          "pct_error": 2.78,
+          "pct_error": 2.79,
           "n": 52
         },
         {
@@ -10979,7 +10979,7 @@
           "mae": 0.27,
           "rmse": 0.35,
           "bias": 0.23,
-          "pct_error": 6.78,
+          "pct_error": 6.79,
           "n": 52
         },
         {
@@ -10994,8 +10994,8 @@
           "year": 2024,
           "mae": 0.17,
           "rmse": 0.21,
-          "bias": 0.16,
-          "pct_error": 5.17,
+          "bias": 0.17,
+          "pct_error": 5.21,
           "n": 17
         }
       ]
@@ -11023,7 +11023,7 @@
         {
           "month": "2012-01",
           "error": 0.06,
-          "pct_error": 1.8,
+          "pct_error": 1.85,
           "pred": 3.76,
           "realized": 3.83,
           "inside_68": 1.0,
@@ -11031,8 +11031,8 @@
         },
         {
           "month": "2012-02",
-          "error": 0.07,
-          "pct_error": 2.18,
+          "error": 0.08,
+          "pct_error": 2.22,
           "pred": 3.84,
           "realized": 3.92,
           "inside_68": 1.0,
@@ -11041,7 +11041,7 @@
         {
           "month": "2012-03",
           "error": -0.19,
-          "pct_error": -4.92,
+          "pct_error": -4.88,
           "pred": 3.96,
           "realized": 3.77,
           "inside_68": 1.0,
@@ -11104,7 +11104,7 @@
         {
           "month": "2012-10",
           "error": -0.18,
-          "pct_error": -4.79,
+          "pct_error": -4.75,
           "pred": 3.52,
           "realized": 3.34,
           "inside_68": 1.0,
@@ -11113,7 +11113,7 @@
         {
           "month": "2012-11",
           "error": -0.15,
-          "pct_error": -4.49,
+          "pct_error": -4.45,
           "pred": 3.46,
           "realized": 3.3,
           "inside_68": 1.0,
@@ -11121,8 +11121,8 @@
         },
         {
           "month": "2012-12",
-          "error": 0.11,
-          "pct_error": 3.5,
+          "error": 0.12,
+          "pct_error": 3.55,
           "pred": 3.49,
           "realized": 3.61,
           "inside_68": 1.0,
@@ -11131,7 +11131,7 @@
         {
           "month": "2013-01",
           "error": 0.06,
-          "pct_error": 1.77,
+          "pct_error": 1.82,
           "pred": 3.65,
           "realized": 3.71,
           "inside_68": 1.0,
@@ -11140,7 +11140,7 @@
         {
           "month": "2013-02",
           "error": -0.09,
-          "pct_error": -2.42,
+          "pct_error": -2.38,
           "pred": 3.67,
           "realized": 3.58,
           "inside_68": 1.0,
@@ -11149,7 +11149,7 @@
         {
           "month": "2013-03",
           "error": -0.01,
-          "pct_error": -0.36,
+          "pct_error": -0.32,
           "pred": 3.6,
           "realized": 3.58,
           "inside_68": 1.0,
@@ -11212,8 +11212,8 @@
         {
           "month": "2013-10",
           "error": -0.53,
-          "pct_error": -15.95,
-          "pred": 3.8,
+          "pct_error": -15.9,
+          "pred": 3.79,
           "realized": 3.26,
           "inside_68": 0.5,
           "inside_95": 1.0
@@ -11221,16 +11221,16 @@
         {
           "month": "2013-11",
           "error": -0.31,
-          "pct_error": -9.71,
-          "pred": 3.64,
+          "pct_error": -9.66,
+          "pred": 3.63,
           "realized": 3.32,
           "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
           "month": "2013-12",
-          "error": -0.37,
-          "pct_error": -11.18,
+          "error": -0.36,
+          "pct_error": -11.13,
           "pred": 3.71,
           "realized": 3.34,
           "inside_68": 1.0,
@@ -11238,8 +11238,8 @@
         },
         {
           "month": "2014-01",
-          "error": -0.1,
-          "pct_error": -2.89,
+          "error": -0.09,
+          "pct_error": -2.84,
           "pred": 3.62,
           "realized": 3.52,
           "inside_68": 1.0,
@@ -11248,8 +11248,8 @@
         {
           "month": "2014-02",
           "error": -0.13,
-          "pct_error": -3.81,
-          "pred": 3.76,
+          "pct_error": -3.76,
+          "pred": 3.75,
           "realized": 3.63,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -11257,7 +11257,7 @@
         {
           "month": "2014-03",
           "error": -0.1,
-          "pct_error": -2.89,
+          "pct_error": -2.84,
           "pred": 3.78,
           "realized": 3.68,
           "inside_68": 1.0,
@@ -11320,7 +11320,7 @@
         {
           "month": "2014-10",
           "error": -0.77,
-          "pct_error": -24.36,
+          "pct_error": -24.31,
           "pred": 3.37,
           "realized": 2.6,
           "inside_68": 0.0,
@@ -11329,7 +11329,7 @@
         {
           "month": "2014-11",
           "error": -1.01,
-          "pct_error": -34.74,
+          "pct_error": -34.68,
           "pred": 3.19,
           "realized": 2.18,
           "inside_68": 0.0,
@@ -11338,7 +11338,7 @@
         {
           "month": "2014-12",
           "error": -0.57,
-          "pct_error": -21.9,
+          "pct_error": -21.83,
           "pred": 2.75,
           "realized": 2.18,
           "inside_68": 0.4,
@@ -11347,7 +11347,7 @@
         {
           "month": "2015-01",
           "error": 0.01,
-          "pct_error": 0.37,
+          "pct_error": 0.45,
           "pred": 2.46,
           "realized": 2.47,
           "inside_68": 1.0,
@@ -11355,8 +11355,8 @@
         },
         {
           "month": "2015-02",
-          "error": -0.13,
-          "pct_error": -5.69,
+          "error": -0.12,
+          "pct_error": -5.62,
           "pred": 2.56,
           "realized": 2.44,
           "inside_68": 1.0,
@@ -11365,7 +11365,7 @@
         {
           "month": "2015-03",
           "error": 0.19,
-          "pct_error": 7.54,
+          "pct_error": 7.61,
           "pred": 2.5,
           "realized": 2.69,
           "inside_68": 1.0,
@@ -11383,7 +11383,7 @@
         {
           "month": "2015-05",
           "error": -0.14,
-          "pct_error": -5.22,
+          "pct_error": -5.21,
           "pred": 2.95,
           "realized": 2.81,
           "inside_68": 1.0,
@@ -11428,7 +11428,7 @@
         {
           "month": "2015-10",
           "error": -0.39,
-          "pct_error": -17.01,
+          "pct_error": -16.94,
           "pred": 2.43,
           "realized": 2.04,
           "inside_68": 0.75,
@@ -11437,7 +11437,7 @@
         {
           "month": "2015-11",
           "error": -0.4,
-          "pct_error": -18.49,
+          "pct_error": -18.41,
           "pred": 2.36,
           "realized": 1.97,
           "inside_68": 0.8,
@@ -11446,7 +11446,7 @@
         {
           "month": "2015-12",
           "error": -0.44,
-          "pct_error": -21.49,
+          "pct_error": -21.41,
           "pred": 2.2,
           "realized": 1.76,
           "inside_68": 0.75,
@@ -11454,8 +11454,8 @@
         },
         {
           "month": "2016-01",
-          "error": -0.19,
-          "pct_error": -9.29,
+          "error": -0.18,
+          "pct_error": -9.21,
           "pred": 2.08,
           "realized": 1.9,
           "inside_68": 1.0,
@@ -11464,7 +11464,7 @@
         {
           "month": "2016-02",
           "error": 0.02,
-          "pct_error": 1.12,
+          "pct_error": 1.21,
           "pred": 2.08,
           "realized": 2.1,
           "inside_68": 1.0,
@@ -11473,7 +11473,7 @@
         {
           "month": "2016-03",
           "error": -0.01,
-          "pct_error": -0.54,
+          "pct_error": -0.46,
           "pred": 2.26,
           "realized": 2.25,
           "inside_68": 1.0,
@@ -11536,7 +11536,7 @@
         {
           "month": "2016-10",
           "error": -0.27,
-          "pct_error": -11.93,
+          "pct_error": -11.86,
           "pred": 2.5,
           "realized": 2.23,
           "inside_68": 1.0,
@@ -11544,8 +11544,8 @@
         },
         {
           "month": "2016-11",
-          "error": -0.06,
-          "pct_error": -2.6,
+          "error": -0.05,
+          "pct_error": -2.53,
           "pred": 2.42,
           "realized": 2.36,
           "inside_68": 1.0,
@@ -11553,8 +11553,8 @@
         },
         {
           "month": "2016-12",
-          "error": -0.3,
-          "pct_error": -13.09,
+          "error": -0.29,
+          "pct_error": -13.02,
           "pred": 2.59,
           "realized": 2.3,
           "inside_68": 1.0,
@@ -11563,7 +11563,7 @@
         {
           "month": "2017-01",
           "error": -0.27,
-          "pct_error": -11.68,
+          "pct_error": -11.61,
           "pred": 2.6,
           "realized": 2.32,
           "inside_68": 1.0,
@@ -11572,8 +11572,8 @@
         {
           "month": "2017-02",
           "error": -0.19,
-          "pct_error": -8.17,
-          "pred": 2.61,
+          "pct_error": -8.1,
+          "pred": 2.6,
           "realized": 2.42,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -11581,7 +11581,7 @@
         {
           "month": "2017-03",
           "error": -0.12,
-          "pct_error": -5.17,
+          "pct_error": -5.1,
           "pred": 2.51,
           "realized": 2.39,
           "inside_68": 1.0,
@@ -11635,7 +11635,7 @@
         {
           "month": "2017-09",
           "error": -0.14,
-          "pct_error": -5.15,
+          "pct_error": -5.14,
           "pred": 2.69,
           "realized": 2.55,
           "inside_68": 1.0,
@@ -11644,8 +11644,8 @@
         {
           "month": "2017-10",
           "error": -0.07,
-          "pct_error": -2.7,
-          "pred": 2.56,
+          "pct_error": -2.64,
+          "pred": 2.55,
           "realized": 2.49,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -11653,7 +11653,7 @@
         {
           "month": "2017-11",
           "error": -0.15,
-          "pct_error": -5.91,
+          "pct_error": -5.84,
           "pred": 2.69,
           "realized": 2.54,
           "inside_68": 1.0,
@@ -11662,7 +11662,7 @@
         {
           "month": "2017-12",
           "error": -0.1,
-          "pct_error": -4.23,
+          "pct_error": -4.16,
           "pred": 2.71,
           "realized": 2.6,
           "inside_68": 1.0,
@@ -11670,8 +11670,8 @@
         },
         {
           "month": "2018-01",
-          "error": -0.26,
-          "pct_error": -10.04,
+          "error": -0.25,
+          "pct_error": -9.98,
           "pred": 2.84,
           "realized": 2.58,
           "inside_68": 1.0,
@@ -11680,7 +11680,7 @@
         {
           "month": "2018-02",
           "error": -0.08,
-          "pct_error": -3.03,
+          "pct_error": -2.97,
           "pred": 2.81,
           "realized": 2.73,
           "inside_68": 1.0,
@@ -11689,7 +11689,7 @@
         {
           "month": "2018-03",
           "error": 0.04,
-          "pct_error": 1.51,
+          "pct_error": 1.57,
           "pred": 2.83,
           "realized": 2.87,
           "inside_68": 1.0,
@@ -11752,7 +11752,7 @@
         {
           "month": "2018-10",
           "error": -0.63,
-          "pct_error": -22.09,
+          "pct_error": -22.03,
           "pred": 3.05,
           "realized": 2.42,
           "inside_68": 0.0,
@@ -11761,7 +11761,7 @@
         {
           "month": "2018-11",
           "error": -0.46,
-          "pct_error": -17.38,
+          "pct_error": -17.32,
           "pred": 2.71,
           "realized": 2.25,
           "inside_68": 0.5,
@@ -11769,8 +11769,8 @@
         },
         {
           "month": "2018-12",
-          "error": -0.18,
-          "pct_error": -7.27,
+          "error": -0.17,
+          "pct_error": -7.2,
           "pred": 2.47,
           "realized": 2.3,
           "inside_68": 1.0,
@@ -11779,16 +11779,16 @@
         {
           "month": "2019-01",
           "error": -0.03,
-          "pct_error": -1.37,
-          "pred": 2.55,
+          "pct_error": -1.29,
+          "pred": 2.54,
           "realized": 2.52,
           "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
           "month": "2019-02",
-          "error": 0.14,
-          "pct_error": 6.19,
+          "error": 0.15,
+          "pct_error": 6.26,
           "pred": 2.63,
           "realized": 2.78,
           "inside_68": 1.0,
@@ -11797,7 +11797,7 @@
         {
           "month": "2019-03",
           "error": 0.16,
-          "pct_error": 6.45,
+          "pct_error": 6.52,
           "pred": 2.71,
           "realized": 2.88,
           "inside_68": 1.0,
@@ -11860,7 +11860,7 @@
         {
           "month": "2019-10",
           "error": -0.06,
-          "pct_error": -2.2,
+          "pct_error": -2.14,
           "pred": 2.61,
           "realized": 2.55,
           "inside_68": 1.0,
@@ -11869,7 +11869,7 @@
         {
           "month": "2019-11",
           "error": -0.13,
-          "pct_error": -4.92,
+          "pct_error": -4.85,
           "pred": 2.69,
           "realized": 2.56,
           "inside_68": 1.0,
@@ -11878,16 +11878,16 @@
         {
           "month": "2019-12",
           "error": -0.29,
-          "pct_error": -11.38,
-          "pred": 2.75,
+          "pct_error": -11.32,
+          "pred": 2.74,
           "realized": 2.45,
           "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
           "month": "2020-01",
-          "error": -0.43,
-          "pct_error": -16.71,
+          "error": -0.42,
+          "pct_error": -16.64,
           "pred": 2.72,
           "realized": 2.29,
           "inside_68": 0.5,
@@ -11895,8 +11895,8 @@
         },
         {
           "month": "2020-02",
-          "error": -0.64,
-          "pct_error": -26.02,
+          "error": -0.63,
+          "pct_error": -25.96,
           "pred": 2.53,
           "realized": 1.9,
           "inside_68": 0.0,
@@ -11905,7 +11905,7 @@
         {
           "month": "2020-03",
           "error": -0.19,
-          "pct_error": -7.75,
+          "pct_error": -7.68,
           "pred": 2.04,
           "realized": 1.85,
           "inside_68": 0.8,
@@ -11923,7 +11923,7 @@
         {
           "month": "2020-05",
           "error": 0.04,
-          "pct_error": 2.32,
+          "pct_error": 2.33,
           "pred": 2.14,
           "realized": 2.18,
           "inside_68": 1.0,
@@ -11932,7 +11932,7 @@
         {
           "month": "2020-06",
           "error": -0.23,
-          "pct_error": -10.82,
+          "pct_error": -10.81,
           "pred": 2.4,
           "realized": 2.17,
           "inside_68": 1.0,
@@ -11968,7 +11968,7 @@
         {
           "month": "2020-10",
           "error": -0.09,
-          "pct_error": -4.01,
+          "pct_error": -3.94,
           "pred": 2.25,
           "realized": 2.16,
           "inside_68": 1.0,
@@ -11977,7 +11977,7 @@
         {
           "month": "2020-11",
           "error": 0.02,
-          "pct_error": 0.87,
+          "pct_error": 0.95,
           "pred": 2.3,
           "realized": 2.32,
           "inside_68": 1.0,
@@ -11986,7 +11986,7 @@
         {
           "month": "2020-12",
           "error": 0.06,
-          "pct_error": 2.8,
+          "pct_error": 2.87,
           "pred": 2.44,
           "realized": 2.5,
           "inside_68": 1.0,
@@ -11995,7 +11995,7 @@
         {
           "month": "2021-01",
           "error": 0.26,
-          "pct_error": 11.07,
+          "pct_error": 11.14,
           "pred": 2.54,
           "realized": 2.8,
           "inside_68": 1.0,
@@ -12004,7 +12004,7 @@
         {
           "month": "2021-02",
           "error": 0.14,
-          "pct_error": 5.7,
+          "pct_error": 5.76,
           "pred": 2.71,
           "realized": 2.85,
           "inside_68": 1.0,
@@ -12013,7 +12013,7 @@
         {
           "month": "2021-03",
           "error": 0.12,
-          "pct_error": 4.32,
+          "pct_error": 4.38,
           "pred": 2.83,
           "realized": 2.95,
           "inside_68": 1.0,
@@ -12076,8 +12076,8 @@
         {
           "month": "2021-10",
           "error": 0.06,
-          "pct_error": 1.76,
-          "pred": 3.28,
+          "pct_error": 1.81,
+          "pred": 3.27,
           "realized": 3.33,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -12085,7 +12085,7 @@
         {
           "month": "2021-11",
           "error": 0.09,
-          "pct_error": 2.55,
+          "pct_error": 2.6,
           "pred": 3.21,
           "realized": 3.3,
           "inside_68": 1.0,
@@ -12094,7 +12094,7 @@
         {
           "month": "2021-12",
           "error": 0.42,
-          "pct_error": 12.61,
+          "pct_error": 12.66,
           "pred": 3.04,
           "realized": 3.46,
           "inside_68": 0.75,
@@ -12103,8 +12103,8 @@
         {
           "month": "2022-01",
           "error": 0.8,
-          "pct_error": 24.21,
-          "pred": 3.3,
+          "pct_error": 24.26,
+          "pred": 3.29,
           "realized": 4.1,
           "inside_68": 0.2,
           "inside_95": 1.0
@@ -12112,7 +12112,7 @@
         {
           "month": "2022-02",
           "error": 0.55,
-          "pct_error": 15.52,
+          "pct_error": 15.57,
           "pred": 3.56,
           "realized": 4.11,
           "inside_68": 0.5,
@@ -12120,8 +12120,8 @@
         },
         {
           "month": "2022-03",
-          "error": 0.43,
-          "pct_error": 10.21,
+          "error": 0.44,
+          "pct_error": 10.25,
           "pred": 3.96,
           "realized": 4.4,
           "inside_68": 0.75,
@@ -12184,7 +12184,7 @@
         {
           "month": "2022-10",
           "error": -0.12,
-          "pct_error": -3.25,
+          "pct_error": -3.21,
           "pred": 3.4,
           "realized": 3.27,
           "inside_68": 1.0,
@@ -12193,7 +12193,7 @@
         {
           "month": "2022-11",
           "error": -0.05,
-          "pct_error": -1.18,
+          "pct_error": -1.13,
           "pred": 3.35,
           "realized": 3.3,
           "inside_68": 1.0,
@@ -12202,7 +12202,7 @@
         {
           "month": "2022-12",
           "error": 0.25,
-          "pct_error": 7.76,
+          "pct_error": 7.81,
           "pred": 3.17,
           "realized": 3.43,
           "inside_68": 1.0,
@@ -12211,7 +12211,7 @@
         {
           "month": "2023-01",
           "error": 0.16,
-          "pct_error": 4.83,
+          "pct_error": 4.88,
           "pred": 3.24,
           "realized": 3.41,
           "inside_68": 1.0,
@@ -12220,16 +12220,16 @@
         {
           "month": "2023-02",
           "error": 0.42,
-          "pct_error": 12.33,
-          "pred": 3.19,
+          "pct_error": 12.38,
+          "pred": 3.18,
           "realized": 3.6,
           "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
           "month": "2023-03",
-          "error": 0.43,
-          "pct_error": 12.68,
+          "error": 0.44,
+          "pct_error": 12.73,
           "pred": 3.12,
           "realized": 3.55,
           "inside_68": 0.75,
@@ -12292,7 +12292,7 @@
         {
           "month": "2023-10",
           "error": -0.23,
-          "pct_error": -6.36,
+          "pct_error": -6.32,
           "pred": 3.38,
           "realized": 3.15,
           "inside_68": 1.0,
@@ -12301,7 +12301,7 @@
         {
           "month": "2023-11",
           "error": -0.14,
-          "pct_error": -4.32,
+          "pct_error": -4.27,
           "pred": 3.21,
           "realized": 3.07,
           "inside_68": 1.0,
@@ -12310,8 +12310,8 @@
         {
           "month": "2023-12",
           "error": 0.09,
-          "pct_error": 2.79,
-          "pred": 3.09,
+          "pct_error": 2.85,
+          "pred": 3.08,
           "realized": 3.17,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -12319,7 +12319,7 @@
         {
           "month": "2024-01",
           "error": 0.29,
-          "pct_error": 9.44,
+          "pct_error": 9.49,
           "pred": 3.1,
           "realized": 3.39,
           "inside_68": 1.0,
@@ -12328,7 +12328,7 @@
         {
           "month": "2024-02",
           "error": 0.43,
-          "pct_error": 13.31,
+          "pct_error": 13.37,
           "pred": 3.17,
           "realized": 3.6,
           "inside_68": 1.0,
@@ -12337,7 +12337,7 @@
         {
           "month": "2024-03",
           "error": 0.36,
-          "pct_error": 10.55,
+          "pct_error": 10.6,
           "pred": 3.26,
           "realized": 3.62,
           "inside_68": 1.0,
@@ -12350,7 +12350,7 @@
           "mae": 0.22,
           "rmse": 0.26,
           "bias": -0.1,
-          "pct_error": 5.92,
+          "pct_error": 5.91,
           "n": 53
         },
         {
@@ -12358,7 +12358,7 @@
           "mae": 0.35,
           "rmse": 0.44,
           "bias": -0.34,
-          "pct_error": 10.06,
+          "pct_error": 10.04,
           "n": 52
         },
         {
@@ -12366,7 +12366,7 @@
           "mae": 0.49,
           "rmse": 0.58,
           "bias": -0.49,
-          "pct_error": 15.13,
+          "pct_error": 15.11,
           "n": 52
         },
         {
@@ -12374,7 +12374,7 @@
           "mae": 0.25,
           "rmse": 0.29,
           "bias": -0.21,
-          "pct_error": 10.55,
+          "pct_error": 10.53,
           "n": 52
         },
         {
@@ -12382,7 +12382,7 @@
           "mae": 0.24,
           "rmse": 0.29,
           "bias": -0.24,
-          "pct_error": 10.92,
+          "pct_error": 10.9,
           "n": 52
         },
         {
@@ -12390,7 +12390,7 @@
           "mae": 0.19,
           "rmse": 0.22,
           "bias": -0.18,
-          "pct_error": 7.87,
+          "pct_error": 7.84,
           "n": 52
         },
         {
@@ -12398,7 +12398,7 @@
           "mae": 0.29,
           "rmse": 0.34,
           "bias": -0.29,
-          "pct_error": 10.64,
+          "pct_error": 10.62,
           "n": 53
         },
         {
@@ -12406,15 +12406,15 @@
           "mae": 0.2,
           "rmse": 0.23,
           "bias": -0.15,
-          "pct_error": 7.54,
+          "pct_error": 7.53,
           "n": 52
         },
         {
           "year": 2020,
           "mae": 0.24,
           "rmse": 0.3,
-          "bias": -0.2,
-          "pct_error": 10.71,
+          "bias": -0.19,
+          "pct_error": 10.7,
           "n": 52
         },
         {
@@ -12422,7 +12422,7 @@
           "mae": 0.14,
           "rmse": 0.18,
           "bias": 0.11,
-          "pct_error": 4.79,
+          "pct_error": 4.81,
           "n": 52
         },
         {
@@ -12430,7 +12430,7 @@
           "mae": 0.38,
           "rmse": 0.48,
           "bias": 0.26,
-          "pct_error": 10.03,
+          "pct_error": 10.04,
           "n": 52
         },
         {
@@ -12443,10 +12443,10 @@
         },
         {
           "year": 2024,
-          "mae": 0.35,
+          "mae": 0.36,
           "rmse": 0.36,
-          "bias": 0.35,
-          "pct_error": 10.97,
+          "bias": 0.36,
+          "pct_error": 11.02,
           "n": 13
         }
       ]
@@ -12474,7 +12474,7 @@
         {
           "month": "2012-01",
           "error": 0.13,
-          "pct_error": 3.84,
+          "pct_error": 3.89,
           "pred": 3.77,
           "realized": 3.9,
           "inside_68": 1.0,
@@ -12483,7 +12483,7 @@
         {
           "month": "2012-02",
           "error": -0.12,
-          "pct_error": -3.38,
+          "pct_error": -3.34,
           "pred": 3.86,
           "realized": 3.73,
           "inside_68": 1.0,
@@ -12491,8 +12491,8 @@
         },
         {
           "month": "2012-03",
-          "error": -0.44,
-          "pct_error": -11.28,
+          "error": -0.43,
+          "pct_error": -11.24,
           "pred": 3.97,
           "realized": 3.54,
           "inside_68": 1.0,
@@ -12554,8 +12554,8 @@
         },
         {
           "month": "2012-10",
-          "error": -0.22,
-          "pct_error": -5.7,
+          "error": -0.21,
+          "pct_error": -5.66,
           "pred": 3.53,
           "realized": 3.31,
           "inside_68": 1.0,
@@ -12564,7 +12564,7 @@
         {
           "month": "2012-11",
           "error": 0.2,
-          "pct_error": 5.7,
+          "pct_error": 5.74,
           "pred": 3.47,
           "realized": 3.67,
           "inside_68": 1.0,
@@ -12573,7 +12573,7 @@
         {
           "month": "2012-12",
           "error": 0.19,
-          "pct_error": 5.73,
+          "pct_error": 5.78,
           "pred": 3.51,
           "realized": 3.7,
           "inside_68": 1.0,
@@ -12582,7 +12582,7 @@
         {
           "month": "2013-01",
           "error": -0.11,
-          "pct_error": -3.34,
+          "pct_error": -3.29,
           "pred": 3.66,
           "realized": 3.55,
           "inside_68": 1.0,
@@ -12591,7 +12591,7 @@
         {
           "month": "2013-02",
           "error": -0.07,
-          "pct_error": -1.94,
+          "pct_error": -1.9,
           "pred": 3.68,
           "realized": 3.61,
           "inside_68": 1.0,
@@ -12600,7 +12600,7 @@
         {
           "month": "2013-03",
           "error": 0.02,
-          "pct_error": 0.57,
+          "pct_error": 0.61,
           "pred": 3.6,
           "realized": 3.63,
           "inside_68": 1.0,
@@ -12663,7 +12663,7 @@
         {
           "month": "2013-10",
           "error": -0.48,
-          "pct_error": -14.3,
+          "pct_error": -14.25,
           "pred": 3.79,
           "realized": 3.31,
           "inside_68": 1.0,
@@ -12671,8 +12671,8 @@
         },
         {
           "month": "2013-11",
-          "error": -0.29,
-          "pct_error": -8.81,
+          "error": -0.28,
+          "pct_error": -8.76,
           "pred": 3.64,
           "realized": 3.36,
           "inside_68": 1.0,
@@ -12681,7 +12681,7 @@
         {
           "month": "2013-12",
           "error": -0.17,
-          "pct_error": -5.32,
+          "pct_error": -5.27,
           "pred": 3.71,
           "realized": 3.53,
           "inside_68": 1.0,
@@ -12690,7 +12690,7 @@
         {
           "month": "2014-01",
           "error": 0.05,
-          "pct_error": 1.47,
+          "pct_error": 1.52,
           "pred": 3.61,
           "realized": 3.66,
           "inside_68": 1.0,
@@ -12699,8 +12699,8 @@
         {
           "month": "2014-02",
           "error": -0.06,
-          "pct_error": -1.84,
-          "pred": 3.74,
+          "pct_error": -1.79,
+          "pred": 3.73,
           "realized": 3.67,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -12708,7 +12708,7 @@
         {
           "month": "2014-03",
           "error": -0.07,
-          "pct_error": -1.96,
+          "pct_error": -1.91,
           "pred": 3.76,
           "realized": 3.69,
           "inside_68": 1.0,
@@ -12744,7 +12744,7 @@
         {
           "month": "2014-07",
           "error": -0.81,
-          "pct_error": -22.33,
+          "pct_error": -22.32,
           "pred": 3.98,
           "realized": 3.17,
           "inside_68": 0.0,
@@ -12770,8 +12770,8 @@
         },
         {
           "month": "2014-10",
-          "error": -1.25,
-          "pct_error": -39.32,
+          "error": -1.24,
+          "pct_error": -39.27,
           "pred": 3.36,
           "realized": 2.12,
           "inside_68": 0.0,
@@ -12780,7 +12780,7 @@
         {
           "month": "2014-11",
           "error": -0.97,
-          "pct_error": -33.37,
+          "pct_error": -33.31,
           "pred": 3.19,
           "realized": 2.22,
           "inside_68": 0.0,
@@ -12789,7 +12789,7 @@
         {
           "month": "2014-12",
           "error": -0.3,
-          "pct_error": -11.43,
+          "pct_error": -11.36,
           "pred": 2.76,
           "realized": 2.46,
           "inside_68": 1.0,
@@ -12798,7 +12798,7 @@
         {
           "month": "2015-01",
           "error": -0.01,
-          "pct_error": -0.42,
+          "pct_error": -0.34,
           "pred": 2.48,
           "realized": 2.47,
           "inside_68": 1.0,
@@ -12807,8 +12807,8 @@
         {
           "month": "2015-02",
           "error": 0.12,
-          "pct_error": 5.47,
-          "pred": 2.6,
+          "pct_error": 5.55,
+          "pred": 2.59,
           "realized": 2.72,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -12816,7 +12816,7 @@
         {
           "month": "2015-03",
           "error": 0.26,
-          "pct_error": 10.59,
+          "pct_error": 10.66,
           "pred": 2.54,
           "realized": 2.8,
           "inside_68": 1.0,
@@ -12825,7 +12825,7 @@
         {
           "month": "2015-04",
           "error": -0.08,
-          "pct_error": -3.01,
+          "pct_error": -3.0,
           "pred": 2.87,
           "realized": 2.79,
           "inside_68": 1.0,
@@ -12879,7 +12879,7 @@
         {
           "month": "2015-10",
           "error": -0.5,
-          "pct_error": -22.02,
+          "pct_error": -21.94,
           "pred": 2.45,
           "realized": 1.95,
           "inside_68": 0.5,
@@ -12888,7 +12888,7 @@
         {
           "month": "2015-11",
           "error": -0.62,
-          "pct_error": -28.9,
+          "pct_error": -28.83,
           "pred": 2.39,
           "realized": 1.76,
           "inside_68": 0.0,
@@ -12897,7 +12897,7 @@
         {
           "month": "2015-12",
           "error": -0.25,
-          "pct_error": -12.49,
+          "pct_error": -12.41,
           "pred": 2.22,
           "realized": 1.97,
           "inside_68": 1.0,
@@ -12906,7 +12906,7 @@
         {
           "month": "2016-01",
           "error": 0.0,
-          "pct_error": 0.2,
+          "pct_error": 0.28,
           "pred": 2.11,
           "realized": 2.11,
           "inside_68": 1.0,
@@ -12915,8 +12915,8 @@
         {
           "month": "2016-02",
           "error": 0.14,
-          "pct_error": 8.1,
-          "pred": 2.13,
+          "pct_error": 8.19,
+          "pred": 2.12,
           "realized": 2.27,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -12924,8 +12924,8 @@
         {
           "month": "2016-03",
           "error": 0.08,
-          "pct_error": 4.15,
-          "pred": 2.29,
+          "pct_error": 4.23,
+          "pred": 2.28,
           "realized": 2.37,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -12987,7 +12987,7 @@
         {
           "month": "2016-10",
           "error": -0.17,
-          "pct_error": -7.51,
+          "pct_error": -7.44,
           "pred": 2.52,
           "realized": 2.35,
           "inside_68": 1.0,
@@ -12996,7 +12996,7 @@
         {
           "month": "2016-11",
           "error": -0.13,
-          "pct_error": -6.13,
+          "pct_error": -6.05,
           "pred": 2.44,
           "realized": 2.3,
           "inside_68": 1.0,
@@ -13005,8 +13005,8 @@
         {
           "month": "2016-12",
           "error": -0.29,
-          "pct_error": -12.89,
-          "pred": 2.62,
+          "pct_error": -12.82,
+          "pred": 2.61,
           "realized": 2.33,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -13014,8 +13014,8 @@
         {
           "month": "2017-01",
           "error": -0.2,
-          "pct_error": -8.48,
-          "pred": 2.62,
+          "pct_error": -8.41,
+          "pred": 2.61,
           "realized": 2.42,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -13023,8 +13023,8 @@
         {
           "month": "2017-02",
           "error": -0.23,
-          "pct_error": -9.93,
-          "pred": 2.62,
+          "pct_error": -9.86,
+          "pred": 2.61,
           "realized": 2.39,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -13032,7 +13032,7 @@
         {
           "month": "2017-03",
           "error": -0.17,
-          "pct_error": -7.43,
+          "pct_error": -7.36,
           "pred": 2.52,
           "realized": 2.35,
           "inside_68": 1.0,
@@ -13094,8 +13094,8 @@
         },
         {
           "month": "2017-10",
-          "error": -0.01,
-          "pct_error": -0.21,
+          "error": -0.0,
+          "pct_error": -0.14,
           "pred": 2.56,
           "realized": 2.55,
           "inside_68": 1.0,
@@ -13104,7 +13104,7 @@
         {
           "month": "2017-11",
           "error": -0.11,
-          "pct_error": -4.21,
+          "pct_error": -4.15,
           "pred": 2.69,
           "realized": 2.59,
           "inside_68": 1.0,
@@ -13113,8 +13113,8 @@
         {
           "month": "2017-12",
           "error": -0.11,
-          "pct_error": -4.64,
-          "pred": 2.71,
+          "pct_error": -4.57,
+          "pred": 2.7,
           "realized": 2.59,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -13122,8 +13122,8 @@
         {
           "month": "2018-01",
           "error": -0.08,
-          "pct_error": -3.07,
-          "pred": 2.84,
+          "pct_error": -3.01,
+          "pred": 2.83,
           "realized": 2.76,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -13131,7 +13131,7 @@
         {
           "month": "2018-02",
           "error": 0.1,
-          "pct_error": 3.74,
+          "pct_error": 3.8,
           "pred": 2.8,
           "realized": 2.9,
           "inside_68": 1.0,
@@ -13139,9 +13139,9 @@
         },
         {
           "month": "2018-03",
-          "error": 0.06,
-          "pct_error": 2.54,
-          "pred": 2.83,
+          "error": 0.07,
+          "pct_error": 2.6,
+          "pred": 2.82,
           "realized": 2.89,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -13176,7 +13176,7 @@
         {
           "month": "2018-07",
           "error": -0.28,
-          "pct_error": -10.0,
+          "pct_error": -9.99,
           "pred": 3.14,
           "realized": 2.86,
           "inside_68": 1.0,
@@ -13203,7 +13203,7 @@
         {
           "month": "2018-10",
           "error": -0.8,
-          "pct_error": -27.96,
+          "pct_error": -27.9,
           "pred": 3.05,
           "realized": 2.25,
           "inside_68": 0.0,
@@ -13212,8 +13212,8 @@
         {
           "month": "2018-11",
           "error": -0.41,
-          "pct_error": -15.22,
-          "pred": 2.72,
+          "pct_error": -15.16,
+          "pred": 2.71,
           "realized": 2.31,
           "inside_68": 0.75,
           "inside_95": 1.0
@@ -13221,7 +13221,7 @@
         {
           "month": "2018-12",
           "error": 0.07,
-          "pct_error": 3.16,
+          "pct_error": 3.23,
           "pred": 2.48,
           "realized": 2.55,
           "inside_68": 1.0,
@@ -13230,7 +13230,7 @@
         {
           "month": "2019-01",
           "error": 0.27,
-          "pct_error": 12.03,
+          "pct_error": 12.1,
           "pred": 2.55,
           "realized": 2.83,
           "inside_68": 1.0,
@@ -13238,8 +13238,8 @@
         },
         {
           "month": "2019-02",
-          "error": 0.21,
-          "pct_error": 9.33,
+          "error": 0.22,
+          "pct_error": 9.4,
           "pred": 2.64,
           "realized": 2.86,
           "inside_68": 1.0,
@@ -13248,7 +13248,7 @@
         {
           "month": "2019-03",
           "error": -0.01,
-          "pct_error": -0.21,
+          "pct_error": -0.14,
           "pred": 2.72,
           "realized": 2.72,
           "inside_68": 1.0,
@@ -13311,7 +13311,7 @@
         {
           "month": "2019-10",
           "error": -0.06,
-          "pct_error": -2.29,
+          "pct_error": -2.23,
           "pred": 2.61,
           "realized": 2.55,
           "inside_68": 1.0,
@@ -13319,8 +13319,8 @@
         },
         {
           "month": "2019-11",
-          "error": -0.25,
-          "pct_error": -9.43,
+          "error": -0.24,
+          "pct_error": -9.37,
           "pred": 2.69,
           "realized": 2.44,
           "inside_68": 1.0,
@@ -13329,7 +13329,7 @@
         {
           "month": "2019-12",
           "error": -0.5,
-          "pct_error": -19.75,
+          "pct_error": -19.69,
           "pred": 2.74,
           "realized": 2.23,
           "inside_68": 0.6,
@@ -13338,7 +13338,7 @@
         {
           "month": "2020-01",
           "error": -0.87,
-          "pct_error": -34.24,
+          "pct_error": -34.18,
           "pred": 2.71,
           "realized": 1.84,
           "inside_68": 0.0,
@@ -13347,7 +13347,7 @@
         {
           "month": "2020-02",
           "error": -0.67,
-          "pct_error": -27.42,
+          "pct_error": -27.36,
           "pred": 2.54,
           "realized": 1.87,
           "inside_68": 0.0,
@@ -13356,7 +13356,7 @@
         {
           "month": "2020-03",
           "error": 0.01,
-          "pct_error": 1.19,
+          "pct_error": 1.26,
           "pred": 2.07,
           "realized": 2.08,
           "inside_68": 1.0,
@@ -13374,7 +13374,7 @@
         {
           "month": "2020-05",
           "error": 0.0,
-          "pct_error": 0.17,
+          "pct_error": 0.18,
           "pred": 2.17,
           "realized": 2.17,
           "inside_68": 1.0,
@@ -13418,8 +13418,8 @@
         },
         {
           "month": "2020-10",
-          "error": 0.07,
-          "pct_error": 3.46,
+          "error": 0.08,
+          "pct_error": 3.53,
           "pred": 2.26,
           "realized": 2.33,
           "inside_68": 1.0,
@@ -13428,7 +13428,7 @@
         {
           "month": "2020-11",
           "error": 0.24,
-          "pct_error": 11.3,
+          "pct_error": 11.38,
           "pred": 2.3,
           "realized": 2.54,
           "inside_68": 1.0,
@@ -13436,8 +13436,8 @@
         },
         {
           "month": "2020-12",
-          "error": 0.39,
-          "pct_error": 17.93,
+          "error": 0.4,
+          "pct_error": 18.01,
           "pred": 2.44,
           "realized": 2.84,
           "inside_68": 1.0,
@@ -13446,7 +13446,7 @@
         {
           "month": "2021-01",
           "error": 0.32,
-          "pct_error": 13.68,
+          "pct_error": 13.75,
           "pred": 2.54,
           "realized": 2.86,
           "inside_68": 1.0,
@@ -13455,8 +13455,8 @@
         {
           "month": "2021-02",
           "error": 0.27,
-          "pct_error": 10.79,
-          "pred": 2.71,
+          "pct_error": 10.85,
+          "pred": 2.7,
           "realized": 2.97,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -13464,7 +13464,7 @@
         {
           "month": "2021-03",
           "error": 0.23,
-          "pct_error": 8.25,
+          "pct_error": 8.31,
           "pred": 2.82,
           "realized": 3.06,
           "inside_68": 1.0,
@@ -13527,7 +13527,7 @@
         {
           "month": "2021-10",
           "error": 0.05,
-          "pct_error": 1.43,
+          "pct_error": 1.48,
           "pred": 3.25,
           "realized": 3.3,
           "inside_68": 1.0,
@@ -13535,8 +13535,8 @@
         },
         {
           "month": "2021-11",
-          "error": 0.3,
-          "pct_error": 8.97,
+          "error": 0.31,
+          "pct_error": 9.02,
           "pred": 3.18,
           "realized": 3.49,
           "inside_68": 0.8,
@@ -13545,7 +13545,7 @@
         {
           "month": "2021-12",
           "error": 1.19,
-          "pct_error": 35.97,
+          "pct_error": 36.02,
           "pred": 3.03,
           "realized": 4.22,
           "inside_68": 0.0,
@@ -13554,8 +13554,8 @@
         {
           "month": "2022-01",
           "error": 0.85,
-          "pct_error": 25.6,
-          "pred": 3.28,
+          "pct_error": 25.65,
+          "pred": 3.27,
           "realized": 4.12,
           "inside_68": 0.0,
           "inside_95": 1.0
@@ -13563,17 +13563,17 @@
         {
           "month": "2022-02",
           "error": 0.99,
-          "pct_error": 28.2,
-          "pred": 3.52,
+          "pct_error": 28.25,
+          "pred": 3.51,
           "realized": 4.51,
           "inside_68": 0.0,
           "inside_95": 1.0
         },
         {
           "month": "2022-03",
-          "error": 1.04,
-          "pct_error": 24.66,
-          "pred": 3.89,
+          "error": 1.05,
+          "pct_error": 24.7,
+          "pred": 3.88,
           "realized": 4.93,
           "inside_68": 0.0,
           "inside_95": 1.0
@@ -13635,7 +13635,7 @@
         {
           "month": "2022-10",
           "error": -0.03,
-          "pct_error": -0.68,
+          "pct_error": -0.63,
           "pred": 3.37,
           "realized": 3.34,
           "inside_68": 1.0,
@@ -13644,7 +13644,7 @@
         {
           "month": "2022-11",
           "error": 0.05,
-          "pct_error": 1.45,
+          "pct_error": 1.5,
           "pred": 3.34,
           "realized": 3.39,
           "inside_68": 1.0,
@@ -13653,7 +13653,7 @@
         {
           "month": "2022-12",
           "error": 0.25,
-          "pct_error": 7.65,
+          "pct_error": 7.7,
           "pred": 3.18,
           "realized": 3.42,
           "inside_68": 1.0,
@@ -13662,7 +13662,7 @@
         {
           "month": "2023-01",
           "error": 0.35,
-          "pct_error": 10.57,
+          "pct_error": 10.62,
           "pred": 3.25,
           "realized": 3.6,
           "inside_68": 1.0,
@@ -13670,8 +13670,8 @@
         },
         {
           "month": "2023-02",
-          "error": 0.35,
-          "pct_error": 10.46,
+          "error": 0.36,
+          "pct_error": 10.51,
           "pred": 3.19,
           "realized": 3.54,
           "inside_68": 1.0,
@@ -13679,8 +13679,8 @@
         },
         {
           "month": "2023-03",
-          "error": 0.45,
-          "pct_error": 13.24,
+          "error": 0.46,
+          "pct_error": 13.29,
           "pred": 3.12,
           "realized": 3.57,
           "inside_68": 0.75,
@@ -13743,7 +13743,7 @@
         {
           "month": "2023-10",
           "error": -0.28,
-          "pct_error": -7.66,
+          "pct_error": -7.62,
           "pred": 3.35,
           "realized": 3.08,
           "inside_68": 1.0,
@@ -13751,8 +13751,8 @@
         },
         {
           "month": "2023-11",
-          "error": -0.0,
-          "pct_error": 0.01,
+          "error": 0.0,
+          "pct_error": 0.06,
           "pred": 3.21,
           "realized": 3.21,
           "inside_68": 1.0,
@@ -13760,8 +13760,8 @@
         },
         {
           "month": "2023-12",
-          "error": 0.33,
-          "pct_error": 10.69,
+          "error": 0.34,
+          "pct_error": 10.75,
           "pred": 3.09,
           "realized": 3.43,
           "inside_68": 1.0,
@@ -13770,7 +13770,7 @@
         {
           "month": "2024-01",
           "error": 0.51,
-          "pct_error": 16.61,
+          "pct_error": 16.67,
           "pred": 3.1,
           "realized": 3.61,
           "inside_68": 1.0,
@@ -13779,7 +13779,7 @@
         {
           "month": "2024-02",
           "error": 0.45,
-          "pct_error": 14.11,
+          "pct_error": 14.16,
           "pred": 3.16,
           "realized": 3.61,
           "inside_68": 1.0,
@@ -13800,7 +13800,7 @@
           "mae": 0.36,
           "rmse": 0.45,
           "bias": -0.35,
-          "pct_error": 10.18,
+          "pct_error": 10.17,
           "n": 52
         },
         {
@@ -13808,7 +13808,7 @@
           "mae": 0.59,
           "rmse": 0.73,
           "bias": -0.58,
-          "pct_error": 17.75,
+          "pct_error": 17.73,
           "n": 52
         },
         {
@@ -13816,7 +13816,7 @@
           "mae": 0.36,
           "rmse": 0.41,
           "bias": -0.28,
-          "pct_error": 14.68,
+          "pct_error": 14.67,
           "n": 52
         },
         {
@@ -13832,7 +13832,7 @@
           "mae": 0.17,
           "rmse": 0.21,
           "bias": -0.16,
-          "pct_error": 7.14,
+          "pct_error": 7.11,
           "n": 52
         },
         {
@@ -13840,7 +13840,7 @@
           "mae": 0.33,
           "rmse": 0.42,
           "bias": -0.28,
-          "pct_error": 11.98,
+          "pct_error": 11.97,
           "n": 53
         },
         {
@@ -13856,7 +13856,7 @@
           "mae": 0.31,
           "rmse": 0.39,
           "bias": -0.16,
-          "pct_error": 13.88,
+          "pct_error": 13.89,
           "n": 52
         },
         {
@@ -13864,7 +13864,7 @@
           "mae": 0.26,
           "rmse": 0.39,
           "bias": 0.25,
-          "pct_error": 8.64,
+          "pct_error": 8.67,
           "n": 52
         },
         {
@@ -13872,7 +13872,7 @@
           "mae": 0.42,
           "rmse": 0.56,
           "bias": 0.23,
-          "pct_error": 11.01,
+          "pct_error": 11.03,
           "n": 52
         },
         {
@@ -13880,7 +13880,7 @@
           "mae": 0.34,
           "rmse": 0.39,
           "bias": 0.19,
-          "pct_error": 9.74,
+          "pct_error": 9.75,
           "n": 52
         },
         {
@@ -13888,7 +13888,7 @@
           "mae": 0.49,
           "rmse": 0.49,
           "bias": 0.49,
-          "pct_error": 15.68,
+          "pct_error": 15.73,
           "n": 8
         }
       ]
@@ -13915,8 +13915,8 @@
       "monthly": [
         {
           "month": "2012-01",
-          "error": -0.03,
-          "pct_error": -0.76,
+          "error": -0.02,
+          "pct_error": -0.71,
           "pred": 3.78,
           "realized": 3.75,
           "inside_68": 1.0,
@@ -13925,7 +13925,7 @@
         {
           "month": "2012-02",
           "error": -0.33,
-          "pct_error": -9.12,
+          "pct_error": -9.07,
           "pred": 3.87,
           "realized": 3.54,
           "inside_68": 1.0,
@@ -13934,7 +13934,7 @@
         {
           "month": "2012-03",
           "error": -0.56,
-          "pct_error": -14.59,
+          "pct_error": -14.55,
           "pred": 3.98,
           "realized": 3.42,
           "inside_68": 1.0,
@@ -13997,7 +13997,7 @@
         {
           "month": "2012-10",
           "error": 0.07,
-          "pct_error": 1.88,
+          "pct_error": 1.92,
           "pred": 3.54,
           "realized": 3.61,
           "inside_68": 1.0,
@@ -14006,7 +14006,7 @@
         {
           "month": "2012-11",
           "error": 0.22,
-          "pct_error": 6.45,
+          "pct_error": 6.5,
           "pred": 3.49,
           "realized": 3.71,
           "inside_68": 1.0,
@@ -14015,7 +14015,7 @@
         {
           "month": "2012-12",
           "error": 0.05,
-          "pct_error": 1.46,
+          "pct_error": 1.51,
           "pred": 3.52,
           "realized": 3.57,
           "inside_68": 1.0,
@@ -14023,8 +14023,8 @@
         },
         {
           "month": "2013-01",
-          "error": -0.06,
-          "pct_error": -1.69,
+          "error": -0.05,
+          "pct_error": -1.64,
           "pred": 3.67,
           "realized": 3.61,
           "inside_68": 1.0,
@@ -14033,7 +14033,7 @@
         {
           "month": "2013-02",
           "error": -0.07,
-          "pct_error": -1.85,
+          "pct_error": -1.81,
           "pred": 3.69,
           "realized": 3.63,
           "inside_68": 1.0,
@@ -14042,7 +14042,7 @@
         {
           "month": "2013-03",
           "error": -0.03,
-          "pct_error": -0.83,
+          "pct_error": -0.79,
           "pred": 3.61,
           "realized": 3.58,
           "inside_68": 1.0,
@@ -14060,7 +14060,7 @@
         {
           "month": "2013-05",
           "error": -0.28,
-          "pct_error": -7.8,
+          "pct_error": -7.79,
           "pred": 3.84,
           "realized": 3.56,
           "inside_68": 1.0,
@@ -14105,7 +14105,7 @@
         {
           "month": "2013-10",
           "error": -0.42,
-          "pct_error": -12.59,
+          "pct_error": -12.54,
           "pred": 3.78,
           "realized": 3.36,
           "inside_68": 1.0,
@@ -14114,7 +14114,7 @@
         {
           "month": "2013-11",
           "error": -0.12,
-          "pct_error": -3.71,
+          "pct_error": -3.66,
           "pred": 3.64,
           "realized": 3.52,
           "inside_68": 1.0,
@@ -14123,7 +14123,7 @@
         {
           "month": "2013-12",
           "error": -0.05,
-          "pct_error": -1.62,
+          "pct_error": -1.57,
           "pred": 3.7,
           "realized": 3.64,
           "inside_68": 1.0,
@@ -14132,7 +14132,7 @@
         {
           "month": "2014-01",
           "error": 0.07,
-          "pct_error": 2.14,
+          "pct_error": 2.19,
           "pred": 3.6,
           "realized": 3.67,
           "inside_68": 1.0,
@@ -14140,8 +14140,8 @@
         },
         {
           "month": "2014-02",
-          "error": -0.03,
-          "pct_error": -0.73,
+          "error": -0.02,
+          "pct_error": -0.68,
           "pred": 3.71,
           "realized": 3.69,
           "inside_68": 1.0,
@@ -14150,7 +14150,7 @@
         {
           "month": "2014-03",
           "error": -0.11,
-          "pct_error": -3.03,
+          "pct_error": -2.98,
           "pred": 3.74,
           "realized": 3.63,
           "inside_68": 1.0,
@@ -14212,8 +14212,8 @@
         },
         {
           "month": "2014-10",
-          "error": -1.14,
-          "pct_error": -35.71,
+          "error": -1.13,
+          "pct_error": -35.66,
           "pred": 3.35,
           "realized": 2.22,
           "inside_68": 0.0,
@@ -14222,7 +14222,7 @@
         {
           "month": "2014-11",
           "error": -0.72,
-          "pct_error": -24.88,
+          "pct_error": -24.82,
           "pred": 3.19,
           "realized": 2.47,
           "inside_68": 0.0,
@@ -14230,8 +14230,8 @@
         },
         {
           "month": "2014-12",
-          "error": -0.31,
-          "pct_error": -11.6,
+          "error": -0.3,
+          "pct_error": -11.53,
           "pred": 2.77,
           "realized": 2.46,
           "inside_68": 1.0,
@@ -14240,7 +14240,7 @@
         {
           "month": "2015-01",
           "error": 0.22,
-          "pct_error": 10.31,
+          "pct_error": 10.38,
           "pred": 2.5,
           "realized": 2.72,
           "inside_68": 1.0,
@@ -14248,8 +14248,8 @@
         },
         {
           "month": "2015-02",
-          "error": 0.17,
-          "pct_error": 7.86,
+          "error": 0.18,
+          "pct_error": 7.93,
           "pred": 2.63,
           "realized": 2.8,
           "inside_68": 1.0,
@@ -14258,7 +14258,7 @@
         {
           "month": "2015-03",
           "error": 0.22,
-          "pct_error": 9.04,
+          "pct_error": 9.1,
           "pred": 2.57,
           "realized": 2.8,
           "inside_68": 1.0,
@@ -14321,7 +14321,7 @@
         {
           "month": "2015-10",
           "error": -0.71,
-          "pct_error": -31.0,
+          "pct_error": -30.93,
           "pred": 2.47,
           "realized": 1.76,
           "inside_68": 0.0,
@@ -14329,8 +14329,8 @@
         },
         {
           "month": "2015-11",
-          "error": -0.48,
-          "pct_error": -21.91,
+          "error": -0.47,
+          "pct_error": -21.83,
           "pred": 2.41,
           "realized": 1.93,
           "inside_68": 0.6,
@@ -14339,8 +14339,8 @@
         {
           "month": "2015-12",
           "error": -0.13,
-          "pct_error": -6.5,
-          "pred": 2.25,
+          "pct_error": -6.42,
+          "pred": 2.24,
           "realized": 2.11,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -14348,7 +14348,7 @@
         {
           "month": "2016-01",
           "error": 0.11,
-          "pct_error": 5.96,
+          "pct_error": 6.04,
           "pred": 2.14,
           "realized": 2.25,
           "inside_68": 1.0,
@@ -14357,7 +14357,7 @@
         {
           "month": "2016-02",
           "error": 0.2,
-          "pct_error": 11.55,
+          "pct_error": 11.64,
           "pred": 2.16,
           "realized": 2.36,
           "inside_68": 1.0,
@@ -14366,7 +14366,7 @@
         {
           "month": "2016-03",
           "error": -0.06,
-          "pct_error": -3.14,
+          "pct_error": -3.06,
           "pred": 2.3,
           "realized": 2.24,
           "inside_68": 1.0,
@@ -14429,7 +14429,7 @@
         {
           "month": "2016-10",
           "error": -0.23,
-          "pct_error": -10.18,
+          "pct_error": -10.11,
           "pred": 2.53,
           "realized": 2.3,
           "inside_68": 1.0,
@@ -14438,8 +14438,8 @@
         {
           "month": "2016-11",
           "error": -0.13,
-          "pct_error": -6.0,
-          "pred": 2.46,
+          "pct_error": -5.92,
+          "pred": 2.45,
           "realized": 2.33,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -14447,7 +14447,7 @@
         {
           "month": "2016-12",
           "error": -0.21,
-          "pct_error": -9.54,
+          "pct_error": -9.47,
           "pred": 2.63,
           "realized": 2.42,
           "inside_68": 1.0,
@@ -14456,7 +14456,7 @@
         {
           "month": "2017-01",
           "error": -0.24,
-          "pct_error": -10.19,
+          "pct_error": -10.12,
           "pred": 2.63,
           "realized": 2.39,
           "inside_68": 1.0,
@@ -14465,7 +14465,7 @@
         {
           "month": "2017-02",
           "error": -0.28,
-          "pct_error": -12.01,
+          "pct_error": -11.94,
           "pred": 2.62,
           "realized": 2.35,
           "inside_68": 1.0,
@@ -14474,7 +14474,7 @@
         {
           "month": "2017-03",
           "error": -0.24,
-          "pct_error": -10.34,
+          "pct_error": -10.27,
           "pred": 2.53,
           "realized": 2.29,
           "inside_68": 1.0,
@@ -14519,7 +14519,7 @@
         {
           "month": "2017-08",
           "error": -0.17,
-          "pct_error": -7.23,
+          "pct_error": -7.22,
           "pred": 2.65,
           "realized": 2.48,
           "inside_68": 1.0,
@@ -14528,7 +14528,7 @@
         {
           "month": "2017-09",
           "error": -0.16,
-          "pct_error": -6.19,
+          "pct_error": -6.18,
           "pred": 2.7,
           "realized": 2.54,
           "inside_68": 1.0,
@@ -14537,7 +14537,7 @@
         {
           "month": "2017-10",
           "error": 0.03,
-          "pct_error": 1.11,
+          "pct_error": 1.18,
           "pred": 2.56,
           "realized": 2.59,
           "inside_68": 1.0,
@@ -14546,8 +14546,8 @@
         {
           "month": "2017-11",
           "error": -0.1,
-          "pct_error": -4.05,
-          "pred": 2.7,
+          "pct_error": -3.99,
+          "pred": 2.69,
           "realized": 2.59,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -14555,7 +14555,7 @@
         {
           "month": "2017-12",
           "error": 0.03,
-          "pct_error": 1.22,
+          "pct_error": 1.28,
           "pred": 2.7,
           "realized": 2.73,
           "inside_68": 1.0,
@@ -14564,7 +14564,7 @@
         {
           "month": "2018-01",
           "error": 0.06,
-          "pct_error": 2.35,
+          "pct_error": 2.42,
           "pred": 2.83,
           "realized": 2.89,
           "inside_68": 1.0,
@@ -14573,7 +14573,7 @@
         {
           "month": "2018-02",
           "error": 0.1,
-          "pct_error": 3.74,
+          "pct_error": 3.8,
           "pred": 2.79,
           "realized": 2.89,
           "inside_68": 1.0,
@@ -14581,9 +14581,9 @@
         },
         {
           "month": "2018-03",
-          "error": 0.03,
-          "pct_error": 1.31,
-          "pred": 2.82,
+          "error": 0.04,
+          "pct_error": 1.38,
+          "pred": 2.81,
           "realized": 2.85,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -14645,7 +14645,7 @@
         {
           "month": "2018-10",
           "error": -0.75,
-          "pct_error": -26.26,
+          "pct_error": -26.2,
           "pred": 3.05,
           "realized": 2.3,
           "inside_68": 0.2,
@@ -14654,7 +14654,7 @@
         {
           "month": "2018-11",
           "error": -0.2,
-          "pct_error": -7.51,
+          "pct_error": -7.45,
           "pred": 2.72,
           "realized": 2.52,
           "inside_68": 1.0,
@@ -14663,7 +14663,7 @@
         {
           "month": "2018-12",
           "error": 0.31,
-          "pct_error": 13.24,
+          "pct_error": 13.31,
           "pred": 2.49,
           "realized": 2.8,
           "inside_68": 1.0,
@@ -14671,8 +14671,8 @@
         },
         {
           "month": "2019-01",
-          "error": 0.29,
-          "pct_error": 13.12,
+          "error": 0.3,
+          "pct_error": 13.19,
           "pred": 2.56,
           "realized": 2.86,
           "inside_68": 1.0,
@@ -14681,7 +14681,7 @@
         {
           "month": "2019-02",
           "error": 0.06,
-          "pct_error": 2.61,
+          "pct_error": 2.68,
           "pred": 2.66,
           "realized": 2.72,
           "inside_68": 1.0,
@@ -14689,8 +14689,8 @@
         },
         {
           "month": "2019-03",
-          "error": 0.01,
-          "pct_error": 0.56,
+          "error": 0.02,
+          "pct_error": 0.63,
           "pred": 2.73,
           "realized": 2.75,
           "inside_68": 1.0,
@@ -14753,7 +14753,7 @@
         {
           "month": "2019-10",
           "error": -0.16,
-          "pct_error": -6.16,
+          "pct_error": -6.1,
           "pred": 2.6,
           "realized": 2.44,
           "inside_68": 1.0,
@@ -14762,7 +14762,7 @@
         {
           "month": "2019-11",
           "error": -0.39,
-          "pct_error": -14.94,
+          "pct_error": -14.87,
           "pred": 2.68,
           "realized": 2.29,
           "inside_68": 1.0,
@@ -14770,8 +14770,8 @@
         },
         {
           "month": "2019-12",
-          "error": -0.86,
-          "pct_error": -33.51,
+          "error": -0.85,
+          "pct_error": -33.44,
           "pred": 2.73,
           "realized": 1.87,
           "inside_68": 0.0,
@@ -14780,7 +14780,7 @@
         {
           "month": "2020-01",
           "error": -0.84,
-          "pct_error": -32.81,
+          "pct_error": -32.75,
           "pred": 2.71,
           "realized": 1.87,
           "inside_68": 0.0,
@@ -14789,7 +14789,7 @@
         {
           "month": "2020-02",
           "error": -0.48,
-          "pct_error": -19.8,
+          "pct_error": -19.74,
           "pred": 2.54,
           "realized": 2.06,
           "inside_68": 1.0,
@@ -14798,7 +14798,7 @@
         {
           "month": "2020-03",
           "error": 0.09,
-          "pct_error": 4.33,
+          "pct_error": 4.4,
           "pred": 2.09,
           "realized": 2.18,
           "inside_68": 1.0,
@@ -14825,7 +14825,7 @@
         {
           "month": "2020-06",
           "error": -0.25,
-          "pct_error": -11.9,
+          "pct_error": -11.89,
           "pred": 2.41,
           "realized": 2.16,
           "inside_68": 1.0,
@@ -14861,7 +14861,7 @@
         {
           "month": "2020-10",
           "error": 0.23,
-          "pct_error": 10.79,
+          "pct_error": 10.87,
           "pred": 2.27,
           "realized": 2.5,
           "inside_68": 1.0,
@@ -14870,7 +14870,7 @@
         {
           "month": "2020-11",
           "error": 0.5,
-          "pct_error": 23.69,
+          "pct_error": 23.77,
           "pred": 2.31,
           "realized": 2.81,
           "inside_68": 1.0,
@@ -14878,8 +14878,8 @@
         },
         {
           "month": "2020-12",
-          "error": 0.41,
-          "pct_error": 18.9,
+          "error": 0.42,
+          "pct_error": 18.97,
           "pred": 2.44,
           "realized": 2.86,
           "inside_68": 1.0,
@@ -14888,7 +14888,7 @@
         {
           "month": "2021-01",
           "error": 0.44,
-          "pct_error": 18.74,
+          "pct_error": 18.81,
           "pred": 2.54,
           "realized": 2.97,
           "inside_68": 1.0,
@@ -14897,16 +14897,16 @@
         {
           "month": "2021-02",
           "error": 0.35,
-          "pct_error": 14.17,
-          "pred": 2.7,
+          "pct_error": 14.23,
+          "pred": 2.69,
           "realized": 3.05,
           "inside_68": 1.0,
           "inside_95": 1.0
         },
         {
           "month": "2021-03",
-          "error": 0.31,
-          "pct_error": 11.18,
+          "error": 0.32,
+          "pct_error": 11.24,
           "pred": 2.81,
           "realized": 3.13,
           "inside_68": 1.0,
@@ -14942,7 +14942,7 @@
         {
           "month": "2021-07",
           "error": 0.21,
-          "pct_error": 6.73,
+          "pct_error": 6.74,
           "pred": 3.19,
           "realized": 3.4,
           "inside_68": 1.0,
@@ -14968,8 +14968,8 @@
         },
         {
           "month": "2021-10",
-          "error": 0.22,
-          "pct_error": 6.82,
+          "error": 0.23,
+          "pct_error": 6.87,
           "pred": 3.23,
           "realized": 3.46,
           "inside_68": 1.0,
@@ -14978,7 +14978,7 @@
         {
           "month": "2021-11",
           "error": 0.94,
-          "pct_error": 27.74,
+          "pct_error": 27.78,
           "pred": 3.16,
           "realized": 4.1,
           "inside_68": 0.2,
@@ -14986,8 +14986,8 @@
         },
         {
           "month": "2021-12",
-          "error": 1.08,
-          "pct_error": 32.8,
+          "error": 1.09,
+          "pct_error": 32.85,
           "pred": 3.02,
           "realized": 4.11,
           "inside_68": 0.0,
@@ -14996,7 +14996,7 @@
         {
           "month": "2022-01",
           "error": 1.19,
-          "pct_error": 35.85,
+          "pct_error": 35.9,
           "pred": 3.25,
           "realized": 4.44,
           "inside_68": 0.0,
@@ -15005,7 +15005,7 @@
         {
           "month": "2022-02",
           "error": 1.46,
-          "pct_error": 41.49,
+          "pct_error": 41.53,
           "pred": 3.47,
           "realized": 4.93,
           "inside_68": 0.0,
@@ -15014,8 +15014,8 @@
         {
           "month": "2022-03",
           "error": 0.75,
-          "pct_error": 17.83,
-          "pred": 3.81,
+          "pct_error": 17.87,
+          "pred": 3.8,
           "realized": 4.56,
           "inside_68": 0.5,
           "inside_95": 1.0
@@ -15076,8 +15076,8 @@
         },
         {
           "month": "2022-10",
-          "error": 0.07,
-          "pct_error": 1.97,
+          "error": 0.08,
+          "pct_error": 2.02,
           "pred": 3.33,
           "realized": 3.41,
           "inside_68": 1.0,
@@ -15086,7 +15086,7 @@
         {
           "month": "2022-11",
           "error": 0.1,
-          "pct_error": 2.77,
+          "pct_error": 2.82,
           "pred": 3.32,
           "realized": 3.42,
           "inside_68": 1.0,
@@ -15095,7 +15095,7 @@
         {
           "month": "2022-12",
           "error": 0.43,
-          "pct_error": 13.36,
+          "pct_error": 13.41,
           "pred": 3.18,
           "realized": 3.6,
           "inside_68": 1.0,
@@ -15103,8 +15103,8 @@
         },
         {
           "month": "2023-01",
-          "error": 0.3,
-          "pct_error": 9.15,
+          "error": 0.31,
+          "pct_error": 9.19,
           "pred": 3.25,
           "realized": 3.55,
           "inside_68": 1.0,
@@ -15113,7 +15113,7 @@
         {
           "month": "2023-02",
           "error": 0.38,
-          "pct_error": 11.31,
+          "pct_error": 11.35,
           "pred": 3.19,
           "realized": 3.57,
           "inside_68": 1.0,
@@ -15122,7 +15122,7 @@
         {
           "month": "2023-03",
           "error": 0.44,
-          "pct_error": 12.94,
+          "pct_error": 12.99,
           "pred": 3.11,
           "realized": 3.56,
           "inside_68": 1.0,
@@ -15185,8 +15185,8 @@
         {
           "month": "2023-10",
           "error": -0.14,
-          "pct_error": -3.73,
-          "pred": 3.33,
+          "pct_error": -3.68,
+          "pred": 3.32,
           "realized": 3.19,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -15194,7 +15194,7 @@
         {
           "month": "2023-11",
           "error": 0.22,
-          "pct_error": 6.6,
+          "pct_error": 6.65,
           "pred": 3.21,
           "realized": 3.43,
           "inside_68": 1.0,
@@ -15203,8 +15203,8 @@
         {
           "month": "2023-12",
           "error": 0.51,
-          "pct_error": 16.17,
-          "pred": 3.1,
+          "pct_error": 16.23,
+          "pred": 3.09,
           "realized": 3.6,
           "inside_68": 1.0,
           "inside_95": 1.0
@@ -15212,7 +15212,7 @@
         {
           "month": "2024-01",
           "error": 0.54,
-          "pct_error": 17.6,
+          "pct_error": 17.65,
           "pred": 3.08,
           "realized": 3.62,
           "inside_68": 1.0,
@@ -15225,7 +15225,7 @@
           "mae": 0.27,
           "rmse": 0.34,
           "bias": -0.16,
-          "pct_error": 7.39,
+          "pct_error": 7.38,
           "n": 53
         },
         {
@@ -15233,7 +15233,7 @@
           "mae": 0.33,
           "rmse": 0.44,
           "bias": -0.33,
-          "pct_error": 9.4,
+          "pct_error": 9.38,
           "n": 52
         },
         {
@@ -15241,7 +15241,7 @@
           "mae": 0.67,
           "rmse": 0.84,
           "bias": -0.66,
-          "pct_error": 19.93,
+          "pct_error": 19.91,
           "n": 52
         },
         {
@@ -15257,7 +15257,7 @@
           "mae": 0.27,
           "rmse": 0.3,
           "bias": -0.21,
-          "pct_error": 12.39,
+          "pct_error": 12.38,
           "n": 52
         },
         {
@@ -15265,7 +15265,7 @@
           "mae": 0.16,
           "rmse": 0.19,
           "bias": -0.14,
-          "pct_error": 6.63,
+          "pct_error": 6.61,
           "n": 52
         },
         {
@@ -15273,7 +15273,7 @@
           "mae": 0.37,
           "rmse": 0.46,
           "bias": -0.27,
-          "pct_error": 13.15,
+          "pct_error": 13.16,
           "n": 53
         },
         {
@@ -15289,7 +15289,7 @@
           "mae": 0.33,
           "rmse": 0.39,
           "bias": -0.09,
-          "pct_error": 14.59,
+          "pct_error": 14.6,
           "n": 52
         },
         {
@@ -15297,7 +15297,7 @@
           "mae": 0.36,
           "rmse": 0.49,
           "bias": 0.36,
-          "pct_error": 11.86,
+          "pct_error": 11.88,
           "n": 52
         },
         {
@@ -15305,7 +15305,7 @@
           "mae": 0.47,
           "rmse": 0.64,
           "bias": 0.23,
-          "pct_error": 12.67,
+          "pct_error": 12.69,
           "n": 52
         },
         {
@@ -15313,15 +15313,15 @@
           "mae": 0.36,
           "rmse": 0.4,
           "bias": 0.2,
-          "pct_error": 10.32,
+          "pct_error": 10.34,
           "n": 52
         },
         {
           "year": 2024,
           "mae": 0.54,
-          "rmse": 0.54,
+          "rmse": 0.55,
           "bias": 0.54,
-          "pct_error": 17.6,
+          "pct_error": 17.65,
           "n": 4
         }
       ]
