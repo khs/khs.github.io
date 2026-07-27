@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-24T22:04:35+00:00",
+  "last_updated": "2026-07-27T22:07:43+00:00",
   "data_available": true,
   "wti": [
     {
@@ -12,103 +12,103 @@
       "ticker": "CLU26.NYM",
       "expiry": "2026-09",
       "label": "Sep 2026",
-      "price": 90.47
+      "price": 81.91
     },
     {
       "ticker": "CLV26.NYM",
       "expiry": "2026-10",
       "label": "Oct 2026",
-      "price": 85.88
+      "price": 79.64
     },
     {
       "ticker": "CLX26.NYM",
       "expiry": "2026-11",
       "label": "Nov 2026",
-      "price": 82.24
+      "price": 77.54
     },
     {
       "ticker": "CLZ26.NYM",
       "expiry": "2026-12",
       "label": "Dec 2026",
-      "price": 79.77
+      "price": 75.92
     },
     {
       "ticker": "CLF27.NYM",
       "expiry": "2027-01",
       "label": "Jan 2027",
-      "price": 78.14
+      "price": 74.71
     },
     {
       "ticker": "CLG27.NYM",
       "expiry": "2027-02",
       "label": "Feb 2027",
-      "price": 76.87
+      "price": 73.69
     },
     {
       "ticker": "CLH27.NYM",
       "expiry": "2027-03",
       "label": "Mar 2027",
-      "price": 75.79
+      "price": 72.96
     },
     {
       "ticker": "CLJ27.NYM",
       "expiry": "2027-04",
       "label": "Apr 2027",
-      "price": 74.91
+      "price": 72.5
     },
     {
       "ticker": "CLK27.NYM",
       "expiry": "2027-05",
       "label": "May 2027",
-      "price": 74.27
+      "price": 71.93
     },
     {
       "ticker": "CLM27.NYM",
       "expiry": "2027-06",
       "label": "Jun 2027",
-      "price": 73.83
+      "price": 71.39
     },
     {
       "ticker": "CLN27.NYM",
       "expiry": "2027-07",
       "label": "Jul 2027",
-      "price": 72.98
+      "price": 70.99
     },
     {
       "ticker": "CLQ27.NYM",
       "expiry": "2027-08",
       "label": "Aug 2027",
-      "price": 72.52
+      "price": 71.01
     },
     {
       "ticker": "CLU27.NYM",
       "expiry": "2027-09",
       "label": "Sep 2027",
-      "price": 72.35
+      "price": 70.67
     },
     {
       "ticker": "CLV27.NYM",
       "expiry": "2027-10",
       "label": "Oct 2027",
-      "price": 71.8
+      "price": 70.29
     },
     {
       "ticker": "CLX27.NYM",
       "expiry": "2027-11",
       "label": "Nov 2027",
-      "price": 71.43
+      "price": 70.01
     },
     {
       "ticker": "CLZ27.NYM",
       "expiry": "2027-12",
       "label": "Dec 2027",
-      "price": 71.46
+      "price": 69.46
     },
     {
       "ticker": "CLF28.NYM",
       "expiry": "2028-01",
       "label": "Jan 2028",
-      "price": 70.63
+      "price": 69.55
     }
   ],
   "brent": [
@@ -123,49 +123,49 @@
       "ticker": "BZU26.NYM",
       "expiry": "2026-09",
       "label": "Sep 2026",
-      "price": 98.38
+      "price": 87.68
     },
     {
       "ticker": "BZV26.NYM",
       "expiry": "2026-10",
       "label": "Oct 2026",
-      "price": 92.67
+      "price": 85.24
     },
     {
       "ticker": "BZX26.NYM",
       "expiry": "2026-11",
       "label": "Nov 2026",
-      "price": 88.71
+      "price": 82.96
     },
     {
       "ticker": "BZZ26.NYM",
       "expiry": "2026-12",
       "label": "Dec 2026",
-      "price": 86.1
+      "price": 81.59
     },
     {
       "ticker": "BZF27.NYM",
       "expiry": "2027-01",
       "label": "Jan 2027",
-      "price": 83.88
+      "price": 80.98
     },
     {
       "ticker": "BZG27.NYM",
       "expiry": "2027-02",
       "label": "Feb 2027",
-      "price": 82.14
+      "price": 79.84
     },
     {
       "ticker": "BZH27.NYM",
       "expiry": "2027-03",
       "label": "Mar 2027",
-      "price": 81.26
+      "price": 78.76
     },
     {
       "ticker": "BZJ27.NYM",
       "expiry": "2027-04",
       "label": "Apr 2027",
-      "price": 80.21
+      "price": 78.3
     },
     {
       "ticker": "BZK27.NYM",
@@ -177,7 +177,7 @@
       "ticker": "BZM27.NYM",
       "expiry": "2027-06",
       "label": "Jun 2027",
-      "price": 78.86
+      "price": 76.84
     },
     {
       "ticker": "BZN27.NYM",
@@ -213,109 +213,109 @@
       "ticker": "BZZ27.NYM",
       "expiry": "2027-12",
       "label": "Dec 2027",
-      "price": 76.06
+      "price": 74.36
     }
   ],
   "crack_spreads": {
     "by_month": [
       {
         "expiry": "2026-08",
-        "rbob_price": 3.4214,
-        "crack_spread": 1.3978
+        "rbob_price": 3.3079,
+        "crack_spread": 1.2843
       },
       {
         "expiry": "2026-09",
-        "rbob_price": 3.2725,
-        "crack_spread": 1.1185
+        "rbob_price": 3.152,
+        "crack_spread": 1.2018
       },
       {
         "expiry": "2026-10",
-        "rbob_price": 2.97,
-        "crack_spread": 0.9252
+        "rbob_price": 2.847,
+        "crack_spread": 0.9508
       },
       {
         "expiry": "2026-11",
-        "rbob_price": 2.7907,
-        "crack_spread": 0.8326
+        "rbob_price": 2.6745,
+        "crack_spread": 0.8283
       },
       {
         "expiry": "2026-12",
-        "rbob_price": 2.6509,
-        "crack_spread": 0.7516
+        "rbob_price": 2.5398,
+        "crack_spread": 0.7322
       },
       {
         "expiry": "2027-01",
-        "rbob_price": 2.5673,
-        "crack_spread": 0.7068
+        "rbob_price": 2.4637,
+        "crack_spread": 0.6849
       },
       {
         "expiry": "2027-02",
-        "rbob_price": 2.5383,
-        "crack_spread": 0.7081
+        "rbob_price": 2.4372,
+        "crack_spread": 0.6827
       },
       {
         "expiry": "2027-03",
-        "rbob_price": 2.5431,
-        "crack_spread": 0.7386
+        "rbob_price": 2.4412,
+        "crack_spread": 0.7041
       },
       {
         "expiry": "2027-04",
-        "rbob_price": 2.7155,
-        "crack_spread": 0.9319
+        "rbob_price": 2.6301,
+        "crack_spread": 0.9039
       },
       {
         "expiry": "2027-05",
-        "rbob_price": 2.6994,
-        "crack_spread": 0.9311
+        "rbob_price": 2.6202,
+        "crack_spread": 0.9076
       },
       {
         "expiry": "2027-06",
-        "rbob_price": 2.6891,
-        "crack_spread": 0.9312
+        "rbob_price": 2.6029,
+        "crack_spread": 0.9031
       },
       {
         "expiry": "2027-07",
-        "rbob_price": 2.6413,
-        "crack_spread": 0.9037
+        "rbob_price": 2.5668,
+        "crack_spread": 0.8766
       },
       {
         "expiry": "2027-08",
-        "rbob_price": 2.6374,
-        "crack_spread": 0.9107
+        "rbob_price": 2.637,
+        "crack_spread": 0.9463
       },
       {
         "expiry": "2027-09",
         "rbob_price": 2.5586,
-        "crack_spread": 0.836
+        "crack_spread": 0.876
       },
       {
         "expiry": "2027-10",
         "rbob_price": 2.395,
-        "crack_spread": 0.6855
+        "crack_spread": 0.7214
       },
       {
         "expiry": "2027-11",
         "rbob_price": 2.335,
-        "crack_spread": 0.6343
+        "crack_spread": 0.6681
       },
       {
         "expiry": "2027-12",
-        "rbob_price": 2.2797,
-        "crack_spread": 0.5783
+        "rbob_price": 2.2201,
+        "crack_spread": 0.5663
       },
       {
         "expiry": "2028-01",
         "rbob_price": 2.2775,
-        "crack_spread": 0.5958
+        "crack_spread": 0.6215
       }
     ],
-    "average": 0.8399,
+    "average": 0.8367,
     "fallback": 0.43
   },
   "historical_brent": [
     {
       "month": "2023-07",
-      "price": 83.83
+      "price": 84.66
     },
     {
       "month": "2023-08",
@@ -465,7 +465,7 @@
   "historical_pump": [
     {
       "month": "2023-07",
-      "price": 3.676
+      "price": 3.757
     },
     {
       "month": "2023-08",
@@ -12938,6 +12938,153 @@
         {
           "expiry": "2027-12",
           "price": 76.06
+        }
+      ]
+    },
+    {
+      "date": "2026-07-27",
+      "wti": [
+        {
+          "expiry": "2026-08",
+          "price": 84.99
+        },
+        {
+          "expiry": "2026-09",
+          "price": 81.91
+        },
+        {
+          "expiry": "2026-10",
+          "price": 79.64
+        },
+        {
+          "expiry": "2026-11",
+          "price": 77.54
+        },
+        {
+          "expiry": "2026-12",
+          "price": 75.92
+        },
+        {
+          "expiry": "2027-01",
+          "price": 74.71
+        },
+        {
+          "expiry": "2027-02",
+          "price": 73.69
+        },
+        {
+          "expiry": "2027-03",
+          "price": 72.96
+        },
+        {
+          "expiry": "2027-04",
+          "price": 72.5
+        },
+        {
+          "expiry": "2027-05",
+          "price": 71.93
+        },
+        {
+          "expiry": "2027-06",
+          "price": 71.39
+        },
+        {
+          "expiry": "2027-07",
+          "price": 70.99
+        },
+        {
+          "expiry": "2027-08",
+          "price": 71.01
+        },
+        {
+          "expiry": "2027-09",
+          "price": 70.67
+        },
+        {
+          "expiry": "2027-10",
+          "price": 70.29
+        },
+        {
+          "expiry": "2027-11",
+          "price": 70.01
+        },
+        {
+          "expiry": "2027-12",
+          "price": 69.46
+        },
+        {
+          "expiry": "2028-01",
+          "price": 69.55
+        }
+      ],
+      "brent": [
+        {
+          "expiry": "2026-08",
+          "price": 72.9
+        },
+        {
+          "expiry": "2026-09",
+          "price": 87.68
+        },
+        {
+          "expiry": "2026-10",
+          "price": 85.24
+        },
+        {
+          "expiry": "2026-11",
+          "price": 82.96
+        },
+        {
+          "expiry": "2026-12",
+          "price": 81.59
+        },
+        {
+          "expiry": "2027-01",
+          "price": 80.98
+        },
+        {
+          "expiry": "2027-02",
+          "price": 79.84
+        },
+        {
+          "expiry": "2027-03",
+          "price": 78.76
+        },
+        {
+          "expiry": "2027-04",
+          "price": 78.3
+        },
+        {
+          "expiry": "2027-05",
+          "price": 79.84
+        },
+        {
+          "expiry": "2027-06",
+          "price": 76.84
+        },
+        {
+          "expiry": "2027-07",
+          "price": 76.6
+        },
+        {
+          "expiry": "2027-08",
+          "price": 76.13
+        },
+        {
+          "expiry": "2027-09",
+          "price": 70.57
+        },
+        {
+          "expiry": "2027-10",
+          "price": 80.22
+        },
+        {
+          "expiry": "2027-11",
+          "price": 79.85
+        },
+        {
+          "expiry": "2027-12",
+          "price": 74.36
         }
       ]
     }
