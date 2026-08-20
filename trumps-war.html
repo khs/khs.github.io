@@ -244,6 +244,80 @@
       color: #1a1a1a;
     }
 
+    /* ---- war timeline summary ---- */
+    .war-timeline { margin: 0.4em 0 1.4em; }
+
+    .war-start-marker {
+      display: flex; align-items: center; gap: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.78em; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #c0392b; font-weight: 600;
+      padding-bottom: 10px; margin-bottom: 14px;
+      border-bottom: 1px solid #eee;
+    }
+    .war-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: #c0392b; flex: none;
+      box-shadow: 0 0 0 3px rgba(192,57,43,0.15);
+    }
+
+    .war-panels {
+      display: flex; align-items: flex-start; gap: 18px;
+      flex-wrap: wrap; margin-bottom: 16px;
+    }
+    .war-panel { flex: 1 1 130px; min-width: 130px; }
+    .war-panel-plus {
+      font-size: 1.4em; color: #ccc; font-weight: 300;
+      padding-top: 6px; flex: none;
+    }
+    .war-panel-num {
+      font-size: 1.75em; font-weight: bold; line-height: 1;
+      letter-spacing: -0.025em; color: #c0392b;
+      font-variant-numeric: tabular-nums;
+    }
+    .war-panel-num.forecast { color: #c0392b; opacity: 0.62; }
+    .war-panel-lbl {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.74em; letter-spacing: 0.07em; text-transform: uppercase;
+      color: #888; margin-top: 5px; font-weight: 600;
+    }
+    .war-panel-sub {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.72em; color: #aaa; margin-top: 2px; line-height: 1.35;
+    }
+
+    .war-total-block {
+      border-top: 2px solid #1a1a1a; padding-top: 12px;
+    }
+
+    /* ---- table dividers ---- */
+    .cost-table tr.divider td {
+      border-bottom: none; padding: 12px 0 4px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.72em; letter-spacing: 0.08em; text-transform: uppercase;
+      font-weight: 700; text-align: left;
+    }
+    .cost-table tr.divider.war td   { color: #c0392b; }
+    .cost-table tr.divider.peace td { color: #27ae60; }
+    .cost-table tr.divider td .rule {
+      display: inline-block; vertical-align: middle;
+      height: 1px; width: 100%; max-width: 240px; margin-left: 8px;
+    }
+    .cost-table tr.divider.war   td .rule { background: rgba(192,57,43,0.3); }
+    .cost-table tr.divider.peace td .rule { background: rgba(39,174,96,0.35); }
+
+    .cost-table tr.forecast td { color: #777; }
+    .cost-table tr.forecast td:first-child { color: #888; font-style: italic; }
+    .cost-table tr.forecast td.war-cost { color: #c0392b; opacity: 0.7; }
+    .cost-table tr.settled td:first-child::after {
+      content: "actual"; font-size: 0.78em; color: #bbb;
+      margin-left: 6px; font-style: normal; letter-spacing: 0.04em;
+    }
+    .cost-table td.cum { color: #1a1a1a; font-weight: 600; }
+    .cost-table tr.forecast td.cum { color: #666; font-weight: 500; }
+    .cost-bar-fill.forecast { background: rgba(192,57,43,0.22); }
+
+
     .cost-total-block {
       margin: 0.4em 0 1.6em;
     }
@@ -420,7 +494,8 @@
   <h1>Trump's War</h1>
 
   <p class="deck">The U.S. strike on Iran didn't just make the news.
-  It made you pay $1.47 more per gallon. The market isn't expecting a refund.</p>
+  It made you pay <span id="deck-peak">$1.38</span> more per gallon at the worst of it.
+  The market isn't expecting a refund.</p>
 
   <div class="prose">
     <p>In early 2026, the Trump administration launched airstrikes on Iranian nuclear facilities. Iran responded within days: mines went into the Strait of Hormuz, proxy militias attacked Gulf tanker traffic, and insurance rates on Middle East shipping spiked. The Strait carries roughly 20 percent of the world's oil. Brent crude crossed $118 a barrel. You're paying the difference every time you fill up.</p>
@@ -429,7 +504,7 @@
   <!-- COST CALCULATOR -->
   <div class="cost-section">
     <h2>What It Costs You</h2>
-    <p class="cost-intro">Enter your tank size and how often you fill up. The calculator uses the futures market's month-by-month price forecast to estimate your extra cost over the next year. The baseline is December 2025, since rising prices in January were plausibly anticipating the war, adjusted for each month's typical seasonal swing so that normal summer price variation isn't counted as war cost.</p>
+    <p class="cost-intro">Enter your tank size and how often you fill up. This tracks what the war has cost you at the pump since it began: months up to the present use realized EIA prices, later months use the futures market's forecast, and the total runs through the month prices are expected back at pre-war levels. The baseline is December 2025, since rising prices in January were plausibly anticipating the war, adjusted for each month's typical seasonal swing so that normal summer price variation isn't counted as war cost.</p>
 
     <div class="cost-inputs">
       <div class="cost-input-group">
@@ -452,10 +527,29 @@
       </div>
     </div>
 
-    <div class="cost-total-block">
-      <div class="cost-big-number" id="cost-total-number">$–</div>
-      <div class="cost-big-label">estimated extra cost over the next 12 months<br>
-        <span style="color:#bbb">vs. pre-war baseline, seasonally adjusted by month</span>
+    <div class="war-timeline">
+      <div class="war-start-marker">
+        <span class="war-dot"></span>
+        <span id="war-start-label">War began March 2026</span>
+      </div>
+
+      <div class="war-panels">
+        <div class="war-panel">
+          <div class="war-panel-num" id="war-cost-sofar">$–</div>
+          <div class="war-panel-lbl">Cost so far</div>
+          <div class="war-panel-sub" id="war-sofar-sub"></div>
+        </div>
+        <div class="war-panel-plus">+</div>
+        <div class="war-panel">
+          <div class="war-panel-num forecast" id="war-cost-future">$–</div>
+          <div class="war-panel-lbl">Still to come</div>
+          <div class="war-panel-sub" id="war-future-sub"></div>
+        </div>
+      </div>
+
+      <div class="war-total-block">
+        <div class="cost-big-number" id="cost-total-number">$–</div>
+        <div class="cost-big-label" id="cost-total-label">total cost of the war to you</div>
       </div>
     </div>
 
@@ -464,8 +558,9 @@
         <tr>
           <th>Month</th>
           <th>Pump price</th>
-          <th>Extra/gal vs. pre-war</th>
-          <th>Monthly extra</th>
+          <th>Extra/gal</th>
+          <th>Monthly</th>
+          <th>Running total</th>
           <th class="bar-cell"></th>
         </tr>
       </thead>
@@ -473,7 +568,7 @@
       <tfoot id="cost-table-foot"></tfoot>
     </table>
     <p class="cost-footnote">
-      Pump prices are futures-market expectations, not guarantees. Pre-war baseline: December 2025 national average, with typical seasonal adjustments added for each month (summer blend, demand patterns) so that normal seasonal variation is not counted as war cost.
+      Months up to the present use realized EIA pump prices; later months are futures-market expectations, not guarantees. Pre-war baseline: December 2025 national average, with typical seasonal adjustments added for each month (summer blend, demand patterns) so that normal seasonal variation is not counted as war cost.
       Average US driver: <a href="https://www.eia.gov/tools/faqs/faq.php?id=23&t=10" target="_blank" rel="noopener" style="color:#aaa">EIA</a>.
     </p>
   </div>
@@ -724,6 +819,61 @@ function pumpBandEndpoint(contracts, bands, idx, crudeBandBbl, nSigma = 1) {
 }
 
 // State — locked to Brent + pump price for this story page
+// ---- war timeline ----
+// First month whose pump price reflects the conflict. Dec 2025 is the last
+// clean pre-war month; Jan-Feb 2026 prices were at or below that baseline.
+const WAR_START = '2026-03';
+
+const MTHS_FULL = ['January','February','March','April','May','June',
+                   'July','August','September','October','November','December'];
+const MTHS_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function ymLabel(ym, full) {
+  const [y, m] = ym.split('-');
+  const names = full ? MTHS_FULL : MTHS_ABBR;
+  return names[parseInt(m, 10) - 1] + ' ' + y;
+}
+function money(v) { return '$' + Math.round(Math.abs(v)).toLocaleString(); }
+
+// Build the month-by-month war cost series: realized months use actual EIA
+// pump prices, later months use the futures-implied forecast.
+function buildWarSeries(contracts, bands, galPerMonth) {
+  const hist = oilData?.historical_pump || [];
+  const regionOff = PUMP_REGIONS[pumpRegion].offset;
+
+  const realized = hist
+    .filter(h => h.month >= WAR_START)
+    .map(h => {
+      const pump = h.price + regionOff;
+      const extra = pump - getPreWarBaseline(parseInt(h.month.slice(5, 7), 10));
+      return { ym: h.month, pump, extra, monthly: extra * galPerMonth, actual: true };
+    });
+
+  const lastHist = realized.length ? realized[realized.length - 1].ym : null;
+
+  const forward = [];
+  contracts.forEach((c, i) => {
+    if (lastHist && c.expiry <= lastHist) return;
+    if (c.expiry < WAR_START) return;
+    const pump = pumpForContract(contracts, bands, i);
+    const extra = pump - getPreWarBaseline(parseInt(c.expiry.slice(5, 7), 10));
+    forward.push({ ym: c.expiry, pump, extra, monthly: extra * galPerMonth, actual: false });
+  });
+
+  return { realized, forward };
+}
+
+// The month prices durably fall back to the pre-war baseline: the first
+// forward month at or below baseline that is never exceeded again.
+// Returns forward.length when the curve never converges.
+function findReturnIndex(forward) {
+  for (let i = 0; i < forward.length; i++) {
+    if (forward[i].extra > 0) continue;
+    if (forward.slice(i).every(r => r.extra <= 0)) return i;
+  }
+  return forward.length;
+}
+
 let oilData      = null;
 let lagModel     = null;
 let pumpRegion   = 'national';
@@ -1014,7 +1164,7 @@ function updateSliderRange() {
   const today = new Date();
   const allMonths = [
     ...histPump.map(h => h.month),
-    ...histWti.map(h => h.month),
+    ...histCrude.map(h => h.month),
     ...snaps.map(s => s.date.slice(0, 7)),
   ].filter(m => m <= today.toISOString().slice(0, 7));
   if (allMonths.length) {
@@ -1043,7 +1193,9 @@ function getPreWarBaseline(deliveryMonth) {
   // otherwise fall back to Brent-derived estimate.
   // Seasonal delta uses the lag model's fitted premium (same source as pumpForContract)
   // so the summer surcharge cancels out of the war-cost calculation correctly.
-  const sp = lagModel?.seasonal_premium_nardl ?? lagModel?.seasonal_premium ?? 0.12;
+  // Must match the premium pumpForContract() adds, otherwise normal seasonal
+  // variation leaks into the delta and is miscounted as war cost.
+  const sp = lagModel?.seasonal_premium ?? 0.12;
   const seasonalDelta = (deliveryMonth >= 4 && deliveryMonth <= 9) ? sp : 0;
 
   const histPump = oilData?.historical_pump || [];
@@ -1074,55 +1226,90 @@ function renderCostCalc() {
   if (!contracts.length) return;
   const bands = computeBands(contracts);
 
-  const MTHS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const today = new Date();
-  const todayYM = today.toISOString().slice(0, 7);
-  // 12-month window starting from the nearest future contract
-  const cutoff = new Date(today);
-  cutoff.setMonth(cutoff.getMonth() + 12);
-  const cutoffYM = cutoff.toISOString().slice(0, 7);
+  const { realized, forward } = buildWarSeries(contracts, bands, galPerMonth);
+  const returnIdx = findReturnIndex(forward);
+  const converges = returnIdx < forward.length;
+  const elevated  = forward.slice(0, returnIdx);   // still above pre-war
+  const rows      = realized.concat(elevated);
+  if (!rows.length) return;
 
-  const rows = [];
-  contracts.forEach((c, i) => {
-    if (c.expiry < todayYM || c.expiry > cutoffYM) return;
-    const deliveryMonth = parseInt(c.expiry.slice(5, 7), 10);
-    const pump    = pumpForContract(contracts, bands, i);
-    const extra   = pump - getPreWarBaseline(deliveryMonth);  // seasonal-adjusted baseline
-    const monthly = extra * galPerMonth;
-    const [y, m]  = c.expiry.split('-');
-    rows.push({ label: MTHS[parseInt(m, 10) - 1] + ' ' + y, pump, extra, monthly });
-  });
+  const sofarTotal  = realized.reduce((s, r) => s + r.monthly, 0);
+  const futureTotal = elevated.reduce((s, r) => s + r.monthly, 0);
+  const grandTotal  = sofarTotal + futureTotal;
 
-  const totalExtra = rows.reduce((s, r) => s + r.monthly, 0);
-  const maxMonthly = Math.max(...rows.map(r => Math.abs(r.monthly)), 1);
+  // ---- summary panels ----
+  document.getElementById('war-start-label').textContent =
+    'War began ' + ymLabel(WAR_START, true);
 
-  const tbodyHTML = rows.map(r => {
-    const barPct  = Math.round((Math.abs(r.monthly) / maxMonthly) * 100);
-    const sign    = r.extra >= 0 ? '+' : '';
-    const mSign   = r.monthly >= 0 ? '+' : '';
-    const warClass = r.extra >= 0 ? 'war-cost' : '';
-    return `<tr>
-      <td>${r.label}</td>
-      <td>$${r.pump.toFixed(2)}</td>
-      <td class="${warClass}">${sign}$${r.extra.toFixed(2)}</td>
-      <td class="${warClass}">${mSign}$${Math.round(Math.abs(r.monthly)).toLocaleString()}</td>
-      <td class="bar-cell"><div class="cost-bar-track"><div class="cost-bar-fill" style="width:${barPct}%"></div></div></td>
-    </tr>`;
-  }).join('');
+  document.getElementById('war-cost-sofar').textContent = money(sofarTotal);
+  document.getElementById('war-sofar-sub').textContent = realized.length
+    ? `${ymLabel(realized[0].ym)} – ${ymLabel(realized[realized.length - 1].ym)} · ${realized.length} mo actual`
+    : 'no realized months yet';
 
-  const tSign = totalExtra >= 0 ? '+' : '−';
-  const tfootHTML = `<tr>
-    <td colspan="3">Total over next 12 months</td>
-    <td class="war-cost">${tSign}$${Math.round(Math.abs(totalExtra)).toLocaleString()}</td>
-    <td></td>
-  </tr>`;
-
-  document.getElementById('cost-table-body').innerHTML = tbodyHTML;
-  document.getElementById('cost-table-foot').innerHTML = tfootHTML;
+  document.getElementById('war-cost-future').textContent = money(futureTotal);
+  document.getElementById('war-future-sub').textContent = elevated.length
+    ? `${ymLabel(elevated[0].ym)} – ${ymLabel(elevated[elevated.length - 1].ym)} · futures-implied`
+    : 'futures show no further premium';
 
   const totalEl = document.getElementById('cost-total-number');
-  totalEl.textContent = `${tSign}$${Math.round(Math.abs(totalExtra)).toLocaleString()}`;
-  totalEl.style.color = totalExtra >= 0 ? '#c0392b' : '#27ae60';
+  totalEl.textContent = money(grandTotal);
+  totalEl.style.color = grandTotal >= 0 ? '#c0392b' : '#27ae60';
+
+  const months = rows.length;
+  document.getElementById('cost-total-label').innerHTML = converges
+    ? `total cost of the war to you — ${months} months of elevated prices<br>
+       <span style="color:#bbb">futures expect pump prices back to pre-war levels by
+       <strong style="color:#27ae60">${ymLabel(forward[returnIdx].ym, true)}</strong></span>`
+    : `total cost of the war to you so far — ${months} months and counting<br>
+       <span style="color:#bbb">futures do not price a return to pre-war levels through
+       ${ymLabel(forward[forward.length - 1].ym, true)}; this is a floor, not a final bill</span>`;
+
+
+  // Keep the headline peak in sync with realized data (article page only).
+  const peakEl = document.getElementById('deck-peak');
+  if (peakEl && realized.length) {
+    const peak = realized.reduce((a, b) => Math.abs(b.extra) > Math.abs(a.extra) ? b : a);
+    peakEl.textContent = '$' + Math.abs(peak.extra).toFixed(2);
+  }
+  // ---- month-by-month table ----
+  const maxMonthly = Math.max(...rows.map(r => Math.abs(r.monthly)), 1);
+  let cum = 0;
+  const dividerRow = (cls, text) =>
+    `<tr class="divider ${cls}"><td colspan="6">${text}<span class="rule"></span></td></tr>`;
+
+  let html = dividerRow('war', 'War begins · ' + ymLabel(WAR_START, true));
+
+  rows.forEach((r, i) => {
+    if (i === realized.length && elevated.length) {
+      html += dividerRow('war', 'Futures forecast from here');
+    }
+    cum += r.monthly;
+    const barPct   = Math.round((Math.abs(r.monthly) / maxMonthly) * 100);
+    const warClass = r.extra >= 0 ? 'war-cost' : '';
+    const rowClass = r.actual ? 'settled' : 'forecast';
+    const barClass = r.actual ? '' : ' forecast';
+    html += `<tr class="${rowClass}">
+      <td>${ymLabel(r.ym)}</td>
+      <td>$${r.pump.toFixed(2)}</td>
+      <td class="${warClass}">${r.extra >= 0 ? '+' : '−'}$${Math.abs(r.extra).toFixed(2)}</td>
+      <td class="${warClass}">${r.monthly >= 0 ? '+' : '−'}${money(r.monthly)}</td>
+      <td class="cum">${money(cum)}</td>
+      <td class="bar-cell"><div class="cost-bar-track"><div class="cost-bar-fill${barClass}" style="width:${barPct}%"></div></div></td>
+    </tr>`;
+  });
+
+  if (converges) {
+    html += dividerRow('peace',
+      'Prices back to pre-war · ' + ymLabel(forward[returnIdx].ym, true));
+  }
+
+  document.getElementById('cost-table-body').innerHTML = html;
+  document.getElementById('cost-table-foot').innerHTML = `<tr>
+    <td colspan="3">Total cost of the war</td>
+    <td class="war-cost">${grandTotal >= 0 ? '+' : '−'}${money(grandTotal)}</td>
+    <td class="war-cost">${money(grandTotal)}</td>
+    <td></td>
+  </tr>`;
 }
 </script>
 
